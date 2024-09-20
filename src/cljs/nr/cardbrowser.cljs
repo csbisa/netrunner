@@ -34,7 +34,7 @@
                   {} (:cards format))))
 
 (go (let [server-version (get-in (<! (GET "/data/cards/version")) [:json :version])
-          lang (get-in @app-state [:options :language] "en")
+          lang (get-in @app-state [:options :card-language] "en")
           local-cards (js->clj (.parse js/JSON (.getItem js/localStorage "cards")) :keywordize-keys true)
           need-update? (or (not local-cards)
                            (not= server-version (:version local-cards))

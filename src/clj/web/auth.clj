@@ -171,7 +171,7 @@
     (response 404 {:message "Account not found"})))
 
 (def profile-keys
-  [:background :pronouns :language :default-format :show-alt-art :blocked-users
+  [:background :pronouns :language :card-language :default-format :show-alt-art :blocked-users
    :alt-arts :card-resolution :deckstats :gamestats :card-zoom :pin-zoom :card-back-display
    :corp-card-sleeve :runner-card-sleeve :prizes :stacked-cards :ghost-trojans :display-encounter-info
    :sides-overlap :archives-sorted :heap-sorted :log-timestamps

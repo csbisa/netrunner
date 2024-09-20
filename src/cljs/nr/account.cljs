@@ -46,7 +46,7 @@
 (defn handle-post [event s]
   (.preventDefault event)
   (swap! s assoc :flash-message (tr [:settings_updating "Updating profile..."]))
-  (let [{:keys [pronouns bespoke-sounds language sounds default-format
+  (let [{:keys [pronouns bespoke-sounds language card-language sounds default-format
                 lobby-sounds volume background custom-bg-url corp-card-sleeve runner-card-sleeve card-zoom
                 pin-zoom show-alt-art card-resolution pass-on-rez
                 player-stats-icons stacked-cards ghost-trojans prizes
@@ -59,6 +59,7 @@
                            :pronouns pronouns
                            :bespoke-sounds bespoke-sounds
                            :language language
+                           :card-language card-language
                            :sounds sounds
                            :default-format default-format
                            :lobby-sounds lobby-sounds
@@ -88,6 +89,7 @@
                            :deckstats deckstats
                            :disable-websockets disable-websockets)))
     (save-to-local-storage! "language" language)
+    (save-to-local-storage! "card-language" card-language)
     (save-to-local-storage! "sounds" sounds)
     (save-to-local-storage! "default-format" default-format)
     (save-to-local-storage! "lobby_sounds" lobby-sounds)
@@ -352,9 +354,27 @@
            [:div "If your personal pronouns are not represented, you can request them "
             [:a {:href "https://github.com/mtgred/netrunner/issues"} "here"]]]
           [:section
-           [:h3 (tr [:settings_language "Language"])]
+           [:h3 (tr [:settings_language "UI Language"])]
            [:select {:value (:language @s "en")
                      :on-change #(swap! s assoc :language (.. % -target -value))}
+            (doall
+              (for [option [{:name "English" :ref "en"}
+                            {:name "中文 (Simplified)" :ref "zh-simp"}
+                            {:name "中文 (Traditional)" :ref "zh-trad"}
+                            {:name "Français" :ref "fr"}
+                            {:name "Deutsch" :ref "de"}
+                            {:name "Italiano" :ref "it"}
+                            {:name "日本語" :ref "ja"}
+                            {:name "한국어" :ref "ko"}
+                            {:name "Polski" :ref "pl"}
+                            {:name "Português" :ref "pt"}
+                            {:name "Русский" :ref "ru"}
+                            {:name "Igpay Atinlay" :ref "la-pig"}]]
+                [:option {:value (:ref option) :key (:ref option)} (:name option)]))]]
+          [:section
+           [:h3 (tr [:settings_card-language "Card Language"])]
+           [:select {:value (:card-language @s "en")
+                     :on-change #(swap! s assoc :card-language (.. % -target -value))}
             (doall
               (for [option [{:name "English" :ref "en"}
                             {:name "中文 (Simplified)" :ref "zh-simp"}
@@ -685,7 +705,7 @@
         scroll-top (atom 0)
         state (r/atom
                (-> (:options @app-state)
-                   (select-keys [:pronouns :bespoke-sounds :language :sounds :default-format
+                   (select-keys [:pronouns :bespoke-sounds :language :card-language :sounds :default-format
                                  :lobby-sounds :volume :background :custom-bg-url :card-zoom
                                  :pin-zoom :show-alt-art :card-resolution :pass-on-rez
                                  :player-stats-icons :stacked-cards :ghost-trojans
