@@ -12,7 +12,7 @@
     [game.core.gaining :refer [gain-credits]]
     [game.core.ice :refer [active-ice? break-subs-event-context get-current-ice get-run-ices update-ice-strength reset-all-ice reset-all-subs! set-current-ice]]
     [game.core.mark :refer [is-mark?]]
-    [game.core.payment :refer [build-cost-string build-spend-msg can-pay? merge-costs ->c]]
+    [game.core.payment :refer [build-cost-string build-spend-msg-suffix can-pay? merge-costs ->c]]
     [game.core.prevention :refer [resolve-encounter-prevention resolve-end-run-prevention resolve-jack-out-prevention]]
     [game.core.prompts :refer [clear-run-prompts clear-wait-prompt show-run-prompts show-prompt show-wait-prompt]]
     [game.core.say :refer [play-sfx system-msg]]
@@ -135,9 +135,11 @@
                        ices (get-in @state (concat [:corp :servers] s [:ices]))
                        n (count ices)]
                    (when (not-empty payment-str)
-                     (system-msg state :runner (str (build-spend-msg payment-str "make a run on" "makes a run on")
-                                                    (zone->name (unknown->kw server))
-                                                    (when ignore-costs ", ignoring all costs"))))
+                     (system-msg state :runner {:cost payment-str
+                                                :raw-text
+                                                (str (build-spend-msg-suffix payment-str "make a run on" "makes a run on")
+                                                     (zone->name (unknown->kw server))
+                                                     (when ignore-costs ", ignoring all costs"))}))
                    ;; s is a keyword for the server, like :hq or :remote1
                    (let [run-id (make-eid state)]
                      (swap! state assoc
@@ -743,8 +745,8 @@
        (if (can-pay? state side eid nil "jack out" cost)
          (wait-for (pay state :runner nil cost)
                    (if-let [payment-str (:msg async-result)]
-                     (do (when-not (string/blank? payment-str)
-                           (system-msg state :runner (str payment-str " to jack out")))
+                     (do (when-not (empty? payment-str)
+                           (system-msg state :runner {:cost payment-str :raw-text (str payment-str " to jack out")}))
                          (wait-for (resolve-jack-out-prevention state side nil)
                                    (if (pos? (:remaining async-result))
                                      (resolve-jack-out state side eid)

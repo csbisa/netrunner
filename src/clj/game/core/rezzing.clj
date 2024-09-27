@@ -11,7 +11,7 @@
     [game.core.ice :refer [update-ice-strength]]
     [game.core.initializing :refer [card-init deactivate]]
     [game.core.moving :refer [trash-cards]]
-    [game.core.payment :refer [build-spend-msg can-pay? merge-costs ->c]]
+    [game.core.payment :refer [build-spend-msg-suffix can-pay? merge-costs ->c]]
     [game.core.runs :refer [continue]]
     [game.core.say :refer [play-sfx system-msg implementation-msg]]
     [game.core.toasts :refer [toast]]
@@ -65,9 +65,10 @@
                                (str " (paying " cost-bonus " [Credits] more)")
                                (str " (paying " (- cost-bonus) " [Credits] less)")))
         final-msg (if source-card
-                    (str (build-spend-msg modified-cost-str "use" "uses") source-card " to rez " title-card rhs)
-                    (str (build-spend-msg modified-cost-str "rez" "rezzes") title-card rhs))]
-    (system-msg state side final-msg)))
+                    (str (build-spend-msg-suffix modified-cost-str "use" "uses") source-card " to rez " title-card rhs)
+                    (str (build-spend-msg-suffix modified-cost-str "rez" "rezzes") title-card rhs))]
+    (system-msg state side {:cost msg
+                            :raw-text final-msg})))
 
 (defn- complete-rez
   [state side eid
@@ -173,9 +174,9 @@
         titles (enumerate-str (map #(card-str state % {:visible true}) cards))
         rhs " (ignoring all costs)"
         final-msg (if source-card
-                    (str (build-spend-msg cost-str "use" "uses") source-card " to rez " titles rhs)
-                    (str (build-spend-msg cost-str "rez" "rezzes") titles rhs))]
-    (system-msg state side final-msg)))
+                    (str (build-spend-msg-suffix cost-str "use" "uses") source-card " to rez " titles rhs)
+                    (str (build-spend-msg-suffix cost-str "rez" "rezzes") titles rhs))]
+    (system-msg state side {:cost cost-str :raw-text final-msg})))
 
 (defn rez-multiple-cards
   "Simultaneously rez (or attempt to rez) multiple cards (in an arbitrary order). I think these will always be ignoring all costs"

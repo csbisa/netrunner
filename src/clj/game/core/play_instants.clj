@@ -10,7 +10,7 @@
     [game.core.gaining :refer [lose]]
     [game.core.initializing :refer [card-init]]
     [game.core.moving :refer [move trash]]
-    [game.core.payment :refer [build-spend-msg can-pay? merge-costs ->c]]
+    [game.core.payment :refer [build-spend-msg-suffix can-pay? merge-costs ->c]]
     [game.core.revealing :refer [reveal]]
     [game.core.say :refer [play-sfx system-msg implementation-msg]]
     [game.core.update :refer [update!]]
@@ -36,7 +36,8 @@
   (let [play-msg (if ignore-cost
                    "play "
                    (build-spend-msg payment-str "play"))]
-    (system-msg state side (str play-msg title  (when as-flashback (str " from " (when (= side :corp) "Archives" "the heap"))) (when ignore-cost " at no cost")))
+    (system-msg state side (merge (when-not ignore-cost {:cost payment-str})
+                                  {:raw-text (str play-msg title  (when as-flashback (str " from " (when (= side :corp) "Archives" "the heap"))) (when ignore-cost " at no cost"))})))
     (implementation-msg state card)
     (if-let [sfx (:play-sound (card-def card))]
       (play-sfx state side sfx)
