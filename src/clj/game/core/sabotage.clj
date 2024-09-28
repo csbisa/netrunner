@@ -29,14 +29,9 @@
                            (- n selected-hq))
           to-trash (concat targets (take selected-rd (:deck corp)))]
       (system-msg state side
-                  (str
-                    "trashes"
-                    (when (pos? selected-hq)
-                      (str " " selected-hq " " (pluralize "card" selected-hq) " from HQ"))
-                    (when (and (pos? selected-hq) (pos? selected-rd))
-                      " and")
-                    (when (pos? selected-rd)
-                      (str " " selected-rd " " (pluralize "card" selected-rd) " from the top of R&D"))))
+                  {:type :direct-effect
+                   :effect (into [] (concat (when (pos? selected-hq) [[:trash-from-hq selected-hq]])
+                                            (when (pos? selected-rd) [[:trash-rnd selected-rd]])))})
       (trash-cards state side eid to-trash {:unpreventable true}))))
 
 (defn sabotage-ability
@@ -64,7 +59,7 @@
                                                           (choosing-ab forced-hq)
                                                           card nil))))}]
     {:req (req (pos? n))
-     :msg (msg "sabotage " n)
+     :msg (req [[:sabotage n]])
      :async true
      :effect (req
                (swap! state update-in [:stats :runner :cards-sabotaged] (fnil + 0) n)

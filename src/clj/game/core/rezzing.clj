@@ -49,26 +49,19 @@
 (defn rez-message
   [state side eid card cost-str {:keys [alternative-cost cost-bonus ignore-cost msg-keys cost-msg] :as args}]
   (let [source-card (or (:title (:source eid)) (:printed-title (:source eid)))
-        title-card (card-str state card {:visible true})
+        title-card (card-str-map state card {:visible true})
         prepend-cost-str (get-in msg-keys [:include-cost-from-eid :latest-payment-str])
         cost-str (when-not (= ignore-cost :all-costs) cost-msg)
-        pre-lhs (when (every? (complement string/blank?) [cost-str prepend-cost-str])
-                  (str prepend-cost-str ", and then "))
-        modified-cost-str (if (string/blank? cost-str)
-                            prepend-cost-str
-                            (if (string/blank? pre-lhs)
-                              cost-str
-                              (str cost-str ",")))
-        rhs (cond alternative-cost " by paying its alternative cost"
-                  ignore-cost " at no cost"
-                  cost-bonus (if (pos? cost-bonus)
-                               (str " (paying " cost-bonus " [Credits] more)")
-                               (str " (paying " (- cost-bonus) " [Credits] less)")))
-        final-msg (if source-card
-                    (str (build-spend-msg-suffix modified-cost-str "use" "uses") source-card " to rez " title-card rhs)
-                    (str (build-spend-msg-suffix modified-cost-str "rez" "rezzes") title-card rhs))]
-    (system-msg state side {:cost msg
-                            :raw-text final-msg})))
+        modified-cost-str (if (empty? prepend-cost-str)
+                            cost-str
+                            [prepend-cost-str cost-str])]
+    (system-msg state side
+                (merge {:type :rez :card title-card}
+                       (when-not (= ignore-cost :all-costs) {:cost modified-cost-str})
+                       (when alternative-cost {:alternative-cost true})
+                       (when ignore-cost {:ignore-cost true})
+                       (when cost-bonus {:cost-bonus cost-bonus})
+                       (when source-card {:rez-source source-card})))))
 
 (defn- complete-rez
   [state side eid

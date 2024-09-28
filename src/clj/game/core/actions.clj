@@ -24,7 +24,7 @@
     [game.core.runs :refer [continue get-runnable-zones]]
     [game.core.say :refer [play-sfx system-msg implementation-msg]]
     [game.core.servers :refer [name-zone zones->sorted-names]]
-    [game.core.to-string :refer [card-str]]
+    [game.core.to-string :refer [card-str card-str-map]]
     [game.core.toasts :refer [toast]]
     [game.core.update :refer [update!]]
     [game.macros :refer [continue-ability req wait-for]]
@@ -522,22 +522,13 @@
                                               [(remove :broken (:subroutines current-ice))])]
                     (wait-for (resolve-ability state side (play-auto-pump-and-break-impl state side payment-eid sub-groups-to-break current-ice break-ability) card nil)
                               (system-msg state side
-                                          {:cost payment-str
-                                           :raw-text
-                                           (if (pos? times-pump)
-                                             (str (build-spend-msg-suffix payment-str "increase")
-                                                  "the strength of " (:title card)
-                                                  " to " (get-strength (get-card state card))
-                                                  " and break all " (when (< 1 unbroken-subs) unbroken-subs)
-                                                  " subroutines on " (:title current-ice))
-                                             (str (build-spend-msg-suffix payment-str "use")
-                                                  (:title card)
-                                                  " to break "
-                                                  (if some-already-broken
-                                                    "the remaining "
-                                                    "all ")
-                                                  unbroken-subs " subroutines on "
-                                                  (:title current-ice)))})
+                                          (merge
+                                           {:type :break-subs :cost payment-str
+                                            :card (:title card)
+                                            :ice (:title current-ice)
+                                            :break-type (if some-already-broken :remaining :all)
+                                            :sub-count unbroken-subs}
+                                           (when (pos? times-pump) {:str-boost (get-strength (get-card state card))})))
                               (when once-key (register-once state side {:once once-key} card))
                               (continue state side nil))))))))
 
@@ -682,8 +673,8 @@
                       (->c :click (if-not no-cost 1 0))
                       (->c :credit (if-not no-cost 1 0)))
                  (if-let [payment-str (:msg async-result)]
-                   (do (system-msg state side {:cost payment-str
-                                               :raw-text (str (build-spend-msg-suffix payment-str "advance") (card-str state card))})
+                   (do (system-msg state side {:type :advance :cost payment-str
+                                               :card (card-str-map state card)})
                        (update-advancement-requirement state card)
                        (wait-for
                          (add-prop state side (get-card state card) :advance-counter 1)
@@ -702,8 +693,7 @@
         _ (update-all-agenda-points state)
         c (get-card state c)
         points (get-agenda-points c)]
-    (system-msg state :corp (str "scores " (:title c)
-                                 " and gains " (quantify points "agenda point")))
+    (system-msg state :corp {:type :score :card (:title c) :points points})
     (implementation-msg state card)
     (set-prop state :corp (get-card state c) :advance-counter 0)
     (swap! state update-in [:corp :register :scored-agenda] #(+ (or % 0) points))
@@ -742,5 +732,6 @@
                            (if (empty? (:msg payment-result))
                              (effect-completed state side eid)
                              (do
-                               (system-msg state side (str (:msg payment-result) " to score " (:title card)))
+                               (system-msg state side {:type :score :cost (:msg payment-result)
+                                                       :card (:title card)})
                                (resolve-score state side eid card {:advancement-requirement adv-cost :advancement-tokens adv-tokens}))))))))))
