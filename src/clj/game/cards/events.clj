@@ -72,7 +72,7 @@
    [game.core.toasts :refer [toast]]
    [game.core.update :refer [update!]]
    [game.core.virus :refer [get-virus-counters]]
-   [game.macros :refer [continue-ability effect msg req wait-for]]
+   [game.macros :refer [continue-ability effect msg map-msg req wait-for]]
    [game.utils :refer :all]
    [jinteki.utils :refer :all]
    [jinteki.validator :refer [legal?]]))
@@ -802,9 +802,8 @@
    :leave-play (req (swap! state update-in [:corp :bad-publicity :additional] dec))})
 
 (defcard "Creative Commission"
-  {:on-play {:msg (msg "gain 5 [Credits]"
-                       (when (pos? (:click runner))
-                         " and lose [Click]"))
+  {:on-play {:msg (map-msg :gain-credits 5
+                           :lose-click (if (pos? (:click runner)) 1 0))
              :async true
              :effect (req (when (pos? (:click runner))
                             (lose-clicks state :runner 1))
@@ -2130,9 +2129,10 @@
              :automatic :draw-cards
              :silent (req true)
              :async true
-             :msg "draw 1 card"
+             :msg {:draw-cards 1}
              :req (req (and (#{:hq :rd} (target-server context))
                             this-card-run))
+             ; N.B. jailbreak has no msg here for the access bonus
              :effect (effect (register-events
                               card [(breach-access-bonus (target-server context) 1 {:duration :end-of-run})])
                              (draw eid 1))}]})
@@ -2604,7 +2604,7 @@
    {:prompt "Choose an Icebreaker"
     :change-in-game-state {:req (req (seq (:deck runner)))}
     :choices (req (cancellable (filter #(has-subtype? % "Icebreaker") (:deck runner)) :sorted))
-    :msg (msg "add " (:title target) " from the stack to the grip and shuffle the stack")
+    :msg (map-msg :add-from-stack (:title target))
     :async true
     :effect (effect (trigger-event :searched-stack)
                     (continue-ability
@@ -2616,7 +2616,7 @@
                            {:prompt (str "Install " (:title icebreaker) "?")
                             :yes-ability
                             {:async true
-                             :msg (msg " install " (:title icebreaker))
+                             :msg (map-msg :install (:title icebreaker))
                              :effect (req (runner-install state side (assoc eid :source card :source-type :runner-install) icebreaker nil)
                                           (shuffle! state side :deck))}
                             :no-ability
@@ -3763,7 +3763,7 @@
 
 (defcard "Sure Gamble"
   {:on-play
-   {:msg "gain 9 [Credits]"
+   {:msg {:gain-credits 9}
     :async true
     :effect (effect (gain-credits eid 9))}})
 
@@ -4117,9 +4117,8 @@
 
 (defcard "VRcation"
   {:on-play
-   {:msg (msg "draw 4 cards"
-              (when (pos? (:click runner))
-                " and lose [Click]"))
+   {:msg (req (merge {:draw-cards 4}
+                     (when (pos? (:click runner)) {:lose-click 1})))
     :change-in-game-state {:req (req (or (seq (:deck runner))
                                          (pos? (:click runner))))}
     :async true
@@ -4180,12 +4179,12 @@
   {:on-play (choose-one-helper
               {:player :corp}
               [{:option "Runner gains 6 [Credits]"
-                :ability {:msg "force the Runner to gain 6 [Credits]"
+                :ability {:msg (map-msg :gain-credits-force 6)
                           :display-side :corp
                           :async true
                           :effect (req (gain-credits state :runner eid 6))}}
                {:option "Runner draws 4 cards"
-                :ability {:msg "force the Runner to draw 4 cards"
+                :ability {:msg (map-msg :draw-cards-force 4)
                           :display-side :corp
                           :async true
                           :effect (req (draw state :runner eid 4))}}])})

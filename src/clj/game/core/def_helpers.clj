@@ -21,10 +21,10 @@
     [game.core.runs :refer [can-run-server? make-run jack-out]]
     [game.core.say :refer [system-msg system-say]]
     [game.core.servers :refer [zone->name]]
-    [game.core.to-string :refer [card-str]]
+    [game.core.to-string :refer [card-str card-str-map]]
     [game.core.toasts :refer [toast]]
     [game.core.tags :refer [gain-tags]]
-    [game.macros :refer [continue-ability effect msg req wait-for]]
+    [game.macros :refer [continue-ability effect msg map-msg req wait-for]]
     [game.utils :refer [enumerate-str remove-once same-card? server-card to-keyword quantify]]
     [jinteki.utils :refer [other-side]]))
 
@@ -130,7 +130,7 @@
   [dmg]
   {:label (str "Do " dmg " net damage")
    :async true
-   :msg (str "do " dmg " net damage")
+   :msg {:deal-net dmg}
    :effect (effect (damage eid :net dmg {:card card}))})
 
 (defn do-meat-damage
@@ -138,7 +138,7 @@
   [dmg]
   {:label (str "Do " dmg " meat damage")
    :async true
-   :msg (str "do " dmg " meat damage")
+   :msg {:deal-meat dmg}
    :effect (effect (damage eid :meat dmg {:card card}))})
 
 (defn do-brain-damage
@@ -146,7 +146,7 @@
   [dmg]
   {:label (str "Do " dmg " core damage")
    :async true
-   :msg (str "do " dmg " core damage")
+   :msg {:deal-core dmg}
    :effect (effect (damage eid :brain dmg {:card card}))})
 
 (defn rfg-on-empty
@@ -156,7 +156,7 @@
    :req (req (and (same-card? card (:card context))
                   (not (get-in card [:special :skipped-loading]))
                   (not (pos? (get-counters card counter-type)))))
-   :effect (effect (system-msg (str "removes " (:title card) " from the game"))
+   :effect (effect (system-msg {:type :rfg :card (:title card)})
                    (move card :rfg))})
 
 (defn trash-on-empty
@@ -362,7 +362,7 @@
                      (effect-completed state side eid))))}))
 
 (defn gain-credits-ability [x]
-  {:msg (str "gain " x " [Credits]")
+  {:msg {:gain-credits x}
    :async true
    :effect (req (gain-credits state side eid x))})
 
@@ -404,7 +404,7 @@
     :choices {:card #(and (corp? %)
                        (in-discard? %)
                        (pred %))}
-    :msg (msg "add " (card-str state target {:visible (faceup? target)}) " to HQ")
+    :msg (map-msg :add-to-hq (card-str-map state target {:visible (faceup? target)}))
     :effect (effect (move :corp target :hand))}))
 
 (def card-defs-cache (atom {}))
