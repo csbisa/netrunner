@@ -1146,7 +1146,7 @@
                               card nil)))}]})
 
 (defcard "Hostile Takeover"
-  {:on-score {:msg "gain 7 [Credits] and take 1 bad publicity"
+  {:on-score {:msg {:gain-credits 7 :take-bp 1}
               :async true
               :effect (req (wait-for (gain-credits state side 7)
                                      (gain-bad-publicity state :corp eid 1)))
@@ -1155,7 +1155,8 @@
 (defcard "House of Knives"
   {:on-score (agenda-counters 3)
    :abilities [{:cost [(->c :agenda 1)]
-                :msg "do 1 net damage"
+                :label "Deal 1 net damage"
+                :msg {:deal-net 1}
                 :req (req (:run @state))
                 :once :per-run
                 :async true
@@ -1308,7 +1309,7 @@
               :choices {:card #(and (corp? %)
                                     (or (asset? %) (upgrade? %))
                                     (or (in-hand? %) (in-discard? %)))}
-              :msg (msg "install and rez " (:title target) ", ignoring all costs")
+              :msg (map-msg :install-and-rez-free (:title target))
               :async true
               :effect (effect (corp-install eid target nil {:install-state :rezzed-no-cost
                                                             :msg-keys {:install-source card
@@ -1555,7 +1556,8 @@
   {:on-score (agenda-counters 1)
    :abilities [{:change-in-game-state {:req (req (:run @state))}
                 :cost [(->c :agenda 1)]
-                :msg "end the run"
+                :label "End the run"
+                :msg {:end-run true}
                 :async true
                 :effect (effect (end-run eid card))}]})
 
@@ -1564,7 +1566,7 @@
    :events [{:event :advance
              :condition :faceup
              :req (req (same-card? card (:card context)))
-             :msg (msg "gain " (if (>= (get-counters (get-card state card) :advancement) 5) "3" "2") " [Credits]")
+             :msg (map-msg :gain-credits (if (>= (get-counters (get-card state card) :advancement) 5) 3 2))
              :async true
              :effect (effect (gain-credits eid (if (<= 5 (get-counters (get-card state card) :advancement)) 3 2)))}]})
 
@@ -1739,7 +1741,7 @@
                   :label "Search R&D and add 1 card to HQ"
                   ;; we need the req or the prompt will still show
                   :req (req (pos? (get-counters card :agenda)))
-                  :msg (msg "add " (:title target) " to HQ from R&D")
+                  :msg (map-msg :reveal-and-add (:title target))
                   :choices (req (cancellable (:deck corp) :sorted))
                   :cancel-effect (effect (system-msg (str "declines to use " (:title card)))
                                          (effect-completed eid))

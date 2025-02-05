@@ -68,7 +68,7 @@
    [game.core.shuffling :refer [shuffle! shuffle-into-deck]]
    [game.core.tags :refer [gain-tags gain-tags-ability lose-tags]]
    [game.core.threat :refer [threat threat-level]]
-   [game.core.to-string :refer [card-str]]
+   [game.core.to-string :refer [card-str card-str-map]]
    [game.core.toasts :refer [toast]]
    [game.core.update :refer [update!]]
    [game.core.virus :refer [get-virus-counters]]
@@ -1118,7 +1118,7 @@
 
 (defcard "Diesel"
   {:on-play
-   {:msg "draw 3 cards"
+   {:msg {:draw-cards 3}
     :change-in-game-state {:req (req (seq (:deck runner)))}
     :async true
     :effect (effect (draw eid 3))}})
@@ -1160,7 +1160,7 @@
    :events [{:event :run-ends
              :req (req (and (:successful target)
                             this-card-run))
-             :msg "gain 5 [Credits]"
+             :msg {:gain-credits 5}
              :async true
              :effect (effect (gain-credits :runner eid 5))}]})
 
@@ -1299,7 +1299,7 @@
                                    (map second)
                                    (keep #(get-card state (:ice (first %))))
                                    (filter (complement rezzed?)))))}
-    :msg (msg "trash " (card-str state target))
+    :msg (map-msg :trash (card-str-map state target))
     :async true
     :cancel-effect (req (do-nothing state side eid nil card))
     :effect (effect (trash eid target {:cause-card card}))}})
@@ -1557,6 +1557,7 @@
                                   (str "Rez " (card-str state ice)))
                                 (str "Trash " (card-str state ice))]
                       :async true
+                      ;; TODO can't figure out how to get the card state from here
                       :msg (msg "force the Corp to " (decapitalize target))
                       :waiting-prompt true
                       :effect (req (if (str/starts-with? target "Rez")
@@ -2020,7 +2021,7 @@
    :events [{:event :encounter-ice
              :automatic :bypass
              :req (req (first-run-event? state side :encounter-ice))
-             :msg (msg "bypass " (:title (:ice context)))
+             :msg (map-msg :bypass (card-str-map (:ice context)))
              :effect (req (bypass-ice state))}]})
 
 (defcard "Insight"
@@ -2644,7 +2645,8 @@
                               {:prompt (msg "Pay 1 [Credits] to add " (:title card) " to Grip?")
                                :yes-ability
                                {:cost [(->c :credit 1)]
-                                :msg "add itself to the Grip"
+                                ;; TODO same, self-reference here
+                                :msg {:add-to-grip "itself"}
                                 :effect (effect (move card :hand))}}}
                              card nil)))}})
 
@@ -3862,7 +3864,7 @@
                                                 [{:event :runner-turn-ends
                                                   :duration :end-of-turn
                                                   :req (req (get-in (find-latest state installed-card) [:special :test-run]))
-                                                  :msg (msg "move " (:title installed-card) " to the top of the stack")
+                                                  :msg (map-msg :move-to-top-stack (:title installed-card))
                                                   :effect (effect (move (find-latest state installed-card) :deck {:front true}))}])
                                               (effect-completed state side eid))
                                             (effect-completed state side eid))))})

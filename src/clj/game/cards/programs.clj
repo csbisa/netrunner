@@ -349,7 +349,7 @@
                     :cost [(->c :trash-can)]
                     :req (req (and (active-encounter? state)
                                    (has-subtype? current-ice ice-type)))
-                    :msg (msg "bypass " (:title current-ice))
+                    :msg (map-msg :bypass (:title current-ice))
                     :effect (req (bypass-ice state)
                                  (continue state :runner nil))}]})))
 
@@ -515,7 +515,7 @@
 (defcard "Atman"
   (auto-icebreaker
     {:on-install {:cost [(->c :x-credits)]
-                  :msg (msg "place " (quantify (cost-value eid :x-credits) "power counter") " on itself")
+                  :msg (map-msg :place-counter [:power (cost-value eid :x-credits)])
                   :async true
                   :effect (effect (add-counter eid card :power (cost-value eid :x-credits) nil))}
      :abilities [(break-sub 1 1 "All" {:req (req (= (get-strength current-ice) (get-strength card)))})]
@@ -807,10 +807,12 @@
 (defcard "Chameleon"
   (auto-icebreaker {:on-install {:prompt "Choose one"
                                  :choices ["Barrier" "Code Gate" "Sentry"]
+                                 ;; TODO
                                  :msg (msg "choose " target)
                                  :effect (effect (update! (assoc card :subtype-target target)))}
                     :events [{:event :runner-turn-ends
-                              :msg "add itself to Grip"
+                              ;; TODO self-reference again
+                              :msg {:add-to-grip "itself"}
                               :interactive (req true)
                               :effect (effect (move card :hand))}]
                     :abilities [(break-sub 1 1 "All" {:req (req (if-let [subtype (:subtype-target card)]
@@ -1338,8 +1340,7 @@
 (defcard "Egret"
   (trojan {:rezzed true})
   {:implementation "[Erratum] Program: Trojan"
-   :on-install {:msg (msg "make " (card-str state (:host card))
-                          " gain Barrier, Code Gate and Sentry subtypes")}
+   :on-install {:msg (map-msg :gain-type [(card-str-map state (:host card)) ["Barrier" "Code Gate" "Sentry"]])}
    :static-abilities [{:type :gain-subtype
                        :req (req (same-card? target (:host card)))
                        :value ["Barrier" "Code Gate" "Sentry"]}]})
@@ -1462,6 +1463,7 @@
       :choices {:card ice?}
       :effect (req (let [ice target]
                      (add-icon state side card ice "FF" (faction-label card))
+                     ;; TODO
                      (system-msg state side
                                  (str "selects " (card-str state ice)
                                       " for " (:title card) "'s bypass ability"))
@@ -1479,7 +1481,7 @@
                                         :effect (req (wait-for
                                                        (pay state side (make-eid state eid) card [(->c :credit (count (:subroutines (get-card state ice))))])
                                                        (let [payment-str (:msg async-result)
-                                                             msg-ab {:msg (str "bypass " (:title (:ice context)))}]
+                                                             msg-ab {:msg {:bypass (:title (:ice context))}}]
                                                          (print-msg state side msg-ab card nil payment-str))
                                                        (bypass-ice state)
                                                        (effect-completed state side eid)))}}}])))}
@@ -1823,7 +1825,7 @@
                                                   (not (in-discard? target))
                                                   (not (get-in @state [:per-turn (:cid card)]))))
                                    :cost [(->c :virus 1)]
-                                   :msg (msg "trash " (:title target) " at no cost")
+                                   :msg (map-msg :trash-free (:title target))
                                    :once :per-turn
                                    :async true
                                    :effect (effect (trash eid (assoc target :seen true)
@@ -3091,7 +3093,8 @@
   {:abilities [{:action true
                 :cost [(->c :click 1)]
                 :change-in-game-state {:req (req archives-runnable)}
-                :msg "make a run on Archives"
+                :label "Make a run on Archives"
+                :msg {:make-run [:servers :archives]}
                 :makes-run true
                 :async true
                 :effect (effect (register-events
@@ -3100,6 +3103,7 @@
                                     :duration :end-of-run
                                     :unregister-once-resolved true
                                     :interactive (req true)
+                                    ;; TODO
                                     :msg "change the attacked server to HQ"
                                     :req (req (= :archives (-> run :server first)))
                                     :effect (req (swap! state assoc-in [:run :server] [:hq]))}])

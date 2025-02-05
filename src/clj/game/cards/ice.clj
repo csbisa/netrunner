@@ -61,10 +61,10 @@
    [game.core.subtypes :refer [update-all-subtypes]]
    [game.core.tags :refer [gain-tags lose-tags sum-tag-effects]]
    [game.core.threat :refer [threat threat-level]]
-   [game.core.to-string :refer [card-str]]
+   [game.core.to-string :refer [card-str card-str-map]]
    [game.core.toasts :refer [toast]]
    [game.core.update :refer [update!]]
-   [game.macros :refer [continue-ability effect msg req wait-for]]
+   [game.macros :refer [continue-ability effect msg map-msg map-msg-apply req wait-for]]
    [game.utils :refer :all]
    [jinteki.utils :refer :all]))
 
@@ -152,6 +152,7 @@
     :choices (req ["End the run"
                    (when (can-pay? state :runner eid card nil cost)
                      (capitalize (cost->string cost)))])
+    ;; TODO arbitrary target is... eh
     :msg (msg (if (= "End the run" target)
                 (decapitalize target)
                 (str "force the runner to " (decapitalize target))))
@@ -208,7 +209,7 @@
 (def gain-power-counter
   "Places 1 power counter on a card."
   {:label "Place 1 power counter"
-   :msg "place 1 power counter on itself"
+   :msg {:place-counter [:power 1]}
    :change-in-game-state {:silent (req true) :req (req (installed? card))}
    :async true
    :effect (req (add-counter state side eid card :power 1 {:placed true}))})
@@ -323,7 +324,8 @@
   ; Runner loses a click effect
   {:label "Force the Runner to lose [Click]"
    :change-in-game-state {:silent (req true) :req (req (pos? (:click runner)))}
-   :msg "force the Runner to lose [Click], if able"
+   ;; TODO losing force / if able
+   :msg {:lose-click 1}
    :effect (effect (lose-clicks :runner 1))})
 
 (defn runner-loses-credits
@@ -351,7 +353,7 @@
 (def trash-program-sub
   {:prompt "Choose a program to trash"
    :label "Trash a program"
-   :msg (msg "trash " (:title target))
+   :msg (map-msg :trash (:title target))
    :waiting-prompt true
    :change-in-game-state {:silent true :req (req (seq (filter program? (all-installed state :runner))))}
    :choices {:card #(and (installed? %)
@@ -376,7 +378,7 @@
 (def trash-hardware-sub
   {:prompt "Choose a piece of hardware to trash"
    :label "Trash a piece of hardware"
-   :msg (msg "trash " (:title target))
+   :msg (map-msg :trash (:title target))
    :choices {:card #(and (installed? %)
                          (hardware? %))}
    :waiting-prompt true
@@ -387,7 +389,7 @@
 (def trash-resource-sub
   {:prompt "Choose a resource to trash"
    :label "Trash a resource"
-   :msg (msg "trash " (:title target))
+   :msg (map-msg :trash (:title target))
    :choices {:card #(and (installed? %)
                          (resource? %))}
    :waiting-prompt true
@@ -399,7 +401,7 @@
   {:async true
    :prompt "Choose an installed card to trash"
    :label "Trash an installed Runner card"
-   :msg (msg "trash " (:title target))
+   :msg (map-msg :trash  (:title target))
    :waiting-prompt true
    :change-in-game-state {:silent true :req (req (seq (all-installed state :runner)))}
    :choices {:card #(and (installed? %)
@@ -2342,7 +2344,7 @@
       {:advanceable :always
        :subroutines [{:label "Gain 1 [Credits] (Gain 4 [Credits])"
                       :breakable breakable-fn
-                      :msg (msg "gain " (if (wonder-sub card 3) "4" "1") " [Credits]")
+                      :msg (map-msg :gain-credits (if (wonder-sub card 3) 4 1))
                       :async true
                       :effect (effect (gain-credits :corp eid (if (wonder-sub card 3) 4 1)))}
                      {:label "End the run (Search R&D for up to 2 cards and add them to HQ, shuffle R&D, end the run)"
@@ -2352,10 +2354,10 @@
                                      (wait-for
                                        (resolve-ability state side (hort 1) card nil)
                                        (do (system-msg state side
-                                                       (str "uses " (:title card) " to add 2 cards to HQ from R&D, "
-                                                            "shuffle R&D, and end the run"))
+                                                       {:type :use :card (:title card)
+                                                        :effect {:add-to-hq-unseen 2 :shuffle-rnd true :end-run true}})
                                            (end-run state side eid card)))
-                                     (do (system-msg state side (str "uses " (:title card) " to end the run"))
+                                     (do (system-msg state side {:type :use :card (:title card) :effect {:end-run true}})
                                          (end-run state side eid card))))}]})))
 
 (defcard "Hourglass"
@@ -2993,7 +2995,7 @@
                             (remove-once #(same-card? % card)
                                          (filter ice? (all-installed state corp)))))
             :prompt "Choose a Program to host"
-            :msg (msg "host " (card-str state target))
+            :msg (map-msg :host (card-str-map state target))
             :choices {:req (req (and (program? target)
                                      (ice? (:host target))
                                      (not (same-card? (:host target) card))))}
@@ -4153,7 +4155,7 @@
                        :value true}]
    :subroutines [{:async true
                   :prompt "Choose an AI program to trash"
-                  :msg (msg "trash " (:title target))
+                  :msg (map-msg :trash (:title target))
                   :label "Trash an AI program"
                   :change-in-game-state {:silent true :req (req (some #(and (installed? %) (program? %) (has-subtype? % "AI")) (all-installed state :runner)))}
                   :choices {:card #(and (installed? %)
@@ -4318,9 +4320,10 @@
   {:on-encounter {:async true
                   :effect (req (wait-for (pay state :runner (make-eid state eid) card [(->c :credit 3)])
                                          (if (:cost-paid async-result)
+                                           ;; TODO does this come down as a string or map
                                            (do (system-msg state :runner (str (:msg async-result) " on encountering " (:title card)))
                                                (effect-completed state side eid))
-                                           (do (system-msg state :corp (str "uses " (:title card) " to end the run"))
+                                           (do (system-msg state :corp {:type :use :card (:title card) :effect {:end-run true}})
                                                (end-run state :corp eid card)))))}
    :subroutines [end-the-run]})
 

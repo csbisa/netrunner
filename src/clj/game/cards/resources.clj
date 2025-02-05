@@ -250,7 +250,7 @@
                  :choices {:not-self true
                            :req (req (and (runner? target)
                                           (installed? target)))}
-                 :msg (msg "trash " (:title target) " and gain 3 [Credits]")
+                 :msg (map-msg :trash (:title target) :gain-credits 3)
                  :cancel-effect (effect (system-msg (str "declines to use " (:title card)))
                                         (effect-completed eid))
                  :effect (req (wait-for (trash state side target {:unpreventable true :cause-card card})
@@ -1391,7 +1391,8 @@
                   (prevent-trash-installed-by-type "Dummy Box (Resource)" #{"Resource"} [(->c :trash-resource-from-hand 1)] valid-context?)]}))
 
 (defcard "Earthrise Hotel"
-  (let [ability {:msg "draw 2 cards"
+  (let [ability {:label "Draw 2 cards"
+                 :msg {:draw-cards 2}
                  :automatic :draw-cards
                  :once :per-turn
                  :req (req (:runner-phase-12 @state))
@@ -2168,7 +2169,7 @@
                 :change-in-game-state {:req (req (pos? (get-counters card :credit)))}
                 :keep-menu-open :while-clicks-left
                 :label "gain 4 [Credits]"
-                :msg (msg "gain " (min 4 (get-counters card :credit)) " [Credits]")
+                :msg (map-msg :gain-credits (min 4 (get-counters card :credit)))
                 :async true
                 :effect (req (take-credits state side eid card :credit 4))}]
    :events [(trash-on-empty :credit)]})
@@ -2897,7 +2898,8 @@
 (defcard "Professional Contacts"
   {:abilities [{:action true
                 :cost [(->c :click 1)]
-                :msg "gain 1 [Credits] and draw 1 card"
+                :label "Gain 1 [Credit] and draw 1 card"
+                :msg {:gain-credits 1 :draw-cards 1}
                 :async true
                 :effect (req (wait-for (gain-credits state side 1)
                                        (play-sfx state side "professional-contacts")
@@ -3178,6 +3180,7 @@
                  :skippable true
                  :choices (req (concat servers ["No server"]))
                  :interactive (req true)
+                 ;; TODO
                  :msg (msg "target " target)
                  :req (req (and (:runner-phase-12 @state)
                                 (not (used-this-turn? (:cid card) state))))
@@ -3188,7 +3191,7 @@
                 (successful-run-replace-breach
                   {:mandatory true
                    :ability
-                   {:msg "gain 2 [Credits]"
+                   {:msg {:gain-credits 2}
                     :async true
                     :effect (effect (gain-credits eid 2))}})
                 :req (req (when-let [card (get-card state card)]

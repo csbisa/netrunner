@@ -506,8 +506,7 @@
                           :req (req (and (ice? target)
                                          (rezzed? target)
                                          (protecting-same-server? card target)))}
-                :msg (msg "add " (cost-value eid :x-credits)
-                          " strength to " (:title target))
+                :msg (map-msg :add-str [(:title target) (cost-value eid :x-credits)])
                 :effect (effect (pump-ice target (cost-value eid :x-credits) :end-of-turn))}]})
 
 (defcard "Crisium Grid"
@@ -879,7 +878,7 @@
   {:events [{:event :successful-run
              :automatic :corp-damage
              :req (req this-server)
-             :msg "do 1 net damage"
+             :msg {:deal-net 1}
              :async true
              :effect (effect (damage eid :net 1 {:card card}))}]})
 

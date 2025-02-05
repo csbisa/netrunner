@@ -806,7 +806,7 @@
                  :async true
                  :prompt "Choose a resource to trash"
                  :choices {:card resource?}
-                 :msg (msg "trash " (:title target))
+                 :msg (map-msg :trash (:title target))
                  :interactive (req true)
                  :req (req (some resource? (all-installed state :runner)))
                  :effect (effect (trash eid target {:unpreventable true :cause-card card}))}]
@@ -896,6 +896,7 @@
                                            :card #(some (fn [c] (same-card? c %)) drawn)
                                            :all true}
                                  :effect (req (doseq [c (reverse targets)]
+                                                ;; TODO blah
                                                 (system-msg state side
                                                             (str "uses " (:title card) " to add the "
                                                                  (pprint/cl-format nil "~:R" (inc (first (keep-indexed #(when (same-card? c %2) %1) drawn))))
@@ -1871,7 +1872,7 @@
                  :interactive (req (>= 2 (get-counters card :credit)))
                  :req (req (:corp-phase-12 @state))
                  :label (str "Gain 2 [Credits] (start of turn)")
-                 :msg (msg "gain " (min 2 (get-counters card :credit)) " [Credits]")
+                 :msg (map-msg :gain-credits (min 2 (get-counters card :credit)))
                  :async true
                  :automatic :gain-credits
                  :effect (req (wait-for
@@ -2302,7 +2303,7 @@
      :abilities [ability]}))
 
 (defcard "PAD Campaign"
-  (let [ability {:msg "gain 1 [Credits]"
+  (let [ability {:msg {:gain-credits 1}
                  :label "Gain 1 [Credits] (start of turn)"
                  :once :per-turn
                  :async true
@@ -2758,7 +2759,7 @@
    :abilities [{:action true
                 :cost [(->c :click 1) (->c :trash-can)]
                 :label "Force the Runner to lose 4 [Credits] per advancement"
-                :msg (msg "force the Runner to lose " (min (* 4 (get-counters card :advancement)) (:credit runner)) " [Credits]")
+                :msg (map-msg :lose-credits (min (* 4 (get-counters card :advancement)) (:credit runner)))
                 :async true
                 :effect (effect (lose-credits :runner eid (* 4 (get-counters card :advancement))))}]})
 
@@ -2800,7 +2801,8 @@
    :abilities [{:action true
                 :cost [(->c :click 1) (->c :trash-can)]
                 :req (req (>= (get-counters card :advancement) 4))
-                :msg "do 3 net damage"
+                :label "Deal 3 net damage"
+                :msg {:deal-net 3}
                 :async true
                 :effect (effect (damage eid :net 3 {:card card}))}]})
 
@@ -3003,7 +3005,7 @@
                 :no-ability {:effect (effect (system-msg (str "declines to use " (:title card))))}
                 :yes-ability {:async true
                               :cost [(->c :credit 4)]
-                              :msg "give the Runner 1 tag and do 3 net damage"
+                              :msg {:deal-net 3 :give-tag 1}
                               :effect (req (wait-for (gain-tags state :corp 1 {:suppress-checkpoint true})
                                                      (damage state side eid :net 3 {:card card})))}}}})
 

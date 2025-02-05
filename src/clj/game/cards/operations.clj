@@ -480,7 +480,7 @@
 
 (defcard "Biotic Labor"
   {:on-play
-   {:msg "gain [Click][Click]"
+   {:msg {:gain-click 2}
     :effect (effect (gain-clicks 2))}})
 
 (defcard "Blue Level Clearance"
@@ -595,7 +595,7 @@
               :card #(and (corp? %)
                           (in-hand? %))}
     :change-in-game-state {:req (req (seq (:hand corp)))}
-    :msg (msg "reveal " (enumerate-str (map :title (sort-by :title targets))) " from HQ and gain " (* 2 (count targets)) " [Credits]")
+    :msg (map-msg :reveal (map :title (sort-by :title targets)) :gain-credits (* 2 (count targets)))
     :async true
     :effect (req (wait-for
                    (reveal state side targets)
@@ -2330,7 +2330,7 @@
                                    (system-msg state :corp payment-str))
                                  (continue-ability
                                    state side
-                                   {:msg (msg "place " (quantify c " advancement token") " on " (card-str state target))
+                                   {:msg (map-msg :place-counter [:adv c (card-str-map state target)])
                                     :change-in-game-state {:req (req (something-can-be-advanced? state))}
                                     :choices {:req (req (can-be-advanced? state target))}
                                     :async true
@@ -2393,7 +2393,7 @@
     {:base 5
      :successful
      {:async true
-      :msg (msg "do " (:stole-agenda runner-reg-last 0) " meat damage")
+      :msg (map-msg :deal-meat (:stole-agenda runner-reg-last 0))
       :effect (effect (damage eid :meat (:stole-agenda runner-reg-last 0) {:card card}))}}}})
 
 (defcard "Reclamation Order"
@@ -3082,7 +3082,7 @@
                                       state side
                                       {:once :per-turn
                                        :once-key :subliminal-messaging
-                                       :msg "gain [Click]"
+                                       :msg {:gain-click 1}
                                        :effect (effect (gain-clicks :corp 1))}
                                       card nil)))}
    :highlight-in-discard true
@@ -3092,7 +3092,7 @@
              {:req (req (not-last-turn? state :runner :made-run))
               :prompt (msg "Add " (:title card) " to HQ?")
               :yes-ability
-              {:msg "reveal and add itself to HQ"
+              {:msg {:reveal-and-add ["itself" [:discard] [:hand]]} ;; TODO need to handle self-references
                :async true
                :effect (req (wait-for (reveal state side card)
                                       (move state side card :hand)
@@ -3311,8 +3311,9 @@
                                (let [source target]
                                  {:prompt "How many advancement counters do you want to move?"
                                   :choices (take (inc (get-counters source :advancement)) ["0" "1" "2"])
-                                  :msg (msg "move " target " advancement counters from "
-                                            (card-str state source) " to " (card-str state card-to-advance))
+                                  :msg (map-msg :move-counter [:adv target
+                                                               (card-str-map state source)
+                                                               (card-str-map state card-to-advance)])
                                   :async true
                                   :effect (req (wait-for
                                                  (add-prop state :corp card-to-advance :advance-counter (str->int target) {:placed true :suppress-checkpoint true})

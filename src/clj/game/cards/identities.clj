@@ -455,6 +455,7 @@
                 :async true
                 :prompt "Choose a hosted card"
                 :choices (req (cancellable (:hosted card)))
+                ;; TODO special snowflake here?
                 :msg "add a hosted card to the grip"
                 :effect (effect (move target :hand)
                                 (effect-completed eid))}]
@@ -959,7 +960,7 @@
                              (not (rezzed? target))
                              (can-pay? state side (assoc eid :source card :source-type :rez) target nil
                                        [(->c :credit (rez-cost state side target {:cost-bonus -4}))])))}
-             :msg (msg "rez " (:title target))
+             :msg (map-msg :rez (:title target))
              :async true
              :effect (effect (rez eid target {:cost-bonus -4}))}]})
 
@@ -1257,7 +1258,7 @@
 (defcard "Jinteki: Personal Evolution"
   (let [ability {:async true
                  :req (req (not (:winner @state)))
-                 :msg "do 1 net damage"
+                 :msg {:deal-net 1}
                  :effect (effect (damage eid :net 1 {:card card}))}]
     {:events [(assoc ability
                      :event :agenda-scored
@@ -1338,7 +1339,7 @@
   {:events [{:event :play-event
              :req (req (and (has-subtype? (:card context) "Run")
                             (first-event? state :runner :play-event #(has-subtype? (:card (first %)) "Run"))))
-             :msg "gain 1 [Credits]"
+             :msg {:gain-credits 1}
              :async true
              :effect (effect (gain-credits eid 1))}]})
 
@@ -1710,7 +1711,7 @@
   {:events [{:event :server-created
              :req (req (first-event? state :corp :server-created))
              :async true
-             :msg "draw 1 card"
+             :msg {:draw-cards 1}
              :effect (req
                       (if-not (some #(= % :deck) (:zone target))
                         (draw state :corp eid 1)
@@ -2141,6 +2142,7 @@
      :events [{:event :rez
                :req (req (and (ice? (:card context))
                               (not-triggered? state)))
+               ;; TODO bleh
                :msg (msg "increased the rez cost of " (:title (:card context)) " by 1 [Credits]")}]}))
 
 (defcard "René \"Loup\" Arcemont: Party Animal"
@@ -2157,8 +2159,8 @@
 (defcard "Rielle \"Kit\" Peddler: Transhuman"
   {:events [{:event :encounter-ice
              :req (req (first-event? state side :encounter-ice))
-             :msg (msg "make " (:title (:ice context))
-                       " gain Code Gate until the end of the run")
+             ;; TODO figure out the type here
+             :msg (map-msg :gain-type [(:title (:ice context)) ["Code Gate"]])
              :effect (effect (register-lingering-effect
                                card
                                (let [ice (:ice context)]
@@ -2426,6 +2428,7 @@
                             :msg (msg (let [[chosen other](if (= target c1)
                                                             [c1 c2]
                                                             [c2 c1])]
+                                        ;; TODO this is fun... split it into two msgs?
                                         (str "add " (:title other) " from the heap to the grip."
                                              " Corp removes " (:title chosen) " from the game")))
                             :effect (req (let [[chosen other] (if (= target c1)
@@ -2766,7 +2769,7 @@
 (defcard "Weyland Consortium: Building a Better World"
   {:events [{:event :play-operation
              :req (req (has-subtype? (:card context) "Transaction"))
-             :msg "gain 1 [Credits]"
+             :msg {:gain-credits 1}
              :async true
              :effect (effect (gain-credits eid 1))}]})
 
