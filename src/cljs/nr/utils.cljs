@@ -306,13 +306,40 @@
   [input]
   (render-input input special-patterns))
 
+(defn- select-pronoun
+  "Selects an appropriate plurular pronoun
+  'their' is neuter, so it's appropriate to everyone as a fallback"
+  [user]
+  (let [key (get-in user [:options :pronouns])]
+    (case key
+      "she" "her"
+      "he" "his"
+      "it" "its"
+      "their")))
+
+(defn- insert-pronouns
+  "inserts pronouns into text based on the side speaking"
+  [side text]
+  ;;(println "calling insert-pronouns with " side)
+  (let [corp-pronoun (select-pronoun (get-in @app-state [:corp :user]))
+        runner-pronoun (select-pronoun (get-in @app-state [:runner :user]))
+        user-pronoun (cond
+                       (= side :corp) corp-pronoun
+                       (= side :runner) runner-pronoun
+                       :else "their")]
+    (if text
+      (-> text
+          (s/replace #"(\[pronoun\])|(\[their\])" user-pronoun)
+          (s/replace #"\[corp-pronoun\]" corp-pronoun)
+          (s/replace #"\[runner-pronoun\]" runner-pronoun)))))
+
 (defn render-message
   "Render icons, cards and special codes in a message"
   [input]
   (let [lang (get-in @app-state [:options :language] "en")]
-    (render-specials (render-icons (render-cards (if (string? input)
-                                                   input
-                                                   (render-map lang input)))))))
+    (println input)
+    (let [input-str (if (string? input) input (render-map lang input))]
+      (->> input-str (insert-pronouns (keyword (:side input))) render-cards render-icons render-specials))))
 
 (defn wrap-timestamp
   [element timestamp]
