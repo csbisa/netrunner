@@ -152,10 +152,16 @@
     :choices (req ["End the run"
                    (when (can-pay? state :runner eid card nil cost)
                      (capitalize (cost->string cost)))])
-    ;; TODO arbitrary target is... eh
-    :msg (msg (if (= "End the run" target)
-                (decapitalize target)
-                (str "force the runner to " (decapitalize target))))
+    :msg (map-msg-apply (if (= "End the run" target)
+                          {:end-run true}
+                          ;; TODO "force the runner to..." disappears
+                          ;; and it's modeled as a... effect?
+                          ;; yes, this ends up like this:
+                          ;; {:cost/type credit, :cost/amount 1, :cost/additional false, :cost/stealth nil, :cost/args nil}
+                          ;; so where's the original cost? in the ice def, as ->c
+                          ;; so the above could be transformed, but...?
+                          ;; isn't there normally a cost/msg or something? build-cost-label...
+                          cost))
     :effect (req (if (= "End the run" target)
                    (end-run state :corp eid card)
                    (wait-for (pay state :runner (make-eid state eid) card cost)
@@ -4321,7 +4327,7 @@
                   :effect (req (wait-for (pay state :runner (make-eid state eid) card [(->c :credit 3)])
                                          (if (:cost-paid async-result)
                                            ;; TODO does this come down as a string or map
-                                           (do (system-msg state :runner (str (:msg async-result) " on encountering " (:title card)))
+                                           (do (system-msg state :runner {:type :encounter-effect :card (:title card) :cost (:msg async-result)})
                                                (effect-completed state side eid))
                                            (do (system-msg state :corp {:type :use :card (:title card) :effect {:end-run true}})
                                                (end-run state :corp eid card)))))}
