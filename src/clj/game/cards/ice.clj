@@ -932,8 +932,9 @@
                                       (damage state side eid :net 1 {:card card})
                                       (pay state :runner eid card (->c :credit 2))))
                                :msg (msg (if (= "Take 1 net damage" target)
-                                           "do 1 net damage"
-                                           (str "force the runner to " (decapitalize target))))}
+                                           {:deal-net 1}
+                                           ;; TODO force
+                                           {:lose-credits 2}))}
                               card nil)))}]
     {:events [{:event :pre-resolve-subroutine
                :req (req (threat-level 3 state))
@@ -2555,9 +2556,10 @@
                                                 "Spend [Click]")])
                                :waiting-prompt true
                                :async true
-                               :msg (msg (if (= target "Take 1 tag")
-                                           "give the Runner 1 tag"
-                                           (str "force the runner to " (decapitalize target) " on encountering it")))
+                               :msg (map-msg-apply (if (= target "Take 1 tag")
+                                                     {:give-tag 1}
+                                                     ;; TODO force / spend / blah
+                                                     {:lose-click 1}))
                                :effect (req (if (= target "Take 1 tag")
                                               (gain-tags state :runner eid 1)
                                               (wait-for (pay state :runner (make-eid state eid) card (->c :click 1))
@@ -2567,7 +2569,7 @@
    :subroutines [(give-tags 1)
                  {:label "Do 1 core damage if the Runner is tagged"
                   :change-in-game-state {:silent true :req (req tagged)}
-                  :msg "do 1 core damage"
+                  :msg {:deal-core 1}
                   :async true
                   :effect (req (damage state side eid :brain 1 {:card card}))}]})
 
@@ -2933,6 +2935,7 @@
 
 (defcard "M.I.C."
   {:abilities [{:label "End the run unless the Runner spends [Click]"
+                ;; TODO this
                 :msg "end the run unless the Runner spends [Click]"
                 :req (req (and run this-server))
                 :async true
@@ -3561,7 +3564,7 @@
    :events [{:event :pass-ice
              :req (req (and (same-card? (:ice context) card)
                             (<= 4 (count (:hand runner)))))
-             :msg "give the Runner 1 tag"
+             :msg {:give-tag 1}
              :async true
              :effect (effect (gain-tags eid 1))}]})
 
@@ -4226,8 +4229,11 @@
                                               :async true
                                               :effect (req (wait-for (swap-cards-async state side (make-eid state eid) target (get-card state card))
                                                                      (gain-credits state :corp eid 4)))
-                                              :msg (msg "swap " (card-str state card)
-                                                        " with a piece of ice from HQ and gain 4 [Credits]")}}}
+                                              ;; TODO awfully specific here
+                                              ;; could try card-str-state and add 'from HQ' as a target?
+                                              :msg (map-msg :raw-text "swap " (card-str state card)
+                                                            " with a piece of ice from HQ"
+                                                            :gain-credits 4)}}}
                               {:prompt "You have no ice"
                                :choices ["OK"]
                                :waiting-prompt true
@@ -4345,7 +4351,7 @@
 
 (defcard "Tree Line"
   {:static-abilities [(ice-strength-bonus (req (get-counters card :advancement)))]
-   :subroutines [{:msg "gain 1 [Credits] and end the run"
+   :subroutines [{:msg {:gain-credits 1 :end-run true}
                   :async true
                   :effect (req (wait-for (gain-credits state side 1)
                                          (end-run state side eid card)))}]
@@ -4354,7 +4360,7 @@
             :cost [(->c :credit 1)]
             :choices {:req (req (and (ice? target)
                                      (installed? target)))}
-            :msg (msg "place 3 advancement counters on " (card-str state target))
+            :msg (map-msg :place-counter [:adv 3  (card-str-map state target)])
             :async true
             :effect (effect (add-counter eid target :advancement 3 {:placed true}))}})
 
@@ -4573,7 +4579,7 @@
    :implementation "Might be incorrect if decoder is uninstalled"
    :events [{:event :end-of-encounter
              :req (req (all-subroutines-not-broken-by state side card "Decoder" context))
-             :msg "give the Runner 1 tag"
+             :msg {:give-tag 1}
              :async true
              :effect (effect (gain-tags eid 1))}]})
 

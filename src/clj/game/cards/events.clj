@@ -202,8 +202,10 @@
 (defcard "Bahia Bands"
   (let [all [{:async true
               :effect (effect (draw eid 2))
-              :msg "draw 2 cards"}
-             {:msg "install a card from the grip, paying 1 [Credits] less"
+              :label "Draw 2 cards"
+              :msg {:draw-cards 2}}
+             {:label "Install a card from the grip, paying 1 [Credits] less"
+              :msg "install a card from the grip, paying 1 [Credits] less" ;; TODO not specifying a card...
               :async true
               :req (req (not (install-locked? state side)))
               :effect (effect (continue-ability
@@ -220,18 +222,21 @@
                                                                                                                                :msg-keys {:install-source card
                                                                                                                                           :display-origin true}}))}
                                 card nil))}
-             {:msg "remove 1 tag"
+             {:label "Remove 1 tag"
+              :msg {:remove-tag 1}
               :async true
               :effect (effect (lose-tags eid 1))}
              {:effect (effect (add-counter eid (get-card state card) :credit 4 nil))
               :async true
-              :msg "place 4 [Credits] for paying trash costs"}]
+              :label "Place 4 [Credits] for paying trash costs"
+              :msg {:place-counter [:credits 4]}}]
         choice (fn choice [abis rem]
+                 (println "choice" abis rem)
                  {:prompt (str "Choose an ability to resolve (" rem " remaining)")
                   :waiting-prompt true
-                  :choices (map #(capitalize (:msg %)) abis)
+                  :choices (map #(:label %) abis)
                   :async true
-                  :effect (req (let [chosen (some #(when (= target (capitalize (:msg %))) %) abis)]
+                  :effect (req (let [chosen (some #(when (= target (:label %)) %) abis)]
                                  (wait-for
                                    (resolve-ability state side chosen card nil)
                                    (if (< 1 rem)
@@ -647,10 +652,10 @@
              :choices (req (conj (filter agenda? (:hand corp)) "Done"))
              :async true
              :effect (req (if (= target "Done")
-                            (do (system-msg state :corp "declines to reveal an agenda from HQ")
+                            (do (system-msg state :corp "declines to reveal an agenda from HQ") ;; TODO decline
                                 (continue-ability
                                   state :runner
-                                  {:msg "look at the top 3 cards of R&D"
+                                  {:msg {:look-top-rnd 3}
                                    :prompt (msg "The top cards of R&D are (top->bottom): " (enumerate-str (map :title (take 3 (:deck corp)))))
                                    :waiting-prompt true
                                    :choices ["OK"]}
@@ -659,7 +664,7 @@
                               (wait-for (reveal-loud state side card {:forced true} target)
                                         (continue-ability
                                           state :runner
-                                          {:msg "gain [Click] and draw 1 card"
+                                          {:msg {:gain-click 1 :draw-cards 1}
                                            :async true
                                            :effect (req (gain-clicks state :runner 1)
                                                         (draw state :runner eid 1))}
@@ -2021,7 +2026,7 @@
    :events [{:event :encounter-ice
              :automatic :bypass
              :req (req (first-run-event? state side :encounter-ice))
-             :msg (map-msg :bypass (card-str-map (:ice context)))
+             :msg (map-msg :bypass (card-str-map state (:ice context)))
              :effect (req (bypass-ice state))}]})
 
 (defcard "Insight"
@@ -2148,7 +2153,7 @@
              :async true
              :req (req (and (= :rd (target-server context))
                             this-card-run))
-             :msg "draw 5 cards"
+             :msg {:draw-cards 5}
              :effect (effect (draw eid 5))}]})
 
 (defcard "Katorga Breakout"
@@ -3409,7 +3414,7 @@
              :automatic :bypass
              :req (req (first-run-event? state side :encounter-ice))
              :once :per-run
-             :msg (msg "bypass " (card-str state current-ice))
+             :msg (map-msg :bypass (card-str-map state current-ice))
              :effect (req (bypass-ice state))}
             {:event :encounter-ice
              :skippable true
@@ -3421,7 +3426,7 @@
                                                         (card-str state current-ice)
                                                         "?")
                                            :waiting-prompt true
-                                           :yes-ability {:msg (msg "bypass " (card-str state current-ice))
+                                           :yes-ability {:msg (map-msg :bypass (card-str-map state current-ice))
                                                          :cost [(->c :click 1)]
                                                          :effect (req (bypass-ice state))}}}
                                card nil))}]})
@@ -3745,7 +3750,7 @@
 
 (defcard "Strike Fund"
   {:on-play {:async true
-             :msg "gain 4 [Credits]"
+             :msg {:gain-credits 4}
              :effect (req (gain-credits state :runner nil 4)
                           (effect-completed state side eid))}
    :on-trash {:when-inactive true
@@ -3756,10 +3761,11 @@
               :effect (effect (continue-ability
                                 {:optional {:prompt "Gain 2 [Credits]?"
                                             :waiting-prompt true
-                                            :yes-ability {:msg "gain 2 [Credits]"
+                                            :yes-ability {:msg {:gain-credits 2}
                                                           :async true
                                                           :effect (effect (gain-credits :runner eid 2))}
                                             :no-ability
+                                            ;; TODO decline
                                             {:effect (effect (system-msg (str "declines to use " (:title card))))}}}
                                 card nil))}})
 
@@ -3926,10 +3932,8 @@
              (req
                (wait-for (mill state :runner (make-eid state eid) :runner 4)
                          (let [trashed-cards async-result]
-                           (system-msg state side
-                                       (str "uses " (:title card) " to trash "
-                                            (enumerate-str (map :title trashed-cards))
-                                            " from the top of the stack"))
+                           (system-msg state side {:type :use :card (:title card)
+                                                   :effect {:trash-stack (enumerate-str (map :title trashed-cards))}})
                            (continue-ability
                              state side
                              {:prompt "Choose a card to install"
@@ -3941,6 +3945,7 @@
                                                                        (can-pay? state side (assoc eid :source card :source-type :runner-install)
                                                                                  % nil [(->c :credit (install-cost state side % {:cost-bonus -3}))])
                                                                        (in-discard? (get-card state %))) trashed-cards)))
+                              ;; TODO decline
                               :cancel-effect (effect (system-msg (str "declines to use " (:title card) " to install a card"))
                                                      (effect-completed eid))
                               :effect (req (let [card-to-install (first (seq (filter #(and (= (:title target) (:title %)) (in-discard? (get-card state %))) trashed-cards)))]

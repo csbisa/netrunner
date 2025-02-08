@@ -260,17 +260,19 @@
   (let [faceup-agendas (fn [corp]
                          (some #(and (faceup? %) (agenda? %)) (:discard corp)))]
     {:on-play
-     {:msg (msg "gain 3 [Credits], then gain " (faceup-archives-types corp) " [Credits]")
+     ;; TODO the dual thingy, two separate gain-credits
+     {:msg (map-msg :gain-credits (+ 3 (faceup-archives-types corp)))
       :async true
       :effect (req (wait-for (gain-credits state :corp 3)
                              (wait-for (gain-credits state :corp (faceup-archives-types corp))
                                        (continue-ability
-                                         state side
-                                         (when (faceup-agendas corp)
-                                           {:msg "gain 2 [Credits] for having faceup agendas in Archives"
-                                            :effect (effect (gain-credits eid 2))
-                                            :async true})
-                                         card nil))))}}))
+                                        state side
+                                        (when (faceup-agendas corp)
+                                          ;; TODO woof
+                                          {:msg "gain 2 [Credits] for having faceup agendas in Archives"
+                                           :effect (effect (gain-credits eid 2))
+                                           :async true})
+                                        card nil))))}}))
 
 (defcard "Attitude Adjustment"
   {:on-play
@@ -1238,7 +1240,7 @@
 
 (defcard "Greasing the Palm"
   {:on-play
-   {:msg "gain 5 [Credits]"
+   {:msg {:gain-credits 5}
     :async true
     :effect (req (wait-for (gain-credits state side 5)
                            (continue-ability
@@ -1260,7 +1262,8 @@
                                                            state side
                                                            {:optional {:prompt "Remove 1 tag to place 1 advancement counter on the installed card?"
                                                                        :waiting-prompt true
-                                                                       :yes-ability {:msg (msg "removes 1 tag to place 1 advancement counter on " (card-str state installed-card))
+                                                                       ;; TODO cost+effect here
+                                                                       :yes-ability {:msg (map-msg :remove-tag 1 :place-counter [:adv 1 (card-str state installed-card)])
                                                                                      :cost [(->c :tag 1)]
                                                                                      :async true
                                                                                      :effect (req (add-prop state :corp eid installed-card :advance-counter 1 {:placed true}))}}}
@@ -1800,9 +1803,9 @@
              :waiting-prompt true
              :choices ["Gain 4 [Credits] and draw 2 cards"
                        "Do 1 net damage per tag (up to 3)"]
-             :msg (msg (if (= target "Do 1 net damage per tag (up to 3)")
-                         (str "do " (min 3 (count-tags state)) " net damage")
-                         (decapitalize target)))
+             :msg (map-msg-apply (if (= target "Do 1 net damage per tag (up to 3)")
+                                   (str {:deal-net (min 3 (count-tags state))}
+                                        {:gain-credits 4 :draw-cards 2})))
              :async true
              :effect (req (if (= "Do 1 net damage per tag (up to 3)" target)
                             (damage state :corp eid :net (min 3 (count-tags state)) {:card card})
@@ -1814,7 +1817,7 @@
                                           {:req (req (pos? (count (:hand corp))))
                                            :prompt "Choose 1 card to add to the top of R&D"
                                            :waiting-prompt true
-                                           :msg "add 1 card from HQ to the top of R&D"
+                                           :msg {:move-hq-rnd 1}
                                            :choices {:card #(and (in-hand? %)
                                                                  (corp? %))
                                                      ;; just incase everything gets jinja'd out of hand
@@ -2031,7 +2034,7 @@
     :effect (effect (trash eid target {:cause-card card}))}})
 
 (defcard "Oppo Research"
-  {:on-play {:msg "give the Runner 2 tags"
+  {:on-play {:msg {:give-tag 2}
              :async true
              :req (req (or (last-turn? state :runner :trashed-card)
                            (last-turn? state :runner :stole-agenda)))
@@ -2045,7 +2048,7 @@
                                        :waiting-prompt true
                                        :yes-ability {:async true
                                                      :cost [(->c :credit 5)]
-                                                     :msg "give the Runner 2 tags"
+                                                     :msg {:give-tag 2}
                                                      :effect (req (gain-tags state :corp eid 2))}}}
                                      card nil)))}})
 
@@ -2156,7 +2159,7 @@
   {:on-play {:prompt "Choose a card"
              ;; we need the req or the prompt will still show
              :waiting-prompt true
-             :msg (msg "reveal " (:title target) " from R&D and add it to HQ")
+             :msg (map-msg :add-from-rnd (:title target))
              :choices (req (sort-by :title (filter #(or (operation? %) (agenda? %)) (:deck corp))))
              :change-in-game-state {:req (req (or (seq (:deck corp))
                                                   (and (threat-level 3 state)
@@ -2181,7 +2184,7 @@
                                                           (continue-ability
                                                             state side
                                                             {:async true
-                                                             :msg (msg "play " (:title target-card))
+                                                             :msg (map-msg :play (:title target-card))
                                                              :effect (req (play-instant state side eid target-card nil))}
                                                             card nil)
                                                           (continue-ability
@@ -3502,7 +3505,7 @@
     :effect (effect (lose-bad-publicity 2))}})
 
 (defcard "Your Digital Life"
-  {:on-play {:msg (msg "gain " (count (:hand corp)) " [Credits]")
+  {:on-play {:msg (map-msg :gain-credits (count (:hand corp)))
              :change-in-game-state {:req (req (seq (:hand corp)))}
              :async true
              :effect (effect (gain-credits :corp eid (count (:hand corp))))}})

@@ -175,6 +175,7 @@
                                           :async true
                                           :effect (req (let [to-be-trashed (remove #(in-coll? ["Archives" "R&D" "HQ" target saved] (zone->name (second (get-zone %))))
                                                                                    (all-installed state :corp))]
+                                                         ;; TODO yeah
                                                          (system-msg state side (str "chooses " target " and " saved " to be saved from the rules apocalypse and trashes "
                                                                                      (quantify (count to-be-trashed) "card")))
                                                          ;; these cards get trashed by the game and not by players
@@ -424,7 +425,7 @@
                                                                  (do (update! state :runner (dissoc-in program [:special :street-artist]))
                                                                      (effect-completed state side eid))
                                                                  (do
-                                                                   (system-msg state side (str "uses " (:title card) " to trash " (:title program)))
+                                                                   (system-msg state side {:type :use :card (:title card) :effect {:trash (:title program)}})
                                                                    (trash-cards state side eid [program] {:cause-card card})))))}])
                                             (effect-completed state side eid)))}
                     card nil))}]})
@@ -783,7 +784,7 @@
                 :label "Look at the top 3 cards of R&D"
                 :change-in-game-state {:req (req (seq (:deck corp)))}
                 :cost [(->c :click 1) (->c :power 1)]
-                :msg "look at the top 3 cards of R&D"
+                :msg {:look-top-rnd 3}
                 :async true
                 :effect (req (let [top (take 3 (:deck corp))]
                                (wait-for (resolve-ability state side
@@ -800,6 +801,7 @@
                                             :choices (cancellable (filter #(corp-installable-type? %) top))
                                             :async true
                                             :cancel-effect
+                                            ;; TODO decline
                                             (effect (system-msg (str "declines to use " (get-title card) " to install a card from the top of R&D"))
                                                     (effect-completed eid))
                                             :effect (effect (corp-install eid target nil {:msg-keys {:install-source card
@@ -1497,10 +1499,14 @@
                                 :waiting-prompt true
                                 :once :per-turn
                                 :yes-ability
-                                {:msg (msg "access 1 additional card")
+                                ;; TODO great use case for combinging these here...
+                                {:msg (map-msg-apply (if (= target :hq)
+                                                       {:access-additional-from-hq 1}
+                                                       {:access-additional-from-rnd 1}))
                                  :async true
                                  :effect (req (access-bonus state side breached-server 1 :end-of-access)
                                               (effect-completed state side eid))}
+                                ;; TODO decline
                                 :no-ability {:effect (effect (system-msg (str "declines to use " (:title card) " to access 1 additional card")))}}}
                               card nil)))}]})
 

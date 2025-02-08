@@ -71,7 +71,7 @@
      {:prompt "Choose a server"
       :waiting-prompt true
       :choices (req (server-list state))
-      :msg (msg "move itself to " target)
+      :msg (map-msg :move-server [(conj (server->zone state target) :content)])
       :async true
       :effect (req (let [c (move state side card
                                  (conj (server->zone state target) :content))]
@@ -87,11 +87,11 @@
             {:event :successful-run
              :interactive (req true)
              :psi {:req (req this-server)
-                   :not-equal {:msg (msg "prevent the Runner from accessing cards other than " (:title card))
+                   :not-equal {:msg (map-msg :prevent-access [:exclusive (:title card)])
                                :async true
                                :effect (effect (set-only-card-to-access card)
                                                (effect-completed eid))}
-                   :equal {:msg (msg "prevent the Runner from accessing " (:title card))
+                   :equal {:msg (map-msg :prevent-access [:target (:title card)])
                            :async true
                            :effect (effect (register-run-flag!
                                              card :can-access
@@ -137,17 +137,18 @@
 (defcard "Angelique Garza Correa"
   {:expend {:req (req (threat-level 3 state))
             :cost [(->c :credit 1)]
-            :msg "do 1 meat damage"
+            :msg {:deal-meat 1}
             :async true
             :effect (effect (damage eid :meat 1 {:card card}))}
    :on-access {:optional
                {:req (req (rezzed? card))
                 :waiting-prompt true
                 :prompt (msg "Pay 2 [Credits] to use " (:title card) " ability?")
+                ;; TODO decline
                 :no-ability {:effect (effect (system-msg (str "declines to use " (:title card))))}
                 :yes-ability {:async true
                               :cost [(->c :credit 2)]
-                              :msg "do 2 meat damage"
+                              :msg {:deal-meat 2}
                               :effect (effect (damage eid :meat 2 {:card card}))}}}})
 
 (defcard "Anoetic Void"
@@ -551,6 +552,7 @@
      :on-trash {:async true
                 :interactive (req true)
                 :req (req (and run (= :runner side)))
+                ;; TODO good god
                 :msg "force the Runner to add 2 random cards from the grip to the bottom of the stack as additional cost to trash it"
                 :effect
                 (req (wait-for (pay state :runner (make-eid state eid) card [(->c :add-random-from-hand-to-bottom-of-deck 2)])
@@ -1870,13 +1872,16 @@
                  :waiting-prompt true
                  :interactive (req true)
                  :choices (req (cancellable (filter ice? (:deck corp)) true))
+                 ;; TODO discounts
                  :msg (msg "install and rez " (card-str state target) ", paying a total of 3 [Credits] less")
                  :effect (req (wait-for (corp-install state side (make-eid state eid) target nil {:install-state :rezzed :combined-credit-discount 3
                                                                                                   :msg-keys {:install-source card
                                                                                                              :display-origin true}})
                                         (shuffle! state :corp :deck)
-                                        (system-msg state side (str "shuffles R&D"))
+                                        (system-msg state side {:type :use :card (:title card)
+                                                                :effect {:shuffle-rnd true}})
                                         (effect-completed state side eid)))
+                 ;; TODO decline here
                  :cancel-effect (effect (system-msg (str "declines to use " (:title card)))
                                         (effect-completed eid))}]
     {:install-req (req (remove #{"HQ" "R&D" "Archives"} targets))

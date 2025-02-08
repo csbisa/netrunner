@@ -57,7 +57,7 @@
                               remote->name target-server unknown->kw zone->name]]
    [game.core.shuffling :refer [shuffle!]]
    [game.core.tags :refer [gain-tags lose-tags]]
-   [game.core.to-string :refer [card-str]]
+   [game.core.to-string :refer [card-str card-str-map]]
    [game.core.threat :refer [threat threat-level]]
    [game.core.trace :refer [force-base]]
    [game.core.update :refer [update!]]
@@ -536,7 +536,7 @@
                :req (req (:accessed target))
                :async true
                :effect (effect (add-counter :runner eid card :virus 1 nil))
-               :msg "place 1 virus counter on itself"}]}))
+               :msg {:place-counter [:virus 1]}}]}))
 
 (defcard "Aumakua"
   (auto-icebreaker {:implementation "[Erratum] Whenever you finish breaching a server, if you did not steal or trash any accessed cards, place 1 virus counter on this program."
@@ -599,7 +599,7 @@
                                  :req (req (and (get-current-encounter state)
                                                  (<= (get-strength current-ice) (get-strength card))
                                                  (has-subtype? current-ice "Barrier")))
-                                 :msg (msg "prevent " (card-str state current-ice) " from ending the run this encounter")
+                                 :msg (map-msg :prevent-etr (card-str-map state current-ice))
                                  :effect (req
                                            (let [target-ice (:ice (get-current-encounter state))]
                                              (register-events
@@ -1097,12 +1097,12 @@
                                                      (has-subtype? (:ice context) "Barrier")
                                                      (<= 3 (get-counters (get-card state card) :power))))
                                          :yes-ability {:cost [(->c :power 3)]
-                                                       :msg (msg "bypass " (card-str state current-ice))
+                                                       :msg (map-msg :bypass (card-str-map state current-ice))
                                                        :effect (req (bypass-ice state))}}}
 
                              {:event :subroutines-broken
                               :req (req (all-subs-broken-by-card? (:ice context) card))
-                              :msg "place 1 power counter on itself"
+                              :msg {:place-counter [:power 1]}
                               :async true
                               :effect (effect (add-counter eid card :power 1 nil))}]}))
 
@@ -1981,7 +1981,7 @@
                                               "?")
                                  :waiting-prompt true
                                  :yes-ability
-                                 {:msg (msg "bypass " (card-str state current-ice))
+                                 {:msg (map-msg :bypass (card-str-map state current-ice))
                                   :async true
                                   :effect (req
                                             (wait-for (trash state :runner (make-eid state eid) card
@@ -2018,7 +2018,8 @@
   (auto-icebreaker
     (trojan
       {:on-install {:req (req (threat-level 4 state))
-                    :msg "gain 3 strength for the remainder of the turn"
+                    ;; TODO add duration
+                    :msg {:gain-str 3}
                     :effect (effect (pump card 3 :end-of-turn))}
        :abilities [(break-sub 1 1 "Sentry" {:req (req (protecting-same-server? current-ice (:host card)))})
                    (strength-pump 1 2)]})))
@@ -2758,7 +2759,7 @@
                           :req (req (same-card? (:ice context) (:host card)))
 
                           :yes-ability
-                          {:msg "gain [Click]"
+                          {:msg {:gain-click 1}
                            :async true
                            :effect (req
                                      (gain-clicks state :runner 1)
@@ -2768,10 +2769,12 @@
                                          {:optional
                                           {:prompt (str "Is " (:title card) " added to the grip?")
                                            :waiting-prompt true
+                                           ;; TODO yeah
                                            :yes-ability {:msg "appease the rules"
                                                          :cost [(->c :return-to-hand)]}}}
                                          card nil)
                                        (effect-completed state side eid)))}
+                          ;; TODO decline
                           :no-ability {:effect (effect (system-msg (str "declines to use " (:title card))))}}}]}))
 
 (defcard "Pipeline"
@@ -2970,7 +2973,7 @@
   (trojan
     {:events [{:event :rez
                :req (req (same-card? (:card context) (:host card)))
-               :msg "gain 3 [Credits]"
+               :msg {:gain-credits 3}
                :async true
                :effect (effect (gain-credits :runner eid 3))}
               {:event :derez
@@ -2980,7 +2983,7 @@
                ;;   a payout on magnet rez, but does get one when magnet is
                ;;   derezzed.
                ;; - Apr 13 '24, nbkelly
-               :msg "gain 3 [Credits]"
+               :msg {:gain-credits 3}
                :async true
                :effect (effect (gain-credits :runner eid 3))}]}))
 
@@ -3450,21 +3453,23 @@
                               :waiting-prompt true
                               :yes-ability {:async true
                                             :display-side :corp
-                                            :msg "draw 1 card"
+                                            :msg {:draw-cards 1}
                                             :effect (req (draw state :corp eid 1))}
                               :no-ability {:display-side :corp
+                                           ;; TODO decline
                                            :msg "decline to draw 1 card"}}}
         runner-draw {:label "Each player draws 1 card (manual)"
                      :optional {:prompt "Draw 1 card?"
                                 :waiting-prompt true
                                 :yes-ability {:async true
-                                              :msg "draw 1 card"
+                                              :msg {:draw-cards 1}
                                               :effect (req (wait-for (draw state :runner 1)
                                                                      (continue-ability
                                                                        state side
                                                                        corp-draw
                                                                        card nil)))}
                                 :no-ability {:async true
+                                             ;; TODO decline
                                              :msg "decline to draw 1 card"
                                              :effect (req (continue-ability
                                                             state side

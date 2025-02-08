@@ -82,7 +82,7 @@
    [game.core.update :refer [update!]]
    [game.core.virus :refer [get-virus-counters number-of-runner-virus-counters]]
    [game.core.winning :refer [check-win-by-agenda]]
-   [game.macros :refer [continue-ability effect msg map-msg req wait-for]]
+   [game.macros :refer [continue-ability effect msg map-msg map-msg-apply req wait-for]]
    [game.utils :refer :all]
    [jinteki.utils :refer :all]
    [jinteki.validator :refer [legal?]]
@@ -558,7 +558,7 @@
               {:target-server :hq
                :this-card-run true
                :mandatory true
-               :ability {:msg "breach R&D, accessing 1 additional card"
+               :ability {:msg {:breach-server [:servers :rd] :access-additional-from-rnd 1}
                          :async true
                          :effect (req (register-events
                                         state side
@@ -1190,14 +1190,14 @@
 
 (defcard "Debbie \"Downtown\" Moreira"
   {:on-install {:req (req (threat-level 4 state))
-                :msg "place 2 [Credits] on itself"
+                :msg {:place-counter [:credits 2]}
                 :async true
                 :effect (req (add-counter state side eid card :credit 2))}
    :events [{:event :play-event
              :req (req (has-subtype? (:card context) "Run"))
              :async true
              :effect (req (add-counter state side eid card :credit 1))}]
-   :abilities [{:msg "take 1 [Credits]"
+   :abilities [{:msg "take 1 [Credits]" ;; TODO
                 :async true
                 :req (req (pos? (get-counters (get-card state card) :credit)))
                 :effect (req (spend-credits state side eid card :credit 1))}
@@ -1466,14 +1466,14 @@
          :req (req (and (threat-level 3 state)
                         (= :rd target)
                         (= :archives (first (:server run)))))
-         :msg "access 1 additional card"
+         :msg {:access-additional-from-rnd 1}
          :effect (effect (access-bonus :rd 1))}
         replace-breach-event
         (successful-run-replace-breach
           {:target-server :archives
            :this-card-run true
            :mandatory true
-           :ability {:msg "breach R&D"
+           :ability {:msg {:breach-server [:servers :rd]}
                      :async true
                      :effect (req (breach-server state :runner eid [:rd] nil))}})]
     {:events [constant-effect
@@ -1729,7 +1729,8 @@
                                      (map unknown->kw)
                                      (filter is-remote?)
                                      (map remote->name))))
-                :msg (msg "gain [Click] and make a run on " target)
+                ;; TODO confirm target, this is wrong i think
+                :msg (map-msg :gain-click 1 :make-run (unknown->kw target))
                 :makes-run true
                 :effect (req (gain-clicks state side 1)
                              (register-events
@@ -1740,7 +1741,7 @@
                                  :req (req (and (:unsuccessful context)
                                                 (same-card? card (:source-card context))))
                                  :async true
-                                 :msg "take 1 tag"
+                                 :msg {:take-tag 1}
                                  :effect (effect (gain-tags :runner eid 1))}])
                              (make-run state side eid target card))}
                {:action true
@@ -1749,7 +1750,7 @@
                 :label "Gain [Click][Click]. Remove 1 tag"
                 :effect (effect (gain-clicks 2)
                                 (lose-tags eid 1))
-                :msg "gain [Click][Click] and remove 1 tag"}]})
+                :msg {:gain-clicks 2 :remove-tag 1}}]})
 
 (defcard "Hard at Work"
   (let [ability {:msg "gain 2 [Credits] and lose [Click]"
@@ -2101,14 +2102,14 @@
                                        (not (condition-counter? (:card target)))
                                        (first-event? state side :corp-install #(and (not (ice? (:card (first %))))
                                                                                     (not (condition-counter? (:card (first %))))))))
-                        :yes-ability {:msg (msg (if (seq (:deck runner))
-                                                  (str "trash "
-                                                       (:title (first (:deck runner)))
-                                                       " from the stack and draw 1 card")
-                                                  "trash no cards from the stack (it is empty)"))
+                        :yes-ability {:msg (map-msg-apply (if (seq (:deck runner))
+                                                            {:trash-stack (:title (first (:deck runner))) :draw-cards 1}
+                                                            ;; TODO meh
+                                                            {:raw-text "trash no cards from the stack (it is empty)"}))
                                       :async true
                                       :effect (req (wait-for (mill state :runner :runner 1)
                                                              (draw state :runner eid 1)))}
+                        ;; TODO decline
                         :no-ability {:effect (effect (system-msg (str "declines to use " (:title card))))}}}]
    :abilities [(set-autoresolve :auto-fire "Lago Paranoá Shelter")]})
 
@@ -3984,7 +3985,7 @@
                  :choices {:req (req (and (runner? target)
                                           (installed? target)
                                           (is-eligible? target)))}
-                 :msg (msg "add " (:title target) " to the grip and place 2 [Credits] on itself")
+                 :msg (map-msg :add-to-grip (:title target) :place-counter [:credits 2])
                  :cancel-effect (req (system-msg state :runner (str "declines to use " (:title card)))
                                      (effect-completed state side eid))
                  :effect (req (move state side target :hand)

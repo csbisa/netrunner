@@ -102,7 +102,7 @@
                  :type :ability
                  :ability {:async true
                            :cost [(->c :power 1)]
-                           :msg "prevent 1 net damage"
+                           :msg {:prevent-net 1}
                            :req (req (and run
                                           (= :net (:type context))
                                           (preventable? context)))
@@ -112,7 +112,7 @@
                  :ability {:async true
                            :cost [(->c :power 1)]
                            :req (req (pos? (:remaining context)))
-                           :msg (msg "prevent the encounter ability on " (:title current-ice))
+                           :msg (map-msg :prevent-encounter-ability [(:title current-ice) (:ability-name target)])
                            :effect (req (prevent-encounter state side eid))}}]
    :events [(trash-on-empty :power)]})
 
@@ -1302,7 +1302,7 @@
             :choices {:card #(and (not (faceup? %))
                                   (installed? %)
                                   (corp? %))}
-            :msg (msg "add " (card-str state target) " to HQ")
+            :msg (map-msg :add-to-hq (card-str-map state target))
             :effect (effect (move :corp target :hand))}]
     {:static-abilities [(mu+ 1)]
      :events [(assoc ab :event :agenda-scored)
@@ -1438,9 +1438,10 @@
                                     (program? (:card target))
                                     (first-event? state :runner :runner-install #(program? (:card (first %))))))
                         :autoresolve (get-autoresolve :auto-fire)
-                        :yes-ability {:msg "draw 1 card"
+                        :yes-ability {:msg {:draw-cards 1}
                                       :async true
                                       :effect (req (draw state :runner eid 1))}
+                        ;; TODO decline
                         :no-ability {:effect (effect (system-msg (str "declines to use " (:title card))))}}}]
    :static-abilities [(mu+ 2)]
    :abilities [(set-autoresolve :auto-fire "LilyPAD")]})
@@ -2432,14 +2433,14 @@
              :effect (req (if (= target "Draw 1 card")
                             (wait-for
                               (add-counter state side card :power -1)
-                              (system-msg state side (str "uses " (:title card)
-                                                          " to draw 1 card"))
+                              (system-msg state side {:type :use :card (:title card)
+                                                      :effect {:draw-cards 1}})
                               (draw state :runner eid 1))
                             (if (= target "Remove 1 tag")
                               (wait-for
                                 (add-counter state side card :power -1)
-                                (system-msg state side (str "uses " (:title card)
-                                                            " to remove 1 tag"))
+                                (system-msg state side {:type :use :card (:title card)
+                                                        :effect (:remove-tag 1)})
                                 (lose-tags state :runner eid 1))
                               (effect-completed state :runner eid))))}
             {:event :runner-trash
@@ -2449,7 +2450,7 @@
                             (first-event? state side :runner-trash
                                           (fn [targets]
                                             (some #(corp? (:card %)) targets)))))
-             :msg "place 1 power counter on itself"
+             :msg {:place-counter [:power 1]}
              :effect (effect (add-counter :runner eid card :power 1))}]})
 
 (defcard "Spinal Modem"
@@ -2605,7 +2606,7 @@
                    :effect (effect (shuffle! :deck)
                                    (system-msg "shuffles the Stack"))}
                   card nil)
-                (install-choice state side eid card rev-str first-card nil))))]
+                (install-choice state side eid card rev-cards first-card nil))))]
     {:abilities [{:cost [(->c :trash-can)]
                   :change-in-game-state {:req (req (seq (:deck runner)))}
                   :label "Set aside cards from the top of the stack"

@@ -334,7 +334,7 @@
   {:abilities [{:req (req (and run (not this-server)))
                 :async true
                 :cost [(->c :tag 1)]
-                :msg "end the run"
+                :msg {:end-run true}
                 :label "End the run on another server"
                 :effect (effect (end-run eid card))}]})
 
@@ -361,12 +361,13 @@
                                         :waiting-prompt true
                                         :yes-ability
                                         {:async true
-                                         :msg (msg "reveal " (:title top-card)
-                                                   " from the top of R&D and gain 2 [Credits]")
+                                         :msg (map-msg :reveal-from-rnd (:title top-card) :gain-credits 2)
                                          :effect (req (wait-for (reveal state side (make-eid state eid) top-card)
                                                                 (gain-credits state :corp eid 2)))}
+                                        ;; TODO decline
                                         :no-ability {:effect (effect (system-msg (str "declines to use " (:title card) " to reveal the top card of R&D")))}}}
                                       card nil)
+                                    ;; TODO decline
                                     (do (system-msg state side (str "declines to use " (:title card) " to reveal the top card of R&D"))
                                         (effect-completed state side eid))))))}
         ability {:label "Look at the top card of R&D (start of turn)"
@@ -392,10 +393,11 @@
                {:req (req (not (in-discard? card)))
                 :waiting-prompt true
                 :prompt (msg "Pay 4 [Credits] to use " (:title card) " ability?")
+                ;; TODO decline
                 :no-ability {:effect (effect (system-msg (str "declines to use " (:title card))))}
                 :yes-ability {:async true
                               :cost [(->c :credit 4)]
-                              :msg "give the runner 2 tags"
+                              :msg {:give-tag 2}
                               :effect (req (gain-tags state :corp eid 2))}}}})
 
 (defcard "Bio-Ethics Association"
@@ -854,18 +856,19 @@
 (defcard "Cybersand Harvester"
   {:events [{:event :rez
              :req (req (ice? (:card context)))
-             :msg "place 2 [Credits] on itself"
+             :msg {:place-counter [:credit 2]}
              :async true
              :effect (effect (add-counter :corp eid card :credit 2 nil))}]
    :abilities [{:label "Take all hosted credits"
                 :cost [(->c :trash-can)]
                 :change-in-game-state {:req (req (pos? (get-counters card :credit)))}
-                :msg (msg "gain " (get-counters card :credit) " [Credits]")
+                :msg (map-msg :gain-credits (get-counters card :credit))
                 :async true
                 :effect (effect (gain-credits eid (get-counters card :credit)))}
                {:async true
                 :effect (req (spend-credits state side eid card :credit 1))
                 :label "Take 1 hosted [Credits] (manual)"
+                ;; TODO this
                 :msg "take 1 hosted [Credits]"}]
    :interactions {:pay-credits {:req (req (= :corp-install (:source-type eid)))
                                 :type :credit}}})
@@ -1160,9 +1163,10 @@
   (let [draw-ab {:optional {:req (req unprotected)
                             :prompt "Draw 1 card?"
                             :waiting-prompt true
-                            :yes-ability {:msg "draw 1 card"
+                            :yes-ability {:msg {:draw-cards 1}
                                           :async true
                                           :effect (effect (draw eid 1))}
+                            ;; TODO decline
                             :no-ability {:effect (effect (system-msg (str "declines to use " (:title card) " to draw 1 card")))}}}
         ability
         {:once :per-turn
@@ -1182,7 +1186,7 @@
              {:async true
               :effect (effect (continue-ability draw-ab card nil))}
              :yes-ability
-             {:msg "rearrange the top 3 cards of R&D"
+             {:msg {:rearrange-rnd 3}
               :async true
               :waiting-prompt true
               :effect (req (let [from (take 3 (:deck corp))]
@@ -1212,7 +1216,7 @@
              :req (req (and (= :archives (target-server context))
                             (first-event? state :runner :run #(= :archives (target-server (first %))))
                             unprotected))
-             :msg "do 2 net damage"
+             :msg {:deal-net 2}
              :async true
              :effect (effect (damage eid :net 2))}]})
 
@@ -3405,7 +3409,7 @@
    :on-trash executive-trash-effect})
 
 (defcard "Wage Workers"
-  (let [payoff {:msg "gain [Click]"
+  (let [payoff {:msg {:gain-click 1}
                 :req (req (not (get-in @state [side :register :terminal])))
                 :effect (effect (gain-clicks 1))}
         relevant-keys (fn [context] {:cid (get-in context [:card :cid])

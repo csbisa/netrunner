@@ -191,7 +191,7 @@
   {:async true
    :change-in-game-state {:req (req (can-run-server? state server))}
    :label (str "run " (zone->name server))
-   :msg (str "make a run on " (zone->name server))
+   :msg {:make-run server}
    :effect (req (make-run state side eid server card))})
 
 (def run-any-server-ability

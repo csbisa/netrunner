@@ -980,7 +980,7 @@
 (defcard "Fujii Asset Retrieval"
   (let [ability {:async true
                  :interactive (req true)
-                 :msg "do 2 net damage"
+                 :msg {:deal-net 2}
                  :effect (effect (damage eid :net 2 {:card card}))}]
     {:stolen ability
      :on-score ability}))
@@ -1609,13 +1609,13 @@
   {:advancement-requirement (req (- (or (get-in @state [:runner :brain-damage]) 0)))})
 
 (defcard "Oracle Thinktank"
-  {:stolen {:msg "give the Runner 1 tag"
+  {:stolen {:msg {:give-tag 1}
             :async true
             :effect (effect (gain-tags eid 1))}
    :abilities [{:action true
                 :cost [(->c :click 1) (->c :tag 1)]
                 :req (req (is-scored? state :runner card))
-                :msg "shuffle itself into R&D"
+                :msg {:shuffle-into-rnd [nil]}
                 :label "Shuffle this agenda into R&D"
                 :effect (effect (move :corp card :deck nil)
                                 (shuffle! :corp :deck)
@@ -2080,7 +2080,7 @@
              {:prompt "Do 1 core damage?"
               :waiting-prompt true
               :yes-ability
-              {:msg "do 1 core damage"
+              {:msg {:deal-core 1}
                :async true
                :effect (effect (damage eid :brain 1 {:card card}))}}}]})
 
@@ -2216,7 +2216,7 @@
   {:expend {:req (req (some #(can-be-advanced? state %) (all-installed state :corp)))
             :cost [(->c :credit 1)]
             :choices {:req (req (can-be-advanced? state target))}
-            :msg (msg "place 2 advancement counters on " (card-str state target))
+            :msg (map-msg :place-counter [:adv 2 (card-str-map state target)])
             :async true
             :effect (req
                       (add-prop state :corp eid target :advance-counter 2 {:placed true}))}})
@@ -2287,6 +2287,7 @@
                          :once :per-turn
                          :async true
                          :effect (req (wait-for
+                                        ;; TODO fix this shit
                                         (derez state side target {:msg-keys {:and-then " and gain 1 [Credits]"}})
                                         (gain-credits state side eid 1)))})
                       card nil)))}
@@ -2295,7 +2296,7 @@
                             (first-run-event?
                               state side :derez
                               (fn [[context]] (some ice? (:cards context))))))
-             :msg "lower strength of each installed icebreaker by 2"}]
+             :msg {:lower-ice-str 2}}]
    :leave-play (effect (update-all-icebreakers))
    :static-abilities [{:type :breaker-strength
                        :value -2
