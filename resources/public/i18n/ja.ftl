@@ -470,6 +470,8 @@ side_name = {$side ->
     *[unknown] Unknown side ({$side})
 }
 
+settings_card-language = カード言語
+
 settings_language = 言語
 
 stats_all-games = 全てのログを表示
