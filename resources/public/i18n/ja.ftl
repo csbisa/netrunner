@@ -434,9 +434,13 @@ lobby_watch = 観戦
 
 menu_admin = {nav_admin}
 
+menu_login = ロッグイン
+
 menu_logout = ジャックアウト
 
 menu_settings = {nav_settings}
+
+menu_signup = 登録
 
 nav_about = このサイトについて
 
@@ -465,6 +469,8 @@ side_name = {$side ->
     [runner] ランナー
     *[unknown] Unknown side ({$side})
 }
+
+settings_language = 言語
 
 stats_all-games = 全てのログを表示
 
