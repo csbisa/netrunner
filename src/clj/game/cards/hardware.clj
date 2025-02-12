@@ -56,7 +56,7 @@
    [game.core.shuffling :refer [shuffle!]]
    [game.core.tags :refer [gain-tags lose-tags]]
    [game.core.threat :refer [threat-level]]
-   [game.core.to-string :refer [card-str]]
+   [game.core.to-string :refer [card-str card-str-map]]
    [game.core.toasts :refer [toast]]
    [game.core.update :refer [update!]]
    [game.core.virus :refer [count-virus-programs]]
@@ -122,7 +122,8 @@
 (defcard "Alarm Clock"
   (let [ability {:once :per-turn
                  :req (req (:runner-phase-12 @state))
-                 :msg "make a run on HQ"
+                 :label "Make a run on HQ"
+                 :msg {:make-run [:servers :hq]}
                  :makes-run true
                  :async true
                  :effect (req (register-events
@@ -136,7 +137,7 @@
                                      :req (req (first-run-event? state side :encounter-ice))
                                      :yes-ability {:cost [(->c :click 2)]
                                                    :req (req (>= (:click runner) 2))
-                                                   :msg (msg "bypass " (card-str state (:ice context)))
+                                                   :msg (map-msg :bypass (card-str-map state (:ice context)))
                                                    :effect (req (bypass-ice state))}}}])
                               (wait-for
                                 (make-run state :runner (make-eid state eid) :hq card)
@@ -159,12 +160,12 @@
                         :req (req (and (= :runner (:side context))
                                        (pos? (get-counters card :power))))
                         :yes-ability {:cost [(->c :power 1)]
-                                      :msg "draw 2 cards"
+                                      :msg {:draw-cards 2}
                                       :async true
                                       :effect (req (draw state :runner eid 2))}}}
             {:event :runner-turn-ends
              :req (req tagged)
-             :msg "place 1 power counter on itself"
+             :msg {:place-counter [:power 1]}
              :async true
              :effect (req (add-counter state side eid card :power 1))}]})
 
@@ -562,7 +563,7 @@
                          :mandatory false
                          :ability
                          {:async true
-                          :msg "rearrange the top 4 cards of R&D"
+                          :msg {:rearrange-rnd 4}
                           :cost [(->c :power 1)]
                           :req (req (pos? (get-counters card :power)))
                           :waiting-prompt true
@@ -576,7 +577,7 @@
                         :cost [(->c :click 1) (->c :power 1)]
                         :req (req (some #{:rd} (:successful-run runner-reg)))
                         :label "Breach R&D"
-                        :msg "breach R&D"
+                        :msg {:breach-server [:servers :rd]}
                         :keep-menu-open :while-power-tokens-left
                         :async true
                         :effect (effect (breach-server eid [:rd] #_{:no-root true}))}]
@@ -1373,6 +1374,7 @@
                          (some #{:hq} (:successful-run runner-reg))
                          (some #{:rd} (:successful-run runner-reg))
                          (some #{:archives} (:successful-run runner-reg))))
+             ;; TODO
              :msg "add itself to the score area as an assassination agenda worth 0 agenda points"
              :async true
              :effect (req (as-agenda state :runner card 0)
@@ -2562,14 +2564,14 @@
                                 :type :recurring}}})
 
 (defcard "The Wizard's Chest"
-  (letfn [(install-choice [state side eid card rev-str first-card second-card]
+  (letfn [(install-choice [state side eid card rev-cards first-card second-card]
             (continue-ability
               state side
               {:prompt "Choose one"
                :choices [(str "Install " (:title first-card))
                          (when second-card (str "Install " (:title second-card)))
                          "No install"]
-               :msg (msg "reveal " rev-str " from the top of the stack")
+               :msg (map-msg :reveal-from-stack rev-cards)
                :async true
                :effect (req (if-not (= target "No install")
                               (wait-for (runner-install
@@ -2587,23 +2589,22 @@
                                   (system-msg state side "shuffles the Stack")
                                   (effect-completed state side eid))))}
               card nil))
-          (wiz-search-fn [state side eid card remainder type rev-str first-card]
+          (wiz-search-fn [state side eid card remainder type rev-cards first-card]
             (if (seq remainder)
               (let [revealed-card (first remainder)
                     rest-of-deck (rest remainder)
-                    rev-str (if (= "" rev-str)
-                              (:title revealed-card)
-                              (str rev-str ", " (:title revealed-card)))]
+                    rev-cards (conj rev-cards (:title revealed-card))]
                 (if (is-type? revealed-card type)
                   (if-not first-card
-                    (wiz-search-fn state side eid card rest-of-deck type rev-str revealed-card)
-                    (install-choice state side eid card rev-str first-card revealed-card))
-                  (wiz-search-fn state side eid card rest-of-deck type rev-str first-card)))
+                    (wiz-search-fn state side eid card rest-of-deck type rev-cards revealed-card)
+                    (install-choice state side eid card rev-cards first-card revealed-card))
+                  (wiz-search-fn state side eid card rest-of-deck type rev-cards first-card)))
               (if-not first-card
                 (continue-ability
                   state side
-                  {:msg (msg "reveal " rev-str " from the top of the stack")
+                  {:msg (map-msg :reveal-from-stack rev-cards)
                    :effect (effect (shuffle! :deck)
+                                   ;; TODO shuffle
                                    (system-msg "shuffles the Stack"))}
                   card nil)
                 (install-choice state side eid card rev-cards first-card nil))))]
@@ -2617,7 +2618,7 @@
                                  (some #{:rd} (:successful-run runner-reg))
                                  (some #{:archives} (:successful-run runner-reg))))
                   :async true
-                  :effect (effect (wiz-search-fn eid card (:deck runner) target "" nil))}]}))
+                  :effect (effect (wiz-search-fn eid card (:deck runner) target [] nil))}]}))
 
 (defcard "Time Bomb"
   {:data {:counter {:power 1}}

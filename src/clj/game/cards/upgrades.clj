@@ -50,7 +50,7 @@
    [game.core.shuffling :refer [shuffle!]]
    [game.core.tags :refer [gain-tags]]
    [game.core.threat :refer [threat-level]]
-   [game.core.to-string :refer [card-str]]
+   [game.core.to-string :refer [card-str card-str-map]]
    [game.core.toasts :refer [toast]]
    [game.core.update :refer [update!]]
    [game.macros :refer [continue-ability effect msg map-msg req wait-for]]
@@ -352,6 +352,8 @@
                                                                  (not (same-card? % rezzed-card)))}
                                            :async true
                                            :effect (req (wait-for (derez state side (get-card state target)
+                                                                         ;; TODO cost+effect also duration "for the remainder of the run"
+                                                                         ;; (map-msg :derez (card-str-map state target) :add-str-new [(card-str-map state rezzed-card) 3])
                                                                          {:msg-keys {:and-then (str " to give " (card-str state rezzed-card) " +3 strength for the remainder of the run")}})
                                                                   (pump-ice state side rezzed-card 3 :end-of-run)
                                                                   (effect-completed state side eid)))}}}
@@ -930,7 +932,7 @@
                  :choices {:req (req (and (ice? target)
                                           (zero? (get-counters target :advancement))
                                           (same-server? target card)))}
-                 :msg (msg "place 1 advancement counter on " (card-str state target))
+                 :msg (map-msg :place-counter [:adv 1 (card-str-map state target)])
                  :async true
                  :effect (effect (add-prop eid target :advance-counter 1 {:placed true}))}]
     {:static-abilities [{:type :ice-strength
@@ -1796,8 +1798,7 @@
          :label "Place advancement counters on a card in or protecting this server"
          :once :per-turn
          :choices {:req (req (same-server? card target))}
-         :msg (msg "place " (if (is-boosted-fn? state side) 3 2) " advancement counters on "
-                   (card-str state target))
+         :msg (map-msg :place-counter [:adv (if (is-boosted-fn? state side) 3 2) (card-str-map state target)])
          :async true
          :effect
          (req (let [n (if (is-boosted-fn? state side) 3 2)]

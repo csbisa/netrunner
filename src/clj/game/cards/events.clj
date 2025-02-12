@@ -72,7 +72,7 @@
    [game.core.toasts :refer [toast]]
    [game.core.update :refer [update!]]
    [game.core.virus :refer [get-virus-counters]]
-   [game.macros :refer [continue-ability effect msg map-msg req wait-for]]
+   [game.macros :refer [continue-ability effect msg map-msg map-msg-apply req wait-for]]
    [game.utils :refer :all]
    [jinteki.utils :refer :all]
    [jinteki.validator :refer [legal?]]))
@@ -184,9 +184,9 @@
 
 (defcard "Ashen Epilogue"
   {:on-play
-   {:msg (msg (if (not (zone-locked? state :runner :discard))
-                "shuffle the grip and heap into the stack"
-                "shuffle the grip into the stack"))
+   {:msg (map-msg-apply (if (not (zone-locked? state :runner :discard))
+                          {:shuffle-zone-into [:hand :discard]}
+                          {:shuffle-zone-into [:hand]}))
     :rfg-instead-of-trashing true
     :async true
     :effect (req (shuffle-into-deck state :runner :hand :discard)
@@ -194,9 +194,8 @@
                    (doseq [c top-5]
                      (move state side c :rfg))
                    (system-msg state side
-                               (str "removes "
-                                    (enumerate-str (map :title top-5))
-                                    " from the game and draws 5 cards"))
+                               {:type :direct-effect :effect {:rfg (map :title top-5)
+                                                              :draw-cards 5}})
                    (draw state :runner eid 5)))}})
 
 (defcard "Bahia Bands"
@@ -432,8 +431,9 @@
                               {:prompt (str "Choose where to put " (:title target-card))
                                :choices ["Top of R&D" "Bottom of R&D"]
                                :async true
-                               :msg (msg "add " (:title target-card) " to the "
-                                         (decapitalize target))
+                               :msg (map-msg-apply (if (= target "Top of R&D")
+                                                     {:add-to-top-rnd (:title target-card)}
+                                                     {:add-to-bottom-rnd (:title target-card)}))
                                :effect (req
                                          (if (= target "Top of R&D")
                                            (move state :corp target-card :deck {:front true})
@@ -1443,7 +1443,7 @@
                   {:label "Trash card"
                    :trash? true
                    :cost [(->c :trash-from-hand 1)]
-                   :msg (msg "trash " (:title target) " from HQ")
+                   :msg (map-msg :trash-from-hq (:title target))
                    :async true
                    :effect (effect (trash eid (assoc target :seen true) {:accessed true :cause-card card}))}}
    :events [{:event :successful-run
@@ -1451,7 +1451,7 @@
              :req (req (and (= :hq (target-server context))
                             this-card-run))
              :async true
-             :msg "take 1 tag and access 1 additional card from HQ"
+             :msg {:take-tag 1 :access-additional-from-hq 1}
              :effect (req
                        (wait-for (gain-tags state :runner 1 {:unpreventable true})
                                  (register-events
@@ -2506,7 +2506,8 @@
                                    (in-hand? %)
                                    (has-subtype? % type))}
              :prompt (msg "Choose any number of " (decapitalize type) " resources to reveal")
-             :msg (msg "reveal " (enumerate-str (map :title (sort-by :title targets))) " from the Grip and gain " (count targets) " [Credits]")
+             :msg (map-msg :reveal-from-grip (map :title (sort-by :title targets))
+                           :gain-credits (count targets))
              :async true
              :effect (req (wait-for
                              (reveal state side targets)
@@ -2515,7 +2516,7 @@
             {:prompt (str "Choose a " (decapitalize type) " resource")
              :choices (req (cancellable (filter #(has-subtype? % type)
                                                 (:deck runner)) :sorted))
-             :msg (msg "add " (:title target) " from the stack to the grip and shuffle the stack")
+             :msg (map-msg :add-from-stack (:title target))
              :async true
              :effect (effect (trigger-event :searched-stack)
                              (move target :hand)
@@ -2532,6 +2533,7 @@
                                  {:prompt (str "Search the stack for a " (decapitalize choice) " resource?")
                                   :yes-ability
                                   {:async true
+                                   ;; TODO eh
                                    :msg (msg "search the stack for a " (decapitalize choice) " resource")
                                    :effect (effect (continue-ability (tutor-abi choice) card nil))}
                                   :no-ability
@@ -2953,7 +2955,7 @@
                  :this-card-run true
                  :mandatory true
                  :ability {:async true
-                           :msg "take 1 tag"
+                           :msg {:take-tag 1}
                            :effect (req
                                      (register-pending-event state :runner-gain-tag
                                                              card install-resource-from-heap)
@@ -3708,6 +3710,7 @@
                                  {:prompt "Choose a piece of ice protecting this server"
                                   :choices {:card #(and (ice? %)
                                                         (= (first (:server run)) (second (get-zone %))))}
+                                  ;; TODO
                                   :msg (msg "host " (:title trojan) " on " (card-str state target))
                                   :effect (req (host state side target trojan)
                                                (update-all-ice state side))}
@@ -4065,7 +4068,7 @@
              :req (req (and (= :rd (target-server context))
                             this-card-run
                             (= (get-in card [:special :run-eid :eid]) (get-in @state [:run :eid :eid]))))
-             :msg "place 2 [Credits] on itself and access 1 additional card from R&D"
+             :msg {:place-counter [:credits 2] :access-additional-from-rnd 1}
              :async true
              :effect (effect
                        (register-events
@@ -4080,7 +4083,7 @@
                                   (map unknown->kw)
                                   (filter is-remote?)
                                   (map remote->name))))
-             :msg (msg "make a run on " target)
+             :msg (map-msg :make-run (server->zone state target))
              :async true
              :effect (effect (make-run eid target card))}]})
 

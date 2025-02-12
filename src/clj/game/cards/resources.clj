@@ -308,7 +308,7 @@
    :events [{:event :run-ends
              :req (req (and (#{:hq :rd} (target-server context))
                             (>= (total-cards-accessed context) 3)))
-             :msg "add 1 power counter to itself"
+             :msg {:place-counter [:power 1]}
              :async true
              :effect (req (add-counter state side eid (get-card state card) :power 1))}
             {:event :runner-turn-begins
@@ -317,7 +317,7 @@
              {:prompt "Trash this resource to force the Corp to lose 10 [Credits]?"
               :req (req (>= (get-counters (get-card state card) :power) 3))
               :yes-ability
-              {:msg "trash itself and force the Corp to lose 10 [Credits]"
+              {:msg {:trash-self true :lose-credits-force 10}
                :async true
                :effect (req (wait-for
                               (trash state side card {:cause-card card})
@@ -378,7 +378,7 @@
                 :cost [(->c :gain-tag 1)]
                 :once :per-turn
                 :label "Give encountered ice -2 strength"
-                :msg (msg "give " (card-str state current-ice) " -2 strength for the remainder of the encounter")
+                :msg (map-msg :reduce-str [(card-str-map state current-ice) 2])
                 :effect (effect (pump-ice current-ice -2 :end-of-encounter))}
                {:label "Trash encountered ice"
                 :async true
@@ -386,7 +386,7 @@
                                (not (pos? (ice-strength state side current-ice)))))
                 :cost [(->c :credit 2) (->c :trash-can)]
                 :effect (effect (trash eid current-ice {:cause-card card}))
-                :msg (msg "trash " (card-str state current-ice))}]})
+                :msg (map-msg :trash (card-str-map state current-ice))}]})
 
 (defcard "Asmund Pudlat"
   (letfn [(search-and-host [x]
@@ -1603,14 +1603,14 @@
 (defcard "Friend of a Friend"
   {:abilities [{:action true
                 :label "Gain 5 [Credits] and remove 1 tag"
-                :msg "gain 5 [Credits] and remove 1 tag"
+                :msg {:gain-credits 5 :remove-tag 1}
                 :cost [(->c :click 1) (->c :trash-can)]
                 :async true
                 :effect (req (wait-for (gain-credits state side (make-eid state eid) 5)
                                        (lose-tags state :runner eid 1)))}
                {:action true
                 :label "Gain 9 [Credits] and take 1 tag"
-                :msg "gain 9 [Credits] and take 1 tag"
+                :msg {:gain-credits 9 :take-tag 1}
                 :cost [(->c :click 1) (->c :trash-can)]
                 :req (req (not tagged))
                 :async true
@@ -2017,7 +2017,7 @@
                          (and (valid-ctx? targets)
                               (= :runner side)
                               (first-event? state side :action-played valid-ctx?))))
-             :msg "gain [Click]"
+             :msg {:gain-click 1}
              :async true
              :effect (req (if (pos? (get-counters card :power))
                             (do (gain-clicks state side 1)
@@ -2284,7 +2284,9 @@
              :automatic :pre-breach
              :req (req (and tagged
                             (or (= target :rd) (= target :hq))))
-             :msg (msg "access 1 additional card from " (zone->name target))
+             :msg (map-msg-apply (if (= target "HQ")
+                                   {:access-additional-from-hq 1}
+                                   {:access-additional-from-rnd 1}))
              :effect (effect (access-bonus target 1))}]})
 
 (defcard "\"Pretty\" Mary da Silva"
@@ -2303,7 +2305,7 @@
                              {:optional
                               {:prompt "Access 1 additional card?"
                                :yes-ability
-                               {:msg "access 1 additional card"
+                               {:msg {:access-additional-from-rnd 1}
                                 :effect (effect (access-bonus :rd 1))}}})
                            card nil)))}]})
 
@@ -4013,16 +4015,16 @@
                 :async true
                 :effect (req (cond
                                (= "Remove 1 tag" target) (do (lose-tags state :runner eid 1)
-                                                             (system-msg state :runner (str "uses " (:title card)
-                                                                                            " to " (decapitalize target))))
+                                                             (system-msg state :runner {:type :use :card (:title card)
+                                                                                        :effect {:remove-tag 1}}))
                                (= "Gain 2 [Credits]" target) (do (gain-credits state :runner eid 2)
-                                                                 (system-msg state :runner (str "uses " (:title card)
-                                                                                                " to " (decapitalize target))))
+                                                                 (system-msg state :runner {:type :Use :card (:title card)
+                                                                                            :effect {:gain-credits 2}}))
                                :else (effect-completed state side eid)))}
    :events [{:event :runner-lose-tag
              :req (req
                     (= :runner (:side context)))
-             :msg "gain 1 [Credits]"
+             :msg {:gain-credits 1}
              :async true
              :interactive (req true)
              :effect (req (gain-credits state :runner eid 1))}]})

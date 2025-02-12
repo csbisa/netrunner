@@ -408,7 +408,8 @@
    :abilities [{:label "Choose a card to add to HQ"
                 :cost [(->c :trash-from-deck 1) (->c :agenda 1)]
                 :once :per-turn
-                :msg "add 1 card from Archives to HQ"
+                ;; TODO it's not actually unseen, but it follows the msg format as of this revision
+                :msg {:add-to-hq-unseen 1}
                 :async true
                 :effect (effect (continue-ability (corp-recur) card nil))}]})
 
@@ -835,6 +836,7 @@
                     :prompt "Choose 1 card to install and rez, paying 5 [Credits] less"
                     :choices {:card #(and (in-hand? %)
                                           (corp-installable-type? %))}
+                    ;; TODO discount here
                     :msg "install and rez 1 card from HQ, paying 5 [Credits] less"
                     :async true
                     :effect (req (corp-install state side eid target nil
@@ -859,7 +861,8 @@
                                                   ["Done"]))
                                   :effect (req (shuffle! state side :deck)
                                                (if (= "Done" target)
-                                                 (do (system-msg state side (str "uses " (:title card) " to shuffle R&D"))
+                                                 (do (system-msg state side {:type :use :card (:title card)
+                                                                             :effect {:shuffle-rnd true}})
                                                      (effect-completed state side eid))
                                                  (corp-install state side eid target nil
                                                                {:install-state :rezzed-no-cost
@@ -1269,7 +1272,7 @@
                                (in-hand? %)
                                (>= 1 (:agendapoints %)))}
          :waiting-prompt true
-         :msg (msg "add " (:title target) " from HQ to [their] score area")
+         :msg (map-msg :add-from-hq-to-score (:title target))
          :effect (req
                    (let [c (move state :corp target :scored)]
                         (card-init state :corp c {:resolve-effect false
@@ -1278,6 +1281,7 @@
                       (update-all-agenda-points state)
                       (check-win-by-agenda state side)
                       (effect-completed state side eid))
+         ;; TODO
          :cancel-effect (effect (system-msg (str "declines to use " (:title card)))
                                 (effect-completed eid))}]
     {:on-score {:async true
@@ -1332,7 +1336,7 @@
                                                      (= (second (get-zone %)) zone))
                                          :max derez-count
                                          :min derez-count}
-                               :msg (msg "derez " (enumerate-str (map #(card-str state %) targets)))
+                               :msg (map-msg :derez (map #(card-str-map state %) targets))
                                :async true
                                :effect (req (derez state side eid targets))}
                               card nil)))})]
@@ -2104,12 +2108,13 @@
                              (gain-tags state :runner 1)
                              (continue-ability
                                state side
+                               ;; TODO this msg needs to be fixed too?
                                {:msg "start a psi game (do 1 core damage / do 1 net damage)"
-                                :psi {:not-equal {:msg "do 1 core damage"
+                                :psi {:not-equal {:msg {:deal-core 1}
                                                   :async true
                                                   :effect (effect (damage eid :brain 1 {:card card}))}
                                       :equal {:async true
-                                              :msg "do 1 net damage"
+                                              :msg {:deal-net 1}
                                               :effect (effect (damage eid :net 1 {:card card}))}}}
                                card nil)))}})
 
@@ -2207,7 +2212,7 @@
                                   {:cost (if (= target "Pay 1 [Credit]")
                                            (->c :credit 1)
                                            (->c :trash-from-hand 1))
-                                   :msg (msg "make the runner encounter " (card-str state enc-ice) " again")
+                                   :msg (map-msg :encounter-ice (card-str-map state enc-ice))
                                    :async true
                                    :effect (req (force-ice-encounter state side eid enc-ice))}
                                   card nil))))}]}))
@@ -2319,7 +2324,7 @@
 (defcard "Stoke the Embers"
   (letfn [(score-abi
             [cred-gain]
-            {:msg (msg "gain " cred-gain " [Credits]")
+            {:msg (map-msg :gain-credits cred-gain)
              :interactive (req true)
              :async true
              :effect (req (wait-for
@@ -2329,8 +2334,7 @@
                               {:req (req (seq (all-installed-corp state)))
                                :choices {:card #(installed? %)}
                                :waiting-prompt true
-                               :msg (msg "place 1 advancement counter on "
-                                         (card-str state target))
+                               :msg (map-msg :place-counter [:adv 1 (card-str-map state target)])
                                :async true
                                :effect (effect (add-prop :corp eid target :advance-counter 1
                                                          {:placed true}))}
@@ -2344,7 +2348,7 @@
                                      (same-card? (:card target) card)))
                          :waiting-prompt true
                          :yes-ability
-                         {:msg (msg "reveal itself from " (zone->name (:previous-zone card)))
+                         {:msg (map-msg :reveal-self (:previous-zone card))
                           :async true
                           :effect (req (wait-for
                                          (reveal state side card)

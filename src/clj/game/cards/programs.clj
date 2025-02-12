@@ -876,7 +876,8 @@
                 :async true
                 :keep-menu-open :while-power-tokens-left
                 :effect (effect (gain-credits eid 2))
-                :msg "gain 2 [Credits]"}]
+                :label "Gain 2 [Credits]"
+                :msg {:gain-credits 2}}]
    :data {:counter {:power 2}}})
 
 (defcard "Collective Consciousness"
@@ -1062,7 +1063,7 @@
                                                 (:discard corp))
                                         :sorted))
              :cost [(->c :credit 1)]
-             :msg (msg "host " (:title target) " on itself")
+             :msg (map-msg :host-on-self (:title target))
              :effect (req (host state side card (assoc target :seen true :installed false)))}
             {:event :breach-server
              :automatic :pre-breach
@@ -1074,13 +1075,13 @@
                                       :effect (effect (access-bonus :hq 2)
                                                       (effect-completed eid))
                                       :cost [(->c :credit 1) (->c :trash-can)]
-                                      :msg "access 2 additional cards from HQ"}}}]
+                                      :msg {:access-additional-from-hq 2}}}}]
    :interactions {:access-ability {:label "Host card"
                                    :trash? false
                                    :req (req (and (empty? (filter corp? (:hosted card)))
                                                   (not (agenda? target))))
                                    :cost [(->c :credit 1)]
-                                   :msg (msg "host " (:title target) " on itself")
+                                   :msg (map-msg :host-on-self (:title target))
                                    :effect (req
                                              (host state side card (assoc target :seen true :installed false))
                                              (swap! state dissoc :access))}}})
@@ -1680,7 +1681,7 @@
                              {:prompt "Host a card on this program instead of accessing it?"
                               :yes-ability {:prompt "Choose a card in Archives"
                                             :choices (req (cancellable (:discard corp) :sorted))
-                                            :msg (msg "host " (:title target) " on itself instead of accessing it")
+                                            :msg (map-msg :host-instead-of-access (:title target))
                                             :effect (effect
                                                       (update! (assoc-in card [:special :host-available] false))
                                                       (host card target))}}}
@@ -2001,7 +2002,7 @@
                 :label "Give -1 strength to current piece of ice"
                 :req (req (active-encounter? state))
                 :keep-menu-open :while-virus-tokens-left
-                :msg (map-msg :reduce-str (:title current-ice))
+                :msg (map-msg :reduce-str [(card-str-map state current-ice) 1])
                 :effect (effect (pump-ice current-ice -1))}]})
 
 (defcard "Leprechaun"
@@ -2043,6 +2044,7 @@
                                  :req (req (and
                                              (active-encounter? state)
                                              (<= (get-strength current-ice) (get-strength card))))
+                                 ;; TODO. better done by removing this entirely and fixing costs
                                  :msg (msg "break " (quantify (cost-value eid :x-credits) "subroutine")
                                            " on " (card-str state current-ice))
                                  :async true
@@ -2055,7 +2057,7 @@
                     :events [{:event :subroutines-broken
                               :req (req (and (all-subs-broken-by-card? (:ice context) card)
                                              (has-subtype? (:ice context) "Code Gate")))
-                              :msg "place 1 power counter on itself"
+                              :msg {:place-counter [:power 1]}
                               :async true
                               :effect (effect (add-counter eid card :power 1 nil))}]}))
 
@@ -2094,7 +2096,7 @@
              :optional {:prompt "Remove this program from the game to bypass encountered ice?"
                         :req (req (threat-level 4 state))
                         :yes-ability {:cost [(->c :remove-from-game)]
-                                      :msg (msg "bypass " (card-str state current-ice))
+                                      :msg (map-msg :bypass (card-str-map state current-ice))
                                       :effect (req (bypass-ice state))}}}
             {:event :encounter-ice
              :skippable true
@@ -2105,7 +2107,7 @@
                         :req (req (and (>= 3 (ice-strength state side current-ice))
                                        (<= 1 (get-counters (get-card state card) :power))))
                         :yes-ability {:cost [(->c :power 1)]
-                                      :msg (msg "bypass " (card-str state current-ice))
+                                      :msg (map-msg :bypass (card-str-map state current-ice))
                                       :effect (req (bypass-ice state))}}}]})
 
 (defcard "Mammon"
@@ -2313,7 +2315,7 @@
              :async true
              :effect (req (when (= :deck where)
                             (trigger-event state side :searched-stack)
-                            (system-msg state side (str "uses " (:title card) " to shuffle the stack"))
+                            (system-msg state side {:type :use :card (:title card) :effect {:shuffle-stack true}})
                             (shuffle! state side :deck))
                           (let [msg-keys {:install-source card
                                           :display-origin true}]
@@ -2342,6 +2344,7 @@
                   :prompt "Choose where to install from"
                   :choices (req ["Grip" "Stack"
                                  (when-not (zone-locked? state :runner :discard) "Heap")])
+                  ;; TODO search effect here too
                   :msg (msg "search the " target " for a non-daemon program to install")
                   :effect (effect (continue-ability
                                     (muse-abi (if (= "Stack" target) :deck
@@ -2743,7 +2746,7 @@
                                         :effect (req (wait-for
                                                        (pay state side (make-eid state eid) card [(->c :credit (count (:subroutines (get-card state current-ice))))])
                                                        (let [payment-str (:msg async-result)
-                                                             msg-ab {:msg (str "bypass " (card-str state (:ice context)))}]
+                                                             msg-ab {:msg {:bypass (card-str-map state (:ice context))}}]
                                                          (print-msg state side msg-ab card nil payment-str))
                                                        (bypass-ice state)
                                                        (effect-completed state side eid)))}}}]}))

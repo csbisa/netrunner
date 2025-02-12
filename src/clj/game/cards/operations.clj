@@ -142,7 +142,7 @@
 
 (defcard "Active Policing"
   (let [lose-click-abi
-        {:msg "give the Runner -1 allotted [Click] for [runner-pronoun] next turn"
+        {:msg {:remove-click-next-turn 1}
          :async true
          :effect (req (swap! state update-in [:runner :extra-click-temp] (fnil dec 0))
                       (continue-ability
@@ -152,7 +152,7 @@
                            {:prompt "Pay 2 [credits] to give the Runner -1 allotted [Click] for [runner-pronoun] next turn?"
                             :yes-ability
                             {:cost [(->c :credit 2)]
-                             :msg "give the Runner -1 allotted [Click] for [runner-pronoun] next turn"
+                             :msg {:remove-click-next-turn 1}
                              :effect (req (swap! state update-in [:runner :extra-click-temp] (fnil dec 0)))}}})
                         card nil))}]
   {:on-play {:req (req (or (last-turn? state :runner :trashed-card)
@@ -162,6 +162,7 @@
              :choices {:card #(and (corp-installable-type? %)
                                    (in-hand? %))}
              :async true
+             ;; TODO decline
              :cancel-effect (effect (system-msg (str "declines to use " (:title card) " to install a card from HQ"))
                                     (continue-ability lose-click-abi card nil))
              :effect (req (wait-for (corp-install state side target nil {:msg-keys {:install-source card
@@ -511,6 +512,7 @@
            :async true
            :effect (req (let [target-card (first (shuffle (:hand runner)))]
                           (wait-for
+                            ;; TODO fix, use :move-grip-to-stack here
                             (reveal-loud state side card {:and-then " and shuffle it into the Stack"} target-card)
                             (move state :runner target-card :deck)
                             (shuffle! state :runner :deck)
@@ -550,11 +552,12 @@
                                              (pos? (get-counters target :virus))))}
                     :async true
                     :effect (effect (add-counter eid target :virus (* -1 (get-counters target :virus)) nil))
-                    :msg (msg "remove all virus counters from " (card-str state target))}
+                    :msg (map-msg :remove-all-virus-counters (card-str-map state target))}
         kaguya {:choices {:max 2
                           :req (req (and (corp? target)
                                          (installed? target)
                                          (can-be-advanced? state target)))}
+                ;; TODO ugh, not standard format
                 :msg (msg "place 1 advancement counter on " (quantify (count targets) "card"))
                 :async true
                 :effect (req (let [[f1 f2] targets]
@@ -686,7 +689,7 @@
                     (play-instant eid target nil))}})
 
 (defcard "Corporate Hospitality"
-  {:on-play {:msg "gain 6 [Credits] and draw 2 cards"
+  {:on-play {:msg {:gain-credits 6 :draw-cards 2}
              :async true
              :effect (req (wait-for (gain-credits state side 6)
                                     (wait-for (draw state side (make-eid state eid) 2)
@@ -3016,7 +3019,7 @@
                               :waiting-prompt true
                               :req (req (threat-level 3 state))
                               :yes-ability {:cost [(->c :credit 3)]
-                                            :msg "gain [Click]"
+                                            :msg {:gain-click 1}
                                             :effect (effect (gain-clicks 1))}}}
         play-instant-first {:prompt "Choose a non-terminal operation"
                             :choices (req (conj (filter #(and (operation? %)
@@ -3032,7 +3035,7 @@
                                           (continue-ability state side (when is-first-mandate? play-instant-second) card nil)
                                           (wait-for (play-instant state side (make-eid state eid) target nil)
                                                     (continue-ability state side (when is-first-mandate? play-instant-second) card nil)))))}]
-    {:on-play {:msg "draw 2 cards"
+    {:on-play {:msg {:draw-cards 2}
                :async true
                :effect (req (wait-for (draw state side (make-eid state eid) 2)
                                       (continue-ability

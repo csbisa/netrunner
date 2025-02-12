@@ -1871,12 +1871,12 @@
               :req (req (and (= :corp (:active-player @state))
                              (= [:deck] (:zone (:card target)))
                              (first-event? state side :corp-trash #(= [:deck] (:zone (:card (first %)))))))
-              :msg "gain 2 [Credits]"
+              :msg {:gain-credits 2}
               :async true
               :effect (effect (gain-credits :corp eid 2))}
         abi1 {:prompt (msg "The top card of R&D is: " (:title (first (:deck corp))))
               :async true
-              :msg "look at the top card of R&D"
+              :msg {:look-top-rnd 1}
               :choices ["OK"]
               :req (req (seq (:deck corp)))
               :effect
@@ -1884,7 +1884,7 @@
                         {:optional
                          {:prompt (str "Trash " (:title (first (:deck corp))) "?")
                           :yes-ability
-                          {:msg "trash the top card of R&D"
+                          {:msg {:trash-rnd 1}
                            :async true
                            :effect (req (mill state :corp eid :corp 1))}}}
                         card nil))}]
@@ -2673,13 +2673,15 @@
          :choices (req ["End the run"
                         (when (can-pay? state :runner eid card nil [(->c :trash-installed 1)])
                           (capitalize (cost->string (->c :trash-installed 1))))])
-         :msg (msg (if (= "End the run" target)
-                     (decapitalize target)
-                     (str "force the runner to " (decapitalize target))))
+         :msg (map-msg-apply (if (= "End the run" target)
+                               {:end-run true}
+                               ;; TODO eh... and force
+                               {:trash "1 of their installed cards"}))
          :effect (req (if (= "End the run" target)
                         (end-run state :corp eid card)
                         (wait-for (pay state :runner (make-eid state eid) card (->c :trash-installed 1))
                                   (when-let [payment-str (:msg async-result)]
+                                    ;; TODO blah
                                     (system-msg state :runner
                                                 (str payment-str
                                                      " due to " (:title card)
@@ -2690,10 +2692,8 @@
                               (ice? (:card context))
                               (or (has-subtype? (:card context) "AP")
                                   (has-subtype? (:card context) "Destroyer"))))
-               :msg (msg "give " (card-str state (:card context))
-                         " +1 strength and \""
-                         (:label thunderbolt-sub)
-                         "\" after its other subroutines")
+               :msg (map-msg :add-str-new [(card-str-map state (:card context)) 1]
+                             :add-sub (:label thunderbolt-sub))
                :async true
                :effect (effect (register-lingering-effect
                                  card

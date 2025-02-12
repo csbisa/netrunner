@@ -407,7 +407,7 @@
   {:async true
    :prompt "Choose an installed card to trash"
    :label "Trash an installed Runner card"
-   :msg (map-msg :trash  (:title target))
+   :msg (map-msg :trash (:title target))
    :waiting-prompt true
    :change-in-game-state {:silent true :req (req (seq (all-installed state :runner)))}
    :choices {:card #(and (installed? %)
@@ -1100,7 +1100,7 @@
          :change-in-game-state {:silent (req true) :req (req (seq (:hand corp)))}
          :optional {:prompt "Trash 1 card from HQ to end the run?"
                     :yes-ability {:cost [(->c :trash-from-hand 1)]
-                                  :msg "end the run"
+                                  :msg {:end-run true}
                                   :async true
                                   :effect (effect (end-run eid card))}}}]
     {:static-abilities [(ice-strength-bonus (req (if (threat-level 4 state) 2 0)))]
@@ -1208,7 +1208,7 @@
    :subroutines [{:label "Gain 1 [Credits] for each tag the Runner has"
                   :async true
                   :change-in-game-state {:silent (req true) :req (req tagged)}
-                  :msg (msg "gain " (count-tags state) " [Credits]")
+                  :msg (map-msg :gain-credits (count-tags state))
                   :effect (effect (gain-credits :corp eid (count-tags state)))}
                  end-the-run]})
 
@@ -1355,6 +1355,7 @@
                                               (= target "Corp trashes 1 Runner card")
                                               trash-installed-sub
                                               (= target "Take 2 tags")
+                                              ;; TODO adapt to new format
                                               {:msg (msg "force the Runner to " (decapitalize target))
                                                :async true
                                                :effect (effect (gain-tags :runner eid 2 {:unpreventable true}))}
@@ -2165,7 +2166,7 @@
   {:implementation "Breaking restriction not implemented"
    :subroutines [(give-tags 1)
                  {:label "Choose a resource or piece of hardware to trash"
-                  :msg (msg "trash " (:title target))
+                  :msg (map-msg :trash (:title target))
                   :prompt "Trash a resource or piece of hardware"
                   :change-in-game-state {:silent (req true)
                                          :req (req (some #(or (hardware? %) (resource? %)) (all-installed state :runner)))}
@@ -2178,7 +2179,7 @@
                   :change-in-game-state {:silent (req true)
                                          :req (req (some #(and (program? %) (not (has-any-subtype? % ["Decoder" "Fracter" "Killer"]))) (all-installed state :runner)))}
                   :prompt "Trash a program that is not a decoder, fracter or killer"
-                  :msg (msg "trash " (:title target))
+                  :msg (map-msg :trash (:title target))
                   :choices {:card #(and (installed? %)
                                         (program? %)
                                         (not (has-any-subtype? % ["Decoder" "Fracter" "Killer"])))}
@@ -2188,7 +2189,7 @@
 (defcard "Descent"
   (let [shuffle-ab
         {:label "Draw 1 card and shuffle up to 2 agendas in HQ and/or Archives into R&D"
-         :msg "draw 1 card"
+         :msg {:draw-cards 1}
          :async true
          :cost [(->c :credit 1)]
          :effect
@@ -2213,16 +2214,17 @@
                                 from-archives (map :title (filter in-discard? targets))]
                             (system-msg
                               state side
-                              (str "uses " (:title card) " to reveal "
-                                   (enumerate-str
-                                     (filter identity
-                                             [(when (not-empty from-hq)
-                                                (str (enumerate-str from-hq)
-                                                     " from HQ"))
-                                              (when (not-empty from-archives)
-                                                (str (enumerate-str from-archives)
-                                                     " from Archives"))]))
-                                   ", shuffle them into R&D")))
+                              ;; TODO yikes
+                              {:type :use :card (:title card)
+                               :raw-text (str (enumerate-str
+                                               (filter identity
+                                                       [(when (not-empty from-hq)
+                                                          (str (enumerate-str from-hq)
+                                                               " from HQ"))
+                                                        (when (not-empty from-archives)
+                                                          (str (enumerate-str from-archives)
+                                                               " from Archives"))]))
+                                              ", shuffle them into R&D")}))
                           (effect-completed state side eid)))}
                 card nil)))}]
     {:events [{:event :corp-turn-begins
@@ -2774,7 +2776,7 @@
 (defcard "Logjam"
   {:advanceable :always
    :static-abilities [(ice-strength-bonus (req (get-counters card :advancement)))]
-   :on-rez {:msg (msg "place " (quantify (inc (faceup-archives-types corp)) "advancement counter") " on itself")
+   :on-rez {:msg (map-msg :place-counter [:adv (inc (faceup-archives-types corp))])
             :async true
             :effect (effect (add-prop eid card
                                       :advance-counter
@@ -2878,7 +2880,9 @@
                               ;; long as the card is rezzed
                               ;; if the card is hushed, it will not derez, so the subtypes will stay!
                               ;; - nbkelly, jan '24
-                              (system-msg state side (str "uses " (:title card) " to make itself gain " target))
+                              (system-msg state side {:type :use :card (:title card)
+                                                      ;; TODO deal with the self-reference
+                                                      :effect {:gain-type ["itself" target]}})
                               (register-lingering-effect
                                 state side card
                                 (let [ice card]
@@ -2905,7 +2909,8 @@
                :async true
                :effect (effect (derez :corp eid card))}]
      :subroutines [{:label "(Code Gate) Force the Runner to lose [Click] and 1 [Credit]"
-                    :msg "force the Runner to lose [Click] and 1 [Credit]"
+                    ;; TODO 'force' gone
+                    :msg {:lose-click 1 :lose-credits 1}
                     :change-in-game-state {:silent true
                                            :req (req (and (has-subtype? card "Code Gate")
                                                           (or (pos? (:credit runner))
@@ -2920,13 +2925,13 @@
                     :change-in-game-state {:silent true
                                            :req (req (and (has-subtype? card "Sentry")
                                                           (some program? (all-installed state :runner))))}
-                    :msg (msg "trash " (:title target))
+                    :msg (map-msg :trash (:title target))
                     :choices {:card #(and (installed? %)
                                           (program? %))}
                     :async true
                     :effect (effect (trash eid target {:cause :subroutine}))}
                    {:label "(Barrier) Gain 1 [Credit] and end the run"
-                    :msg "gain 1 [Credit] and end the run"
+                    :msg {:gain-credits 1 :end-run true}
                     :change-in-game-state {:silent true :req (req (has-subtype? card "Barrier"))}
                     :async true
                     :effect (req (wait-for
@@ -3884,6 +3889,7 @@
                           "Suffer 2 net damage")
                         (when-not (forced-to-avoid-tags? state side)
                           "Take 1 tag")])
+         ;; TODO well this is different than tollbooth etc, need to unify it
          :msg (msg "force the Runner to " (decapitalize target) " on encountering it")
          :async true
          :effect (req (cond
@@ -4369,6 +4375,7 @@
                  runner-trash-installed-sub
                  runner-trash-installed-sub]})
 
+;; TODO meh
 (defcard "Tributary"
   {:subroutines [{:label "Draw 1 card and install a piece of ice from HQ protecting another server"
                   :async true

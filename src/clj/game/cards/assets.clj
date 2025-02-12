@@ -56,7 +56,7 @@
                                 shuffle-into-rd-effect]]
    [game.core.tags :refer [gain-tags]]
    [game.core.threat :refer [threat-level]]
-   [game.core.to-string :refer [card-str]]
+   [game.core.to-string :refer [card-str card-str-map]]
    [game.core.toasts :refer [toast]]
    [game.core.update :refer [update!]]
    [game.core.winning :refer [check-win-by-agenda win]]
@@ -557,7 +557,8 @@
                          (:corp-phase-12 @state)))
           :prompt "Remove 1 hosted advancement counter to gain 4 [Credits] and draw 1 card?"
           :yes-ability
-          {:msg "remove 1 hosted advancement counter from itself to gain 4 [Credits] and draw 1 card"
+          ;; TODO cost+effect
+          {:msg {:remove-counter [:adv 1] :gain-credits 4 :draw-cards 1}
            :async true
            :effect (req
                      (wait-for
@@ -574,7 +575,7 @@
                        :effect (req (continue-ability state side choice-abi card nil))}
         trash-ab {:cost [(->c :advancement 1) (->c :trash-can)]
                   :label "Gain 3 [Credits]"
-                  :msg (msg "gain 3 [Credits]")
+                  :msg {:gain-credits 3}
                   :async true
                   :effect (req (gain-credits state :corp eid 3))}]
     {:advanceable :always
@@ -713,7 +714,7 @@
                                  :choices {:card #(and (in-discard? %)
                                                        (corp? %)
                                                        (not (:seen %)))}
-                                 :msg (msg "turn " (:title target) " in Archives faceup")
+                                 :msg (map-msg :turn-faceup (:title target))
                                  :show-discard true
                                  :async true
                                  :effect (req (update! state side (assoc target :seen true))
@@ -722,8 +723,7 @@
                                                 {:prompt "Choose an installed card"
                                                  :choices {:card #(and (corp? %)
                                                                        (installed? %))}
-                                                 :msg (msg "place 1 advancement counter on "
-                                                           (card-str state target))
+                                                 :msg (map-msg :place-counter [:adv 1 (card-str-map state target)])
                                                  :async true
                                                  :effect (effect
                                                            (add-prop eid target
@@ -1344,7 +1344,7 @@
                    :prompt "Choose a card you can advance to place 1 advancement counter on"
                    :choices {:req (req (and (can-be-advanced? state target)
                                             (installed? target)))}
-                   :msg (msg "place 1 advancement counter on " (card-str state target))
+                   :msg (map-msg :place-counter [:adv 1 (card-str-map state target)])
                    :async true
                    :effect (effect (add-prop eid target :advance-counter 1 {:placed true}))}
         ability {:req (req (:corp-phase-12 @state))
@@ -1363,10 +1363,9 @@
                                 :choices {:req (req (and (installed? target)
                                                          (can-be-advanced? state target)
                                                          (not (same-card? from-ice target))))}
-                                :msg (msg "move 1 hosted advancement counter from "
-                                          (card-str state from-ice)
-                                          " to "
-                                          (card-str state target))
+                                :msg (map-msg :move-counter [:adv 1
+                                                             (card-str-map state from-ice)
+                                                             (card-str-map state target)])
                                 :async true
                                 :effect (req (wait-for
                                                   (add-prop state :corp target :advance-counter 1 {:placed true})
@@ -1617,7 +1616,7 @@
 (defcard "Janaína \"JK\" Dumont Kindelán"
   (let [ability {:label "Place 3 [Credits] on this asset (start of turn)"
                  :once :per-turn
-                 :msg "place 3 [Credits] on itself"
+                 :msg {:place-counter [:credits 3]}
                  :async true
                  :effect (effect (add-counter eid card :credit 3 {:placed true}))}]
     {:derezzed-events [corp-rez-toast]
@@ -1628,7 +1627,8 @@
                   :cost [(->c :click 1)]
                   :label "Take all hosted credits and add this asset to HQ. Install 1 card from HQ"
                   :async true
-                  :msg (msg "gain " (get-counters (get-card state card) :credit) " [Credits] and add itself to HQ")
+                  :msg (map-msg :gain-credits (get-counters (get-card state card) :credit)
+                                :add-self-to-hq true)
                   :effect (req (wait-for (take-credits state side card :credit :all)
                                          (move state :corp card :hand)
                                          (continue-ability
@@ -3546,7 +3546,7 @@
    :abilities [{:action true
                 :cost [(->c :click 1) (->c :power 1)]
                 :label "Gain 3 [Credits]"
-                :msg "gain 3 [Credits]"
+                :msg {:gain-credits 3}
                 :keep-menu-open :while-power-tokens-left
                 :async true
                 :effect (req (gain-credits state side eid 3))}
@@ -3554,7 +3554,7 @@
                 :cost [(->c :click 1) (->c :power 5)]
                 :label "Gain 6 [Credits]. Add 1 resource to the top of the stack"
                 :keep-menu-open :while-5-power-tokens-left
-                :msg "gain 6 [Credits]"
+                :msg {:gain-credits 6}
                 :async true
                 :effect
                 (req (wait-for (gain-credits state side 6)
@@ -3563,7 +3563,7 @@
                                  {:prompt "Choose a resource"
                                   :req (req (seq (all-installed-runner-type state :resource)))
                                   :choices {:card #(resource? %)}
-                                  :msg (msg (str "add " (:title target) " to the top of the stack"))
+                                  :msg (map-msg :move-to-top-stack (:title target))
                                   :effect (req (move state :runner target :deck {:front true}))}
                                  card nil)
                                (effect-completed state side eid)))}]})

@@ -412,7 +412,7 @@
 (def trash-on-purge
   {:event :purge
    :async true
-   :msg "trash itself"
+   :msg {:trash nil}
    :effect (req (trash state :runner eid card {:cause :purge
                                                :cause-card card}))})
 
