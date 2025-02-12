@@ -1,6 +1,6 @@
 (ns i18n.ja
   (:require
-   [clojure.string :refer [join split starts-with?] :as s]
+   [clojure.string :refer [join split starts-with? ends-with?] :as s]
    [i18n.defs :refer [render-map try-catchall pprint-to-string] :include-macros true]))
 
 ;; so...
@@ -75,7 +75,17 @@
          (case (keyword card-type)
            :facedown "裏向きのカード"
            :ice "アイス"
-           :card "カード"))))
+           :card "カード"
+           ""))))
+
+(defn- render-card2
+  [cards]
+  (let [unseen (count (filter #(= "unseen" %) cards))
+        self (some nil? cards)
+        seen (remove nil? (filter #(not (= "unseen" %)) cards))]
+    (join "と" (remove nil? (conj seen
+                                  (when (pos? unseen) (str "未知カード" unseen "枚"))
+                                  (when self "それ自体"))))))
 
 ; need to figure how how to combine them from here
 (defn- render-single-cost
@@ -102,8 +112,7 @@
       :program (str (count value) "つインストール状態のプログラムをトラッシュして (" (join "と" value) ")")
       :resource (str (count value) "つインストール状態のリソースをトラッシュして (" (join "と" value) ")")
       :connection (str (count value) "つインストール状態のコネをトラッシュして (" (join "と" value) ")")
-      ;; TODO missing 'rezzed'
-      :ice (str (count value) "つインストール状態のアイスをトラッシュして (" (join "と" value) ")")
+      :ice (str (count value) "つインストールとレゾ状態のアイスをトラッシュして (" (join "と" value) ")")
       :trash-from-deck (str deck "の一番上から" value "枚のカードからをトラッシュして")
       :trash-from-hand (if (int? value)
                          (str hand "から" value "枚のカードをトラッシュして")
@@ -132,8 +141,7 @@
       :advancement (let [[host count] value]
                      (str host "の搭載アドバンスカウンターを" count "つ消費して"))
       :power (let [[host count] value]
-               (str host "の搭載パワーカウンターを" count "つ消費して"))
-      default cost value))) ; TODO
+               (str host "の搭載パワーカウンターを" count "つ消費して")))))
 
 (defn render-cost
   [cost]
@@ -141,12 +149,12 @@
     (join "" (for [[c v] cost] (render-single-cost c v false)))))
 
 (defn- render-single-effect
-  [effect value last]
+  [effect value]
   (when-not (and (number? value) (zero? value))
     (case effect
-      :advance (str (render-card value) "をアドバンス" (if last "する" "して"))
-      :draw-cards (str value "枚を" (if last "引く" "引いて"))
-      :gain-credits (str value " [Credits]を" (if last "得る" "得て"))
+      :advance (str (render-card value) "をアドバンスする")
+      :draw-cards (str "カード" value "枚を引く")
+      :gain-credits (str value " [Credits]を得る")
       :gain-click (str (apply str (repeat value "[Click]")) "を得る")
       :lose-click (str (apply str (repeat value "[Click]")) "を失う")
       :lose-credits (str value " [Credits]を失う")
@@ -157,7 +165,7 @@
       :add-from-stack (str "スタックから" value "をグリップに加えてスタックをシャッフルする")
       :add-from-rnd (str  "R&Dから " value "を公開してHQに加える")
       :add-to-hq (str "HQに" (render-card value) "を加える")
-      :add-to-grip (str "グリップに" (render-card value) "を加える")
+      :add-to-grip (str "グリップに" value "を加える")
       :add-to-hq-unseen (str "HQにカードを" value "枚加える")
       :move-to-top-stack (str "スタックの一番上に" value "を加える")
       :shuffle-rnd (str "R&Dをシャフルする")
@@ -169,25 +177,24 @@
       ;; TODO probably need a duration here, others are encounter-only IIRC
       :gain-type (let [[card type] value] (str "ランの終了時まで" card "が" type "を得る"))
       :place-counter (let [[type count target] value]
-                       ;; TODO ????
-                       (str (if target (render-card target) "それ")
+                       (str (if target (render-card target) "それ自体")
                             "に"
                             (to-counter type)
                             "を" count "つ置く"))
       :remove-counter (let [[type count target] value]
-                       (str (if target (render-card target) "それ")
+                       (str (if target (render-card target) "それ自体")
                             "から"
                             (to-counter type)
                             "を" count "つ取り除く"))
       :move-counter (let [[type count source target] value]
-                      (str (if source (render-card source) "それ")
+                      (str (if source (render-card source) "それ自体")
                            "から"
-                           (if target (render-card target) "それ")
+                           (if target (render-card target) "それ自体")
                            "に"
                            (to-counter type)
                            "を" count "つ移動する"))
       :add-str (let [[card count] value] (str card "が強度＋" count "する"))
-      :reduce-str (str (render-card value) "を強度−１する")
+      :reduce-str (let [[card count] value] (str "エンカウンターの終了時までに" (render-card card) "を強度ー" count "する"))
       :access-additional-from-hq (str "HQからの追加で" value "枚のカードにアクセスする")
       :access-additional-from-rnd (str "R&Dからの追加で" value "枚のカードにアクセスする")
       :deal-net (str value "ネットダメージを与える")
@@ -196,21 +203,89 @@
       :install (str value "をインストールする")
       :rez (str value "レゾする")
       :install-and-rez-free (str value "をすべてのコストを無視してインストールしてレゾする")
-      ;; TODO
-      :host (str (render-card value) "をホストする")
+      :host (str (render-card value) "を搭載する")
       :bypass (str (render-card value) "を迂回する")
       :trash-free (str "無料で" value "をトラッシュする")
       :str-pump (let [[base-str target-str duration] value]
                   (str (to-duration duration) "強度" base-str "から強度" target-str "に" base-str " to " target-str (to-duration duration)))
-      ;; TODO ignore for now and figure it out later. wildcat strike
-      :force nil
-      (str "TODO " effect " " value)))) ; TODO
+      :lower-ice-str (let [[strength card] value]
+                       (or card "各インストール状態のアイスブレイカー")
+                       "を強度ー" strength "する")
+      :shuffle-into-rnd (str "Ｒ＆Ｄに" (render-card2 value) "を加えシャフルする")
+      :rearrange-rnd (str "Ｒ＆Ｄの一番上のカード" value "枚を並べ替える")
+      :reveal-from-rnd (str "Ｒ＆Ｄの一番上から" value "を公開する")
+      :look-top-rnd (str "Ｒ＆Ｄの一番上のカード" value "枚を見る")
+      :move-hq-rnd (str"Ｒ＆Ｄの一番上にＨＱのカード" value "枚を加える")
+      :play (str value "をプレイする")
+      :move-server (let [[server card] value]
+                     (str (to-zone-name server) "に" (or card "それ自体") "を動かす"))
+      :prevent-access (let [[type card] value]
+                        (str (case (keyword type)
+                               :target card
+                               :exclusive (str card "以外"))
+                             "をアクセスすることを妨害する"))
+      :trash-stack (str "スタックの一番上から" (join "と" value) "をトラッシュする")
+      :prevent-net (str value "ネットダメージを妨害する")
+      :prevent-encounter-ability (let [[card ability] value]
+                                   (str card "のエンカウントした時能力を妨害する"
+                                        (when ability (str " (" ability ")"))))
+      :prevent-etr (str (render-card value) "でランを終了することを妨害する")
+      ;; TODO different duration when supported
+      :gain-str (str "ターンの終了時まで強度ー" value "する")
+      :breach-server (str (to-zone-name value) "に侵入する")
+      :derez (str (if (list? value)
+                    (join "と" (map render-card value))
+                    (render-card value))
+                  "をデレゾする")
+      :rez-free (str "すべてのコストを無視して" (join "と" value) "をレゾする")
+      :encounter-ice (str "ランナーに" (render-card value) "をエンカウントさせる")
+      :reveal-self (str (to-zone-name value) "からそれ自体を公開する")
+      :add-from-hq-to-score (str "得点エリアにＨＱから" value "を加える")
+      :turn-faceup (str "アーカイブに" value "を表向きにする")
+      :add-self-to-hq (str "ＨＱにそれ自体を加える")
+      :trash (str value "をトラッシュする")
+      ;; TODO this needs a duration?
+      :add-str-new (let [[card count] value] (str (render-card card) "居度＋" count "与える"))
+      :add-sub (str "「[subroutine] " value "」を他のサブルーチンの後に与える")
+      :trash-rnd (str "Ｒ＆Ｄの一番上のカード" value "枚をトラッシュする")
+      :remove-click-next-turn (str "ランナーの次のターンの割当[Click]をー" value "する")
+      :move-grip-to-stack (str "グリップから" (join "と" value) "をスタックに加える")
+      :shuffle-into-stack (str value "をスタックに加えシャフルする")
+      :remove-all-virus-counters (str (render-card value) "からウィルスカウンターを取り除く")
+      :trash-from-hq (str "ＨＱから" value "をトラッシュする")
+      :reveal-from-grip (str "グリップから" (join "と" value) "を公開する")
+      :add-to-top-rnd (str "Ｒ＆Ｄの一番上に" value "を加える")
+      :add-to-bottom-rnd (str "Ｒ＆Ｄの一番下に" value "を加える")
+      :force-reveal (str "ＨＱのランダムなカード" value "枚を公開する")
+      :shuffle-zone-into (str "スタックに" (join "と" (map to-zone-name value)) "に加えシャフルする")
+      :rfg (str (join "と" value) "を取り除く")
+      :reveal-from-stack (str "スタックの一番上から" (join "と" value) "を公開する")
+      :host-on-self (str "それ自体に" value "を搭載する")
+      :host-instead-of-access (str "アクセスの代わりに" value "をそれ自体に搭載する")
+      :shuffle-stack (str "スタックをシャフルする")
+      :trash-self (str "それ自体をトラッシュする")
+      :credits (str value " [Credits]を支払う")
+      :draw-additional (str "追加で" value "枚カードを引く"))))
+
+;; TODO this keyword logic is just silly
+(defn render-single-effect-force-check
+  [effect value side]
+  (let [effect (name effect)]
+    (if (ends-with? effect "-force")
+      (str ;; This is inverted -- corp forcing effect means it's forcing runner to take the effect.
+           (if (= (keyword side) :corp) "ランナー" "コーポ")
+           "に"
+           ;; oh god
+           (render-single-effect (keyword (subs effect 0 (- (count effect) (count "-force")))) value)
+           "ことをさせる")
+      (render-single-effect (keyword effect) value))))
 
 (defn render-effect
-  [effect]
-  (when effect
-    (println effect)
-    (join "" (for [[e v] effect] (render-single-effect e v true)))))
+  [effects side]
+  (when effects
+    (join "" (remove nil? (for [[c v] effects]
+                            (render-single-effect-force-check c v side)
+                            #_(render-single-effect c v))))))
 
 (defmulti render-text (fn [input] (or (keyword (:type input)) :raw-text)))
 
@@ -219,8 +294,7 @@
 (defmethod render-text :mulligan-hand [_] "手札をマリガンする")
 (defmethod render-text :mandatory-draw [_] "強制ドローする")
 
-;; TODO
-(defmethod render-text :no-action [_] "has no further action TODO")
+(defmethod render-text :no-action [_] "これ以上アクションがない")
 
 (defmethod render-text :turn-state
   [input]
@@ -235,8 +309,8 @@
      cards "枚のカードと" credits " [Credits]で" "ターン" turn "目が" phase "する")))
 
 (defmethod render-text :play
-  [input]
-  (str (:card input) "をプレイする"))
+  [{:keys [card]}]
+  (str card "をプレイする"))
 
 (defmethod render-text :install
   [{:keys [card card-type server new-remote origin install-source cost side]}]
@@ -259,8 +333,10 @@
 
 (defmethod render-text :rez
   [{:keys [card alternative-cost ignore-cost]}]
-  ;; TODO :alternative-cost and ignore-cost
-  (str (if (string? card) card (render-card card)) "をレゾする"))
+  (str (if alternative-cost "代替コストを支払って"
+           (when ignore-cost "コストを無視して"))
+       (if (string? card) card (render-card card))
+       "をレゾする"))
 
 (defmethod render-text :use
   [input]
@@ -316,25 +392,23 @@
 
 (defmethod render-text :break-subs
   [{:keys [card ice subtype subs break-type sub-count str-boost cost]}]
-  ;; TODO str boost
-  (str card "で"
-       (when str-boost (str card "の強度" str-boost "にして")) ;; TODO wording
-       ice "の"
-       (when subtype (str subtype "の"))
-       "サブルーチンを"
-       (case (keyword break-type)
-         ;; TODO now inconsistent, english has the number of subs too
-         :all "すべて"
-         :remaining "remaining subs"   ; TODO
-         (str (count subs) "つ"))
-       "ブレイクする"
-       (when subs
-         (str " (\"[subroutine] "
-              (join "\" and \"[subroutine] " subs)
-              "\")"))))
+  (let [sub-count (or sub-count (count subs))]
+    (str card "で"
+         (when str-boost (str card "の強度" str-boost "にして"))
+         ice "の"
+         (when subtype (str subtype "の"))
+         "サブルーチンを"
+         (case (keyword break-type)
+           :all "すべて"
+           :remaining "残り"
+           "")
+         sub-count "つ"
+         "ブレイクする"
+         (when-not break-type
+           (str " (「[subroutine] "
+                (join "」と「[subroutine] " subs)
+                "」)")))))
 
-;; resolves 2 unbroken subroutines on (" Make the Runner lose 3 " and " End the run if the Runner has 6 or less").
-;; <ice>の未ブレイクのサブルーチンを解決する (..sub..)
 (defmethod render-text :resolve-subs
   [input]
   (let [info (:resolved input)
@@ -364,7 +438,7 @@
        "をアクセスする"))
 
 (defmethod render-text :trash
-  [{:keys [card server cards]}]
+  [{:keys [card server]}]
   (str (when server (str (to-zone-name server) "から")) card "をトラッシュする"))
 
 (defmethod render-text :take-damage
@@ -405,14 +479,14 @@
   (str "unknown type " input))
 
 (defmethod render-map "ja"
-  [_ {:keys [username raw-text cost effect] :as input}]
+  [_ {:keys [username raw-text cost effect side] :as input}]
   (println input)
   (try-catchall
-    (let [cost-str (render-cost (:cost input))
-          effect-str (render-effect (:effect input))]
+    (let [cost-str (render-cost cost)
+          effect-str (render-effect effect side)]
       (let [output (if username
                      (str username "は" cost-str (render-text input) effect-str "。")
                      raw-text)]
         (println output)
         output))
-    (catch e# ::exception (render-map "en" input))))
+    (catch e# ::exception (throw e#) #_(render-map "en" input))))
