@@ -68,7 +68,7 @@
       :msg (map-msg :shuffle-into-rnd
                 (let [seen (filter :seen targets)
                       m (count (filter #(not (:seen %)) targets))]
-                  (cons seen (repeat m :unseen))))
+                  (concat (map :title seen) (repeat m :unseen))))
       :waiting-prompt true
       :effect (req (doseq [c targets]
                      (move state side c :deck))
