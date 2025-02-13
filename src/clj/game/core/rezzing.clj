@@ -15,7 +15,7 @@
     [game.core.runs :refer [continue]]
     [game.core.say :refer [play-sfx system-msg implementation-msg]]
     [game.core.toasts :refer [toast]]
-    [game.core.to-string :refer [card-str]]
+    [game.core.to-string :refer [card-str card-str-map]]
     [game.core.update :refer [update!]]
     [game.macros :refer [continue-ability effect wait-for]]
     [game.utils :refer [enumerate-str to-keyword]]))
@@ -195,12 +195,11 @@
         prepend-cost-str (get-in msg-keys [:include-cost-from-eid :latest-payment-str])
         source-card (:source eid)
         title (or (:title source-card) (:printed-title source-card))]
-    (system-msg
-      state side
-      (cond
-        (not source-card) (str "derezzes " card-strs and-then)
-        prepend-cost-str (str prepend-cost-str " to use " title " to derez " card-strs and-then)
-        :else (str "uses " title " to derez " card-strs and-then)))))
+    ;; TODO and-then handling
+    (system-msg state side (merge (if source-card
+                                    {:type :use :card (:title source-card)}
+                                    {:type :direct-effect})
+                                  {:effect {:derez (card-str-map state cards)}}))))
 
 (defn derez
   "Derez a number of corp cards."
