@@ -61,10 +61,10 @@
     :credits " [Credit]"))
 
 ; {:username "test", :type "use", :cost {:click 1, :credits 1}, :effect {:advance {:card-type "card", :server "remote1"}}, :card "Corp Basic Action Card", :forced false, :raw-text nil}
-(defn- render-card
+(defn- render-card-internal
   [{:keys [card card-type server pos hosted]}]
   (str (if hosted
-         (str (render-card hosted) "に搭載される")
+         (str (render-card-internal hosted) "に搭載される")
          (if server
            (if (not (nil? pos))
              (str (to-zone-name server) "を位置" pos "に守っている")
@@ -77,6 +77,10 @@
            :ice "アイス"
            :card "カード"
            ""))))
+
+(defn- render-card
+  [card]
+  (if (string? card) card (render-card-internal card)))
 
 (defn- render-card2
   [cards]
@@ -243,7 +247,7 @@
       :add-from-hq-to-score (str "得点エリアにＨＱから" value "を加える")
       :turn-faceup (str "アーカイブに" value "を表向きにする")
       :add-self-to-hq (str "ＨＱにそれ自体を加える")
-      :trash (str value "をトラッシュする")
+      :trash (str (if (string? value) value (render-card value)) "をトラッシュする")
       ;; TODO this needs a duration?
       :add-str-new (let [[card count] value] (str (render-card card) "居度＋" count "与える"))
       :add-sub (str "「[subroutine] " value "」を他のサブルーチンの後に与える")
@@ -439,7 +443,9 @@
 
 (defmethod render-text :trash
   [{:keys [card server]}]
-  (str (when server (str (to-zone-name server) "から")) card "をトラッシュする"))
+  (str (when (string? card)
+         (when server (str (to-zone-name server) "から")))
+       (render-card card) "をトラッシュする"))
 
 (defmethod render-text :take-damage
   [{:keys [cards cause]}]
@@ -455,16 +461,17 @@
 
 (defmethod render-text :discard
   [{:keys [card side reason]}]
-  (str
-   (when reason
-    ;; TODO only end of turn is supported here, so...
-    "ターンの終了に")
-   (to-zone-name [:hand] side) "から"
-   (cond
-     (string? card) card
-     (number? card) (str "カード" card "枚")
-     true (join "と" card))
-   "を捨てる"))
+  (let [not-map (or (string? card) (number? card) (list? card))]
+    (str (when reason
+           ;; TODO only end of turn is supported here, so...
+           "ターンの終了に")
+         (when not-map (str (to-zone-name [:hand] side) "から"))
+         (cond
+           (string? card) card
+           (number? card) (str "カード" card "枚")
+           (list? card) (join "と" card)
+           true (render-card card))
+         "を捨てる")))
 
 (defmethod render-text :win-game
   [_]
