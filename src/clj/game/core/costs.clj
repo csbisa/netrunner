@@ -18,7 +18,7 @@
    [game.core.rezzing :refer [derez]]
    [game.core.shuffling :refer [shuffle!]]
    [game.core.tags :refer [lose-tags gain-tags]]
-   [game.core.to-string :refer [card-str]]
+   [game.core.to-string :refer [card-str card-str-map]]
    [game.core.update :refer [update!]]
    [game.core.virus :refer [number-of-virus-counters]]
    [game.macros :refer [continue-ability req wait-for]]
@@ -542,7 +542,7 @@
                     (move state side (assoc-in t [:persistent :from-cid] (:cid card)) :rfg))
                   (complete-with-result
                     state side eid
-                    {:paid/msg {:rfg-program (map #(card-str state %) targets)}
+                    {:paid/msg {:rfg-program (map #(card-str-map state %) targets)}
                      :paid/type :rfg-program
                      :paid/value (value cost)
                      :paid/targets targets}))}
@@ -573,7 +573,7 @@
                                                              :unpreventable true})
                             (complete-with-result
                               state side eid
-                              {:paid/msg {:trash-installed (map #(card-str state %) targets)}
+                              {:paid/msg {:trash-installed (map #(card-str-map state %) targets)}
                                :paid/type :trash-other-installed
                                :paid/value (count async-result)
                                :paid/targets targets})))}
@@ -603,7 +603,7 @@
                                                              :unpreventable true})
                             (complete-with-result
                               state side eid
-                              {:paid/msg {:trash-installed (map #(card-str state %) targets)}
+                              {:paid/msg {:trash-installed (map #(card-str-map state %) targets)}
                                :paid/type :trash-installed
                                :paid/value (count async-result)
                                :paid/targets targets})))}
@@ -630,7 +630,7 @@
                                                              :unpreventable true})
                             (complete-with-result
                               state side eid
-                              {:paid/msg {:hardware (map #(card-str state %) targets)}
+                              {:paid/msg {:hardware (map #(card-str-map state %) targets)}
                                :paid/type :hardware
                                :paid/value (count async-result)
                                :paid/targets targets})))}
@@ -662,7 +662,7 @@
                     (derez state side targets {:suppress-checkpoint true :no-msg true})
                     (complete-with-result
                       state side eid
-                      {:paid/msg {:derez (map #(card-str state %) targets)}
+                      {:paid/msg {:derez (map #(card-str-map state %) targets)}
                        :paid/type :derez
                        :paid/value (count targets)
                        :paid/targets targets})))}
@@ -689,7 +689,7 @@
                                                              :unpreventable true})
                             (complete-with-result
                               state side eid
-                              {:paid/msg {:program (map #(card-str state %) targets)}
+                              {:paid/msg {:program (map #(card-str-map state %) targets)}
                                :paid/type :program
                                :paid/value (count async-result)
                                :paid/targets targets})))}
@@ -716,7 +716,7 @@
                                                              :unpreventable true})
                             (complete-with-result
                               state side eid
-                              {:paid/msg {:resource (map #(card-str state %) targets)}
+                              {:paid/msg {:resource (map #(card-str-map state %) targets)}
                                :paid/type :resource
                                :paid/value (count async-result)
                                :paid/targets targets})))}
@@ -746,7 +746,7 @@
                                                              :unpreventable true})
                             (complete-with-result
                               state side eid
-                              {:paid/msg {:connection (map #(card-str state %) targets)}
+                              {:paid/msg {:connection (map #(card-str-map state %) targets)}
                                :paid/type :connection
                                :paid/value (count async-result)
                                :paid/targets targets})))}
@@ -773,7 +773,7 @@
                                                              :unpreventable true})
                             (complete-with-result
                               state side eid
-                              {:paid/msg {:ice (map #(card-str state %) targets)}
+                              {:paid/msg {:ice (map #(card-str-map state %) targets)}
                                :paid/type :ice
                                :paid/value (count async-result)
                                :paid/targets targets})))}
@@ -853,7 +853,7 @@
                                 state side eid
                                 {:paid/msg {:trash-from-hand
                                             (if (= :runner side)
-                                              (map #(card-str state %) targets)
+                                              (map #(card-str-map state %) targets)
                                               (count async-result))}
                                  :paid/type :trash-from-hand
                                  :paid/value (count async-result)
@@ -1090,7 +1090,7 @@
        :effect (req (let [cards (keep #(move state side % :deck) targets)]
                       (complete-with-result
                         state side eid
-                        {:paid/msg {:add-installed-to-bottom-of-deck (map #(card-str state %) targets)}
+                        {:paid/msg {:add-installed-to-bottom-of-deck (map #(card-str-map state %) targets)}
                          :paid/type :add-installed-to-bottom-of-deck
                          :paid/value (count cards)
                          :paid/targets cards})))}
