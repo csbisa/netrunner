@@ -163,7 +163,6 @@
   (let [c (get-card state card)
         last-zone (last (:zone c))
         src (name-zone (:side c) (:zone c))
-        from-str (card-str state c)
         s (if (#{"HQ" "R&D" "Archives"} server) :corp :runner)]
     ;; allow moving from play-area always, otherwise only when same side, and to valid zone
     (when (and (not= src server)
@@ -173,10 +172,12 @@
                    (same-side? side (:side card))))
       (let [move-card-to (partial move state s c)
             card-prompts (filter #(same-card? :title % c) (get-in @state [side :prompt]))
-            log-move (fn [verb & text]
-                       (system-msg state side (str verb " " from-str
-                                                   (when (seq text)
-                                                     (apply str " " text)))))]
+            log-move-direct (fn [type]
+                              (system-msg state side {:type type :card (card-str-map state c)
+                                                      :side side}))
+            log-move (fn [effect]
+                       ;; again here with effect vagueness...
+                       (system-msg state side {:effect {effect (card-str-map state c)}}))]
         (case server
           ("Heap" "Archives")
           (do (when (pos? (count card-prompts))
@@ -187,15 +188,15 @@
               (if (= :hand (first (:zone c)))
                 ;; Discard from hand, do not trigger trash
                 (do (move-card-to :discard {:force true})
-                    (log-move "discards"))
+                    (log-move-direct :discard))
                 (do (trash state s (make-eid state) c {:unpreventable true})
-                    (log-move "trashes"))))
+                    (log-move-direct :trash))))
           ("the Grip" "HQ")
           (do (move-card-to :hand {:force true})
-              (log-move "moves" "to " server))
+              (log-move (if (= side :corp) :add-to-hq :add-to-grip))) ;; TODO side. also this is "move" not "adds"
           ("Stack" "R&D")
           (do (move-card-to :deck {:front true :force true})
-              (log-move "moves" "to the top of " server))
+              (log-move (if (= side :corp) :move-to-top-stack :add-to-top-rnd)))
           ;; default
           nil)))))
 
