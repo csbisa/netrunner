@@ -93,11 +93,11 @@
 
 ; need to figure how how to combine them from here
 (defn- render-single-cost
-  [cost value last]
+  [cost value]
   (let [hand (to-zone-name [:hand] :corp)
         deck (to-zone-name [:deck] :corp)]
     (case cost
-      :click (str (apply str (repeat value "[Click]")) "を消費" (if last "する" "して"))
+      :click (str (apply str (repeat value "[Click]")) "を消費して")
       :lose-click (str (apply str (repeat value "[Click]")) "を失って")
       :credits (render-credits value)
       :trash (str value "をトラッシュして")
@@ -109,14 +109,14 @@
       :bad-pub (str "悪名を" value "つ受けて")
       :return-to-hand (str hand "に" value "を" "加えて")
       :remove-from-game (str value "を取り除いて")
-      :rfg-program (str "インストール状態のプログラムを" (count value) "つ取り除いて (" (join "と" value) ")")
-      :trash-installed (str "インストール状態のカードを" (count value) "つトラッシュして (" (join "と" value) ")")
-      :hardware (str "つインストール状態のハードウェアを" (count value) "つトラッシュして (" (join "と" value) ")")
-      :derez (str (count value) "つカードをデレゾして (" (join "と" value) ")")
-      :program (str (count value) "つインストール状態のプログラムをトラッシュして (" (join "と" value) ")")
-      :resource (str (count value) "つインストール状態のリソースをトラッシュして (" (join "と" value) ")")
-      :connection (str (count value) "つインストール状態のコネをトラッシュして (" (join "と" value) ")")
-      :ice (str (count value) "つインストールとレゾ状態のアイスをトラッシュして (" (join "と" value) ")")
+      :rfg-program (str "インストール状態のプログラムを" (count value) "つ取り除いて (" (join "と" (map render-card value)) ")")
+      :trash-installed (str "インストール状態のカードを" (count value) "つトラッシュして (" (join "と" (map render-card value)) ")")
+      :hardware (str "つインストール状態のハードウェアを" (count value) "つトラッシュして (" (join "と" (map render-card value)) ")")
+      :derez (str (count value) "つカードをデレゾして (" (join "と" (map render-card value)) ")")
+      :program (str (count value) "つインストール状態のプログラムをトラッシュして (" (join "と" (map render-card value)) ")")
+      :resource (str (count value) "つインストール状態のリソースをトラッシュして (" (join "と" (map render-card value)) ")")
+      :connection (str (count value) "つインストール状態のコネをトラッシュして (" (join "と" (map render-card value)) ")")
+      :ice (str (count value) "つインストールとレゾ状態のアイスをトラッシュして (" (join "と" (map render-card value)) ")")
       :trash-from-deck (str deck "の一番上から" value "枚のカードからをトラッシュして")
       :trash-from-hand (if (int? value)
                          (str hand "から" value "枚のカードをトラッシュして")
@@ -132,7 +132,7 @@
       :take-meat (str value "ミートダメージを受けて")
       :take-core (str value "コアダメージを受けて")
       :shuffle-installed-to-stack (str (count value) "枚のカードを" deck "に加えシャフルして (" (join "と" value) ")")
-      :add-installed-to-bottom-of-deck (str (count value) "枚のインストール状態のカードを" deck "の一番下に加えて (" (join "と" value) ")")
+      :add-installed-to-bottom-of-deck (str (count value) "枚のインストール状態のカードを" deck "の一番下に加えて (" (join "と" (map render-card value)) ")")
       ;; TODO not sure if this makes sense. should be number and never revealed?
       :add-random-from-hand-to-bottom-of-deck (str hand "の" (count value) "枚のランダムなカードを" deck "の一番下に加えて")
       :agenda-counter (let [[host count] value]
@@ -150,7 +150,7 @@
 (defn render-cost
   [cost]
   (when cost
-    (join "" (for [[c v] cost] (render-single-cost c v false)))))
+    (join "" (for [[c v] cost] (render-single-cost c v)))))
 
 (defn- render-single-effect
   [effect value]
@@ -164,7 +164,7 @@
       :lose-credits (str value " [Credits]を失う")
       :give-tag (str "ランナーに" value "つタグを与える")
       :take-tag (str value "つタグを受ける")
-      :remove-tag (str value "つタグを取り" (if last "除く" "除いて"))
+      :remove-tag (str value "つタグを取り除く")
       :take-bp (str "悪名を" value "つ受ける")
       :add-from-stack (str "スタックから" value "をグリップに加えてスタックをシャッフルする")
       :add-from-rnd (str  "R&Dから " value "を公開してHQに加える")
@@ -284,12 +284,30 @@
            "ことをさせる")
       (render-single-effect (keyword effect) value))))
 
+(defn do-conj
+  [input]
+  (-> input
+      (s/replace #"する$" "して")
+      (s/replace #"与える$" "与えて")
+      (s/replace #"引く$" "引いて")
+      (s/replace #"得る$" "得て")
+      (s/replace #"失う$" "失って")
+      (s/replace #"受ける$" "受けて")
+      (s/replace #"除く$" "除いて")
+      (s/replace #"加える$" "加えて")
+      (s/replace #"置く$" "置いて")
+      (s/replace #"替える$" "替えて")
+      (s/replace #"見る$" "見て")
+      (s/replace #"動かす$" "動かして")
+      (s/replace #"させる$" "させて")))
+
 (defn render-effect
   [effects side]
   (when effects
-    (join "" (remove nil? (for [[c v] effects]
-                            (render-single-effect-force-check c v side)
-                            #_(render-single-effect c v))))))
+    (let [effect-strs (remove nil? (for [[c v] effects]
+                                     (render-single-effect-force-check c v side)
+                                     #_(render-single-effect c v)))]
+      (str (apply str (map do-conj (butlast effect-strs))) (last effect-strs)))))
 
 (defmulti render-text (fn [input] (or (keyword (:type input)) :raw-text)))
 
