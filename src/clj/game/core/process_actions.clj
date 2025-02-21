@@ -46,7 +46,7 @@
     (if-let [command (parse-command state text)]
       (when (and (not= side nil) (not= side :spectator))
         (command state side)
-        (system-say state side (str "[!]" (:username author) " uses a command: " text)))
+        (system-say state side {:username (:username author) :type :use-command :command text :urgent true}))
       (say state side args))))
 
 (def commands
