@@ -183,8 +183,9 @@
       :place-counter (let [[type count target] value]
                        (str (if target (render-card target) "それ自体")
                             "に"
-                            (to-counter type)
-                            "を" count "つ置く"))
+                            (if (or (= (keyword type) :credit) (= (keyword type) :credits))
+                              (str count " [Credits]を置く")
+                              (str (to-counter type) "を" count "つ置く"))))
       :remove-counter (let [[type count target] value]
                        (str (if target (render-card target) "それ自体")
                             "から"
@@ -211,7 +212,7 @@
       :bypass (str (render-card value) "を迂回する")
       :trash-free (str "無料で" value "をトラッシュする")
       :str-pump (let [[base-str target-str duration] value]
-                  (str (to-duration duration) "強度" base-str "から強度" target-str "に" base-str " to " target-str (to-duration duration)))
+                  (str (to-duration duration) "強度" base-str "から強度" target-str "にする"))
       :lower-ice-str (let [[strength card] value]
                        (or card "各インストール状態のアイスブレイカー")
                        "を強度ー" strength "する")
@@ -269,7 +270,10 @@
       :shuffle-stack (str "スタックをシャフルする")
       :trash-self (str "それ自体をトラッシュする")
       :credits (str value " [Credits]を支払う")
-      :draw-additional (str "追加で" value "枚カードを引く"))))
+      :draw-additional (str "追加で" value "枚カードを引く")
+      :purge "ウィルスカウンター破棄する"
+      ;; TODO
+      :swap-ice (throw "foo"))))
 
 ;; TODO this keyword logic is just silly
 (defn render-single-effect-force-check
@@ -335,7 +339,7 @@
   (str card "をプレイする"))
 
 (defmethod render-text :install
-  [{:keys [card card-type server new-remote origin install-source cost side]}]
+  [{:keys [card card-type server new-remote origin install-source cost host side]}]
   (let [card-type (keyword card-type)]
     (str (when install-source
            (str install-source "で"))
@@ -346,6 +350,8 @@
                 (to-zone-name server)
                 "に"
                 (when (= card-type :ice) "守っている")))
+         (when host
+           (str (render-card host) "に"))
          (if (= card-type :ice)
            (str (or card "アイス"))
            (str (or card (if (= card-type :facedown)
@@ -459,6 +465,10 @@
              "カード"))
        "をアクセスする"))
 
+(defmethod render-text :access-all
+  [_]
+  "アーカイブの他のカードをすべてアクセスする")
+
 (defmethod render-text :trash
   [{:keys [card server]}]
   (str (when (string? card)
@@ -479,7 +489,7 @@
 
 (defmethod render-text :discard
   [{:keys [card side reason]}]
-  (let [not-map (or (string? card) (number? card) (list? card))]
+  (let [not-map (or (string? card) (number? card) (coll? card))]
     (str (when reason
            ;; TODO only end of turn is supported here, so...
            "ターンの終了に")
@@ -487,13 +497,21 @@
          (cond
            (string? card) card
            (number? card) (str "カード" card "枚")
-           (list? card) (join "と" card)
+           (coll? card) (join "と" card)
            true (render-card card))
          "を捨てる")))
 
 (defmethod render-text :win-game
   [_]
   "対戦を勝つ")
+
+(defmethod render-text :fire-unbroken
+  [{:keys [card]}]
+  (str card "の未ブレイクのサブルーチンを解決することを許可する"))
+
+(defmethod render-text :use-command
+  [{:keys [command]}]
+  (str "コマンドを使う: " command))
 
 (defmethod render-text :raw-text
   [input]
@@ -504,14 +522,17 @@
   (str "unknown type " input))
 
 (defmethod render-map "ja"
-  [_ {:keys [username raw-text cost effect side] :as input}]
+  [_ {:keys [username raw-text cost effect side urgent] :as input}]
   (println input)
   (try-catchall
     (let [cost-str (render-cost cost)
           effect-str (render-effect effect side)]
-      (let [output (if username
-                     (str username "は" cost-str (render-text input) effect-str "。")
-                     raw-text)]
+      (let [output (str (when urgent "[!]")
+                        (if username
+                          (str username "は"
+                               (when-not (empty? cost-str) (str cost-str "、"))
+                               (render-text input) effect-str "。")
+                          raw-text))]
         (println output)
         output))
     (catch e# ::exception (throw e#) #_(render-map "en" input))))
