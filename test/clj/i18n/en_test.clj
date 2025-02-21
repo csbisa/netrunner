@@ -154,7 +154,10 @@
                 :alternative-cost true}
                "Corp rezzes Regolith Mining License by paying its alternative cost."))
 
-;; TODO :use ?
+;; TODO clearly showing singleton use doesn't work here
+(deftest use
+  (render-test {:username "Corp" :type :use :card "foo"}
+               "Corp uses foo to ."))
 
 (deftest advance
   (render-test {:username "Corp"
@@ -219,6 +222,7 @@
                 :ice {:pos 0 :server [:servers :hq] :card "Whitespace"}}
                "Runner encounters Whitespace protecting HQ at position 0."))
 
+;; TODO broken obviously
 (deftest encounter-effect
   (render-test {:username "Runner"
                 :type :encounter-effect
@@ -285,7 +289,9 @@
   (render-test {:username "Runner" :type :trash :card "bar"}
                "Runner trashes bar.")
   (render-test {:username "Corp" :type :trash :card "bar" :server [:servers :remote1 :contents]}
-               "Corp trashes bar from Server 1."))
+               "Corp trashes bar from Server 1.")
+  (render-test {:username "Corp" :type :trash :card {:card "bar" :server [:servers :remote1 :contents]}}
+               "Corp trashes bar in Server 1."))
 
 (deftest take-damage
   (render-test {:username "Runner" :type :take-damage :cards ["bar"] :cause :net}
@@ -302,88 +308,96 @@
 (deftest discard
   (render-test {:username "Corp" :side :corp
                 :type :discard :card 2 :reason :end-turn}
-               "Corp discards 2 cards from HQ at end of turn."))
+               "Corp discards 2 cards from HQ at end of turn.")
+  (render-test {:username "Runner" :side :runner
+                :type :discard :card ["foo" "bar"] :reason :end-turn}
+               "Runner discards foo and bar from the Grip at end of turn.")
+    (render-test {:username "Runner" :side :runnre
+                :type :discard :card ["foo"]}
+               "Runner discards foo from the Grip."))
 
 (deftest win-game
   (render-test {:username "Runner" :type :win-game}
                "Runner wins the game."))
 
-;; TODO currently relies on hack for "to" word handling
-#_(deftest cost
+;; TODO silly trailing 'to's here, but does the job for testing for now
+(deftest cost
   (render-test {:username "Corp" :cost {:click 1}}
-               "Corp spends [Click].")
+               "Corp spends [Click] to .")
   (render-test {:username "Corp" :cost {:lose-click 2}}
-               "Corp loses [Click][Click].")
+               "Corp loses [Click][Click] to .")
   (render-test {:username "Corp" :cost {:credits 1}}
-               "Corp pays 1 [Credits].")
+               "Corp pays 1 [Credits] to .")
   (render-test {:username "Corp" :cost {:trash "bar"}}
-               "Corp trashes bar.")
+               "Corp trashes bar to .")
   (render-test {:username "Corp" :cost {:forfeit "bar"}}
-               "Corp forfeits bar.")
+               "Corp forfeits bar to .")
   (render-test {:username "Corp" :cost {:gain-tag 1}}
-               "Corp takes 1 tag.")
+               "Corp takes 1 tag to .")
   (render-test {:username "Corp" :cost {:tag 2}}
-               "Corp removes 2 tags.")
+               "Corp removes 2 tags to .")
   (render-test {:username "Corp" :cost {:bad-pub 1}}
                ;; TODO is this right? should it be takes?
-               "Corp gains 1 bad publicity.")
+               "Corp gains 1 bad publicity to .")
   (render-test {:username "Corp" :cost {:return-to-hand "bar"}}
-               "Corp returns bar to HQ.")
+               "Corp returns bar to HQ to .")
   (render-test {:username "Corp" :cost {:remove-from-game "bar"}}
-               "Corp removes bar from the game.")
+               "Corp removes bar from the game to .")
   (render-test {:username "Corp" :cost {:rfg-program ["bar"]}}
-               "Corp removes 1 installed program from the game (bar).")
+               "Corp removes 1 installed program from the game (bar) to .")
   (render-test {:username "Corp" :cost {:trash-installed ["bar"]}}
-               "Corp trashes 1 installed card (bar).")
+               "Corp trashes 1 installed card (bar) to .")
   (render-test {:username "Corp" :cost {:hardware ["bar"]}}
-               "Corp trashes 1 installed piece of hardware (bar).")
+               "Corp trashes 1 installed piece of hardware (bar) to .")
   (render-test {:username "Corp" :cost {:derez ["bar"]}}
-               "Corp derezzes 1 card (bar).")
+               "Corp derezzes 1 card (bar) to .")
   (render-test {:username "Corp" :cost {:program ["bar"]}}
-               "Corp trashes 1 installed program (bar).")
+               "Corp trashes 1 installed program (bar) to .")
   (render-test {:username "Corp" :cost {:resource ["bar"]}}
-               "Corp trashes 1 installed resource (bar).")
+               "Corp trashes 1 installed resource (bar) to .")
   (render-test {:username "Corp" :cost {:connection ["bar"]}}
-               "Corp trashes 1 installed connection (bar).")
+               "Corp trashes 1 installed connection (bar) to .")
   (render-test {:username "Corp" :cost {:ice ["bar"]}}
                ;; TODO eh?
-               "Corp trashes 1 installed rezzed ice (bar).")
+               "Corp trashes 1 installed rezzed ice (bar) to .")
   (render-test {:username "Corp" :cost {:trash-from-deck 1}}
-               "Corp trashes 1 card from the top of R&D.")
+               "Corp trashes 1 card from the top of R&D to .")
   (render-test {:username "Corp" :cost {:trash-from-hand 1}}
-               "Corp trashes 1 card from HQ.")
+               "Corp trashes 1 card from HQ to .")
   (render-test {:username "Corp" :cost {:trash-from-hand ["bar"]}}
-               "Corp trashes 1 card (bar) from HQ.")
+               "Corp trashes 1 card (bar) from HQ to .")
   (render-test {:username "Corp" :cost {:randomly-trash-from-hand 2}}
-               "Corp trashes 2 cards randomly from hand.")
+               "Corp trashes 2 cards randomly from HQ to .")
   (render-test {:username "Corp" :cost {:trash-entire-hand 1}}
-               "Corp trashes all (1) cards in hand.")
+               "Corp trashes all (1) cards in HQ to .")
+  (render-test {:username "Runner" :side :runner :cost {:trash-entire-hand ["foo" "bar"]}}
+               "Runner trashes all (2) cards in the Grip (foo and bar) to .")
   (render-test {:username "Corp" :cost {:trash-hardware-from-hand ["bar"]}}
-               "Corp trashes 1 piece of hardware (bar) from HQ.")
+               "Corp trashes 1 piece of hardware (bar) from HQ to .")
   (render-test {:username "Corp" :cost {:trash-program-from-hand ["bar"]}}
-               "Corp trashes 1 program (bar) from HQ.")
+               "Corp trashes 1 program (bar) from HQ to .")
   (render-test {:username "Corp" :cost {:trash-resource-from-hand ["bar"]}}
-               "Corp trashes 1 resource (bar) from HQ.")
+               "Corp trashes 1 resource (bar) from HQ to .")
   (render-test {:username "Corp" :cost {:take-net 1}}
-               "Corp suffers 1 net damage.")
+               "Corp suffers 1 net damage to .")
   (render-test {:username "Corp" :cost {:take-meat 2}}
-               "Corp suffers 2 meat damage.")
+               "Corp suffers 2 meat damage to .")
   (render-test {:username "Corp" :cost {:take-core 3}}
-               "Corp suffers 3 core damage.")
+               "Corp suffers 3 core damage to .")
   (render-test {:username "Corp" :cost {:shuffle-installed-to-stack ["bar"]}}
-               "Corp shuffles 1 card (bar) into R&D.")
+               "Corp shuffles 1 card (bar) into R&D to .")
   (render-test {:username "Corp" :cost {:add-installed-to-bottom-of-deck ["bar"]}}
-               "Corp adds 1 installed card (bar) to the bottom of R&D.")
+               "Corp adds 1 installed card (bar) to the bottom of R&D to .")
   (render-test {:username "Corp" :cost {:add-random-from-hand-to-bottom-of-deck ["bar" "baz"]}}
-               "Corp adds 2 random cards from HQ to the bottom of R&D.")
+               "Corp adds 2 random cards from HQ to the bottom of R&D to .")
   (render-test {:username "Corp" :cost {:agenda-counter ["bar" 1]}}
-               "Corp spends 1 hosted agenda counter from on bar.")
+               "Corp spends 1 hosted agenda counter from on bar to .")
   (render-test {:username "Corp" :cost {:virus ["bar" 2]}}
-               "Corp spends 2 hosted virus counters from on bar.")
+               "Corp spends 2 hosted virus counters from on bar to .")
   (render-test {:username "Corp" :cost {:advancement ["bar" 3]}}
-               "Corp spends 3 hosted advancement counters from on bar.")
+               "Corp spends 3 hosted advancement counters from on bar to .")
   (render-test {:username "Corp" :cost {:power ["bar" 4]}}
-               "Corp spends 4 hosted power counters from on bar."))
+               "Corp spends 4 hosted power counters from on bar to ."))
 
 ;; messing around with how "to" is rendered
 #_(deftest to-check
@@ -448,6 +462,7 @@
                "Corp uses foo to end the run.")
   (render-test {:username "Corp" :type :use :card "foo" :effect {:gain-type ["bar" "Code Gate"]}}
                "Corp uses foo to make bar gain Code Gate until the end of the run.")
+  ;; TODO place-counter and remove-counter
   (render-test {:username "Corp" :type :use :card "foo" :effect {:move-counter [:adv 1 {:card "bar"} {:card "baz"}]}}
                "Corp uses foo to move 1 advancement counter from bar to baz.")
   (render-test {:username "Runner" :type :use :card "foo" :effect {:add-str ["bar" 1]}}
@@ -476,19 +491,120 @@
                "Runner uses foo to bypass bar.")
   (render-test {:username "Corp" :type :use :card "foo" :effect {:trash-free "bar"}}
                "Corp uses foo to trash bar at no cost.")
-
+  (render-test {:username "Corp" :type :use :card "foo" :effect {:str-pump [1 2]}}
+               "Corp uses foo to increase its strength from 1 to 2.")
+  (render-test {:username "Corp" :type :use :card "foo" :effect {:lower-ice-str [1 "foo"]}}
+               "Corp uses foo to lower the strength of foo by 1.")
+  (render-test {:username "Corp" :type :use :card "foo" :effect {:lower-ice-str [1]}}
+               "Corp uses foo to lower the strength of each installed icebreaker by 1.")
   (render-test {:username "Corp" :type :use :card "foo" :effect {:shuffle-into-rnd ["bar"]}}
                "Corp uses foo to shuffle bar into R&D.")
   (render-test {:username "Corp" :type :use :card "foo" :effect {:shuffle-into-rnd ["bar" "unseen"]}}
                "Corp uses foo to shuffle 1 unseen card and bar into R&D.")
   (render-test {:username "Corp" :type :use :card "foo" :effect {:shuffle-into-rnd ["bar" nil]}}
                "Corp uses foo to shuffle itself and bar into R&D.")
+  (render-test {:username "Corp" :type :use :card "foo" :effect {:rearrange-rnd 5}}
+               "Corp uses foo to rearrange the top 5 cards of R&D.")
+  (render-test {:username "Corp" :type :use :card "foo" :effect {:reveal-from-rnd 4}}
+               ;; TODO confirm if this should be a card list
+               "Corp uses foo to reveal 4 cards from the top of R&D.")
+  (render-test {:username "Corp" :type :use :card "foo" :effect {:look-top-rnd 3}}
+               "Corp uses foo to look at the top 3 cards of R&D.")
+  (render-test {:username "Corp" :type :use :card "foo" :effect {:move-hq-rnd 2}}
+               "Corp uses foo to add 2 cards from HQ to to the top of R&D.")
+  (render-test {:username "Corp" :type :use :card "foo" :effect {:play "bar"}}
+               "Corp uses foo to play bar.")
+  (render-test {:username "Corp" :type :use :card "foo" :effect {:move-server [[:servers :hq]]}}
+               "Corp uses foo to move itself to HQ.")
+  (render-test {:username "Corp" :type :use :card "foo" :effect {:prevent-access [:target "bar"]}}
+               "Corp uses foo to prevent the runner from accessing bar.")
+  (render-test {:username "Corp" :type :use :card "foo" :effect {:prevent-access [:exclusive "bar"]}}
+               "Corp uses foo to prevent the runner from accessing cards other than bar.")
+  (render-test {:username "Corp" :type :use :card "foo" :effect {:trash-stack ["bar"]}}
+               "Corp uses foo to trash bar from the top of the stack.")
+  (render-test {:username "Corp" :type :use :card "foo" :effect {:prevent-net 1}}
+               "Corp uses foo to prevent 1 net damage.")
+  (render-test {:username "Corp" :type :use :card "foo" :effect {:prevent-encounter-ability ["bar" "baz"]}}
+               "Corp uses foo to prevent the encounter ability on bar (baz).")
+  (render-test {:username "Corp" :type :use :card "foo" :effect {:prevent-etr {:card "bar"}}}
+               "Corp uses foo to prevent bar from ending the run this encounter.")
+  (render-test {:username "Corp" :type :use :card "foo" :effect {:gain-str 1}}
+               "Corp uses foo to gain 1 strength for the remainder of the turn.")
+  (render-test {:username "Corp" :type :use :card "foo" :effect {:breach-server [:servers :hq]}}
+               "Corp uses foo to breach HQ.")
+  (render-test {:username "Corp" :type :use :card "foo" :effect {:derez [{:card "foo"} {:card "bar"}]}}
+               "Corp uses foo to derez foo and bar.")
+  (render-test {:username "Corp" :type :use :card "foo" :effect {:derez {:card "bar"}}}
+               ;; TODO lame, a map is a collection too...
+               "Corp uses foo to derez bar.")
+  (render-test {:username "Corp" :type :use :card "foo" :effect {:rez-free ["foo" "bar"]}}
+               "Corp uses foo to rez foo and bar, ignoring all costs.")
+  (render-test {:username "Corp" :type :use :card "foo" :effect {:encounter-ice {:card "foo"}}}
+               ;; TODO make? force?
+               "Corp uses foo to make the Runner encounter foo.")
+  (render-test {:username "Corp" :type :use :card "foo" :effect {:reveal-self [:servers :rd]}}
+               "Corp uses foo to reveal itself from R&D.")
+  (render-test {:username "Corp" :type :use :card "foo" :effect {:add-from-hq-to-score "bar"}}
+               "Corp uses foo to add bar from HQ to [their] score area.")
+  (render-test {:username "Corp" :type :use :card "foo" :effect {:turn-faceup "bar"}}
+               "Corp uses foo to turn bar in Archives faceup.")
+  (render-test {:username "Corp" :type :use :card "foo" :effect {:add-self-to-hq true}}
+               "Corp uses foo to add itself to HQ.")
+  (render-test {:username "Corp" :type :use :card "foo" :effect {:trash "bar"}}
+               "Corp uses foo to trash bar.")
+  (render-test {:username "Corp" :type :use :card "foo" :effect {:trash {:card "bar"}}}
+               "Corp uses foo to trash bar.")
+  (render-test {:username "Corp" :type :use :card "foo" :effect {:add-str-new [{:card "bar"} 1]}}
+               "Corp uses foo to give bar +1 strength.")
+  (render-test {:username "Corp" :type :use :card "foo" :effect {:add-sub "bar"}}
+               "Corp uses foo to add bar after its other subroutines.")
+  (render-test {:username "Corp" :type :use :card "foo" :effect {:trash-rnd 5}}
+               "Corp uses foo to trash the top 5 cards of R&D.")
+  (render-test {:username "Corp" :type :use :card "foo" :effect {:remove-click-next-turn 1}}
+               "Corp uses foo to give the Runner -1 allotted [Click] for [their] next turn.")
+  (render-test {:username "Corp" :type :use :card "foo" :effect {:move-grip-to-stack ["foo" "bar"]}}
+               "Corp uses foo to add foo and bar from the Grip to the top of the Stack.")
+  (render-test {:username "Corp" :type :use :card "foo" :effect {:shuffle-into-stack "bar"}}
+               "Corp uses foo to shuffle bar into the stack.")
+  (render-test {:username "Corp" :type :use :card "foo" :effect {:remove-all-virus-counters {:card "bar"}}}
+               "Corp uses foo to remove all virus counters from bar.")
+  (render-test {:username "Corp" :type :use :card "foo" :effect {:trash-from-hq "bar"}}
+               "Corp uses foo to trash bar from HQ.")
+  (render-test {:username "Corp" :type :use :card "foo" :effect {:reveal-from-grip ["foo" "bar"]}}
+               "Corp uses foo to reveal foo and bar from the Grip.")
+  (render-test {:username "Corp" :type :use :card "foo" :effect {:add-to-top-rnd "bar"}}
+               "Corp uses foo to add bar to the top of R&D.")
+  (render-test {:username "Corp" :type :use :card "foo" :effect {:add-to-bottom-rnd "bar"}}
+               "Corp uses foo to add bar to the bottom of R&D.")
+  (render-test {:username "Corp" :type :use :card "foo" :effect {:force-reveal 2}}
+               "Corp uses foo to reveal 2 random cards from HQ.")
+  (render-test {:username "Corp" :type :use :card "foo" :effect {:shuffle-zone-into [[:hand] [:discard]]}}
+               "Corp uses foo to shuffle HQ and Archives into R&D.")
+  (render-test {:username "Corp" :type :use :card "foo" :effect {:rfg ["foo" "bar"]}}
+               "Corp uses foo to remove foo and bar from the game.")
+  (render-test {:username "Corp" :type :use :card "foo" :effect {:reveal-from-stack ["foo" "bar"]}}
+               "Corp uses foo to reveal foo and bar from the top of the stack.")
+  (render-test {:username "Corp" :type :use :card "foo" :effect {:host-on-self "bar"}}
+               "Corp uses foo to host bar on itself.")
+  (render-test {:username "Corp" :type :use :card "foo" :effect {:host-instead-of-access "bar"}}
+               "Corp uses foo to host bar on itself instead of accessing it.")
+  (render-test {:username "Corp" :type :use :card "foo" :effect {:shuffle-stack true}}
+               "Corp uses foo to shuffle the stack.")
+  (render-test {:username "Corp" :type :use :card "foo" :effect {:trash-self true}}
+               "Corp uses foo to trash itself.")
+  (render-test {:username "Corp" :type :use :card "foo" :effect {:credits 3}}
+               ;; TODO eh?
+               "Corp uses foo to pay 3 [Credits].")
+  (render-test {:username "Corp" :type :use :card "foo" :effect {:draw-additional 1}}
+               "Corp uses foo to draw 1 additional card.")
+  (render-test {:username "Corp" :type :use :card "foo" :effect {:swap-ice "TODO"}}
+               "")
 
+  ;; rearrange below
   (render-test {:username "Runner" :type :use :card "Leech" :effect {:place-counter [:virus 1]}}
                "Runner uses Leech to place 1 virus counter on itself.")
   (render-test {:username "Runner" :type :use :card "Smartware Distributor" :effect {:place-counter [:credit 3]}}
-               ;; TODO plural
-               "Runner uses Smartware Distributor to place 3 [Credit]s on itself.")
+               "Runner uses Smartware Distributor to place 3 [Credits] on itself.")
   (render-test {:username "Runner" :type :use :card "Cookbook" :effect {:place-counter [:virus 1 {:card "Leech"}]}}
                "Runner uses Cookbook to place 1 virus counter on Leech.")
   (render-test {:username "Runner" :type :use :card "Leech"
