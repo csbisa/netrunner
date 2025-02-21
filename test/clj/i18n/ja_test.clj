@@ -508,3 +508,19 @@
                 :type :use :card "Cleaver"
                 :effect {:str-pump [3 4 :end-of-turn]}}
                "Runner uses Cleaver to increase its strength from 3 to 4 for the remainder of the turn."))
+
+;; TODO we probably want to do comma after cost, at least
+(deftest conjunction
+  (render-test {:username "Corp"
+                :type :use :card "X"
+                :cost {:credits 1 :click 1}
+                :effect {:give-tag 1 :end-run true}}
+               "Corpは1 [Credits]を支払って[Click]を消費してXでランナーに1つタグを与えてランを終了する。")
+  (render-test {:username "Corp"
+                :type :play :card "X"
+                :cost {:credits 1 :click 1}}
+               "Corpは1 [Credits]を支払って[Click]を消費してXをプレイする。")
+  (render-test {:username "Corp"
+                :type :use :card "X"
+                :effect {:give-tag 1 :end-run true}}
+               "CorpはXでランナーに1つタグを与えてランを終了する。"))
