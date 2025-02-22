@@ -4357,7 +4357,8 @@
 
 (defcard "Tree Line"
   {:static-abilities [(ice-strength-bonus (req (get-counters card :advancement)))]
-   :subroutines [{:msg {:gain-credits 1 :end-run true}
+   :subroutines [{:label "gain 1 [Credits] and end the run"
+                  :msg {:gain-credits 1 :end-run true}
                   :async true
                   :effect (req (wait-for (gain-credits state side 1)
                                          (end-run state side eid card)))}]
