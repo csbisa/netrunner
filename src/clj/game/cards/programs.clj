@@ -2200,6 +2200,7 @@
     {:abilities [(break-sub
                    1 1 "All"
                    {:additional-ability
+                    ;; TODO just delete the message, i think
                     {:msg "will trash itself when this run ends"
                      :effect (req
                                (register-events

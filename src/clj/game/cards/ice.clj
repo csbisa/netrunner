@@ -1967,6 +1967,8 @@
 
 (defcard "Funhouse"
   {:on-encounter {:msg (msg (if (= target "Take 1 tag")
+                              ;; TODO this loses 'on encountering it'
+                              ;; might need to change this into a on-encounter type
                               {:tag-force 1}
                               {:end-run true}))
                   :player :runner
