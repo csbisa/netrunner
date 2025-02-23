@@ -97,7 +97,7 @@
              (str " protecting "(to-zone-name server) " at position " pos)
              ;; so for better wording this is probably "from" for a non-root?
              ;; TODO need to confirm actual behavior today...
-             (str " in "
+             (str " in the root of "
                   (to-zone-name server)))))))
 
 (defn- render-card
@@ -400,6 +400,7 @@
 
 ;; TODO discount-str: ignore-all-costs, ignore-install-costs, cost-bonus
 ;; cost-bonus should in theory be used for DZMZ but i don't see it in the map
+;; TODO this should probably be squashed with render-card-internal somehow
 (defmethod render-text :install
   [{:keys [card card-type server new-remote origin install-source cost host side]}]
   (let [card-type (keyword card-type)]
@@ -417,7 +418,7 @@
          (when server
            (str (if (= card-type :ice)
                   " protecting "
-                  " in ")
+                  " in the root of ")
                 (to-zone-name server)
                 (when new-remote " (new remote)")))
          (when host
