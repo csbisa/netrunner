@@ -198,6 +198,10 @@
                            "に"
                            (to-counter type)
                            "を" count "つ移動する"))
+      ;; TODO need to fix hq/blah
+      :trash-from-hand (if (int? value)
+                         (str "HQ" "から" value "枚のカードをトラッシュする")
+                         (str "HQ" "から" (count value) "枚のカードをトラッシュする (" (join "と" value) ")"))
       :add-str (let [[card count] value] (str card "が強度＋" count "する"))
       :reduce-str (let [[card count] value] (str "エンカウンターの終了時までに" (render-card card) "を強度ー" count "する"))
       :access-additional-from-hq (str "HQからの追加で" value "枚のカードにアクセスする")
