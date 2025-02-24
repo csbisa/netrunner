@@ -406,16 +406,13 @@
   (let [cost-spend-msg (build-spend-msg-suffix cost "play")]
     (str cost-spend-msg card)))
 
-;; TODO discount-str: ignore-all-costs, ignore-install-costs, cost-bonus
-;; cost-bonus should in theory be used for DZMZ but i don't see it in the map
 ;; TODO this should probably be squashed with render-card-internal somehow
-;; TODO need to handle the "... as a facedown card" logic
+;; TODO need to handle the "... as a facedown card" logic. i don't think 'unseen' here is ever used
 (defmethod render-text :install
-  [{:keys [card card-type server new-remote origin install-source cost host hosted side]}]
+  [{:keys [card card-type server new-remote origin install-source cost host hosted side ignore-all-costs ignore-install-costs cost-bonus no-cost]}]
   (let [card-type (keyword card-type)]
     (str (if install-source
            (str (build-spend-msg-suffix cost "use") install-source " to install ")
-           ;; TODO fix
            (build-spend-msg-suffix cost "install"))
          (when hosted "hosted ")
          (if (= card-type :ice)
@@ -431,8 +428,14 @@
                   " in the root of ")
                 (to-zone-name server)
                 (when new-remote " (new remote)")))
+         (cond
+           ignore-all-costs " (ignoring all costs))"
+           ignore-install-costs " (ignoring its install cost)"
+           (and cost-bonus (pos? cost-bonus)) (str " (paying " cost-bonus " [Credits] more]")
+           (and cost-bonus (neg? cost-bonus)) (str " (paying " (* -1  cost-bonus) " [Credits] less]"))
          (when host
-           (str " on " (render-card host))))))
+           (str " on " (render-card host)))
+         (when no-cost " at no cost"))))
 
 (defmethod render-text :rez
   [{:keys [card alternative-cost ignore-cost cost]}]
