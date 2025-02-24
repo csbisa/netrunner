@@ -1376,7 +1376,8 @@
 
 (defcard "Luminal Transubstantiation"
   {:on-score
-   {:effect (req (gain-clicks state :corp 3)
+   {:silent (req true)
+    :effect (req (gain-clicks state :corp 3)
                  (register-turn-flag!
                    state side card :can-score
                    (fn [state side card]
