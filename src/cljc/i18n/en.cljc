@@ -1,7 +1,8 @@
 (ns i18n.en
   (:require
    [clojure.string :refer [join split starts-with? ends-with?] :as s]
-   [i18n.defs :refer [render-map try-catchall pprint-to-string] :include-macros true]))
+   [i18n.defs :refer [render-map try-catchall pprint-to-string] :include-macros true]
+   [malli.core :as m]))
 
 (defn pluralize
   "Makes a string plural based on the number n. Takes specific suffixes for singular and plural cases if necessary."
