@@ -204,7 +204,13 @@
 (defn render-cost
   [cost side]
   (when cost
-    (enumerate-str (for [[c v] cost] (render-single-cost c v side)))))
+    (if (vector? cost)
+      (str
+       (enumerate-str (for [[c v] (first cost)] (render-single-cost c v side)))
+       ", and then "
+       (enumerate-str (for [[c v] (second cost)] (render-single-cost c v side)))
+       ",")
+      (enumerate-str (for [[c v] cost] (render-single-cost c v side))))))
 
 (defn render-cost-str
   [{:keys [cost side]}]
@@ -403,13 +409,15 @@
 ;; TODO discount-str: ignore-all-costs, ignore-install-costs, cost-bonus
 ;; cost-bonus should in theory be used for DZMZ but i don't see it in the map
 ;; TODO this should probably be squashed with render-card-internal somehow
+;; TODO need to handle the "... as a facedown card" logic
 (defmethod render-text :install
-  [{:keys [card card-type server new-remote origin install-source cost host side]}]
+  [{:keys [card card-type server new-remote origin install-source cost host hosted side]}]
   (let [card-type (keyword card-type)]
     (str (if install-source
            (str (build-spend-msg-suffix cost "use") install-source " to install ")
            ;; TODO fix
            (build-spend-msg-suffix cost "install"))
+         (when hosted "hosted ")
          (if (= card-type :ice)
            (str (or card "ice"))
            (str (or card (if (= card-type :facedown)
