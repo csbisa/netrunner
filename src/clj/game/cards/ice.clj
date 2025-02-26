@@ -17,7 +17,7 @@
    [game.core.choose-one :refer [cost-option choose-one-helper]]
    [game.core.costs :refer [total-available-credits]]
    [game.core.damage :refer [damage]]
-   [game.core.def-helpers :refer [combine-abilities corp-recur defcard
+   [game.core.def-helpers :refer [choose-one-helper combine-abilities cost-option corp-recur defcard
                                   do-brain-damage do-net-damage offer-jack-out
                                   reorder-choice get-x-fn with-revealed-hand]]
    [game.core.drawing :refer [draw maybe-draw draw-up-to]]
@@ -1966,21 +1966,17 @@
                  gain-power-counter]})
 
 (defcard "Funhouse"
-  {:on-encounter {:msg (msg (if (= target "Take 1 tag")
-                              ;; TODO this loses 'on encountering it'
-                              ;; might need to change this into a on-encounter type
-                              {:tag-force 1}
-                              {:end-run true}))
-                  :player :runner
-                  :prompt "Choose one"
-                  :choices (req [(when-not (forced-to-avoid-tags? state :runner)
-                                   "Take 1 tag")
-                                 "End the run"])
-                  :waiting-prompt true
-                  :async true
-                  :effect (req (if (= target "Take 1 tag")
-                                 (gain-tags state :runner eid 1 {:unpreventable true})
-                                 (end-run state :runner eid card)))}
+  {:on-encounter (choose-one-helper
+                  {:player :runner}
+                  [(cost-option [(->c :gain-tag 1)] :runner)
+                   ;; TODO this is needed for e.g. Jesminder to work, but the prompt never shows
+                   #_(req (when-not (forced-to-avoid-tags? state side)
+                            (cost-option [(->c :gain-tag 1)] :runner)))
+                   {:option "End the run"
+                    :ability {:async true
+                              :display-side :corp
+                              :msg {:end-run true}
+                              :effect (req (end-run state :runner eid card))}}])
    :subroutines [(tag-or-pay-credits 4)]})
 
 (defcard "Galahad"
