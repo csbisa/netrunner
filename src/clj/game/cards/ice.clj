@@ -1979,9 +1979,6 @@
   {:on-encounter (choose-one-helper
                   {:player :runner}
                   [(cost-option [(->c :gain-tag 1)] :runner)
-                   ;; TODO this is needed for e.g. Jesminder to work, but the prompt never shows
-                   #_(req (when-not (forced-to-avoid-tags? state side)
-                            (cost-option [(->c :gain-tag 1)] :runner)))
                    {:option "End the run"
                     :ability {:async true
                               :display-side :corp
