@@ -358,25 +358,22 @@
       ;; TODO
       :swap-ice (throw "foo"))))
 
-;; TODO this keyword logic is just silly
 (defn render-single-effect-force-check
   [effect value side]
   (let [effect (name effect)]
-    (if (ends-with? effect "-force")
-      (str "force the "
-           ;; This is inverted -- corp forcing effect means it's forcing runner to take the effect.
-           (if (= (keyword side) :corp) "Runner" "Corp")
-           " to "
-           ;; oh god
-           (render-single-effect (keyword (subs effect 0 (- (count effect) (count "-force")))) value))
-      (render-single-effect (keyword effect) value))))
+    (str
+     (when forced
+       (str "force the "
+            ;; This is inverted -- corp forcing effect means it's forcing runner to take the effect.
+            (if (= (keyword side) :corp) "Runner" "Corp")
+            " to "))
+     (render-single-effect (keyword effect) value))))
 
 (defn render-effect
   [effects side]
   (when effects
     (enumerate-str (remove nil? (for [[c v] effects]
-                                  (render-single-effect-force-check c v side)
-                                  #_(render-single-effect c v))))))
+                                  (render-single-effect-force-check c v side forced))))))
 
 (defn render-effect-str
   [{:keys [effect side]}]
