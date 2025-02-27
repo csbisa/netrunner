@@ -17,7 +17,7 @@
    [game.core.choose-one :refer [cost-option choose-one-helper]]
    [game.core.costs :refer [total-available-credits]]
    [game.core.damage :refer [damage]]
-   [game.core.def-helpers :refer [combine-abilities corp-recur choose-one-helper cost-option defcard
+   [game.core.def-helpers :refer [combine-abilities corp-recur defcard
                                   do-brain-damage do-net-damage offer-jack-out
                                   reorder-choice get-x-fn with-revealed-hand]]
    [game.core.drawing :refer [draw maybe-draw draw-up-to]]
@@ -1335,16 +1335,36 @@
   {:subroutines [trash-installed-sub
                  (give-tags 2)
                  (do-net-damage 3)]
-   :events [(choose-one-helper
-             {:player :runner
-              :async true
-              :event :end-of-encounter
-              :req (req (and (= :this-turn (:rezzed card))
-                             (same-card? (:ice context) card)))}
-             [{:option "Corp trashes 1 Runner card"
-               :ability trash-installed-sub}
-              (cost-option [(->c :gain-tag 2)] :runner)
-              (cost-option [(->c :net 3)] :runner)])]})
+   :events [{:event :end-of-encounter
+             :req (req (and (= :this-turn (:rezzed card))
+                            (same-card? (:ice context) card)))
+             :async true
+             :effect (effect (continue-ability
+                               {:prompt "Choose one"
+                                :player :runner
+                                :choices (req ["Corp trashes 1 Runner card"
+                                               (when-not (forced-to-avoid-tags? state side) "Take 2 tags")
+                                               (when (can-pay? state :runner eid card nil (->c :net 3))
+                                                 "Suffer 3 net damage")])
+                                :waiting-prompt true
+                                :async true
+                                :effect (req
+                                          (continue-ability
+                                            state (if (= target "Corp trashes 1 Runner card") :corp :runner)
+                                            (cond
+                                              (= target "Corp trashes 1 Runner card")
+                                              trash-installed-sub
+                                              (= target "Take 2 tags")
+                                              ;; TODO adapt to new format
+                                              {:msg (msg "force the Runner to " (decapitalize target))
+                                               :async true
+                                               :effect (effect (gain-tags :runner eid 2 {:unpreventable true}))}
+                                              (= target "Suffer 3 net damage")
+                                              {:msg (msg "force the Runner to " (decapitalize target))
+                                               :async true
+                                               :effect (req (pay state :runner eid card [(->c :net 3)]))})
+                                            card targets))}
+                               card nil))}]})
 
 (defcard "Cobra"
   {:subroutines [trash-program-sub (do-net-damage 2)]})
