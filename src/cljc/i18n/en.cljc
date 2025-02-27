@@ -246,7 +246,7 @@
       :add-to-grip (str "add " (render-card value) " to the Grip")
       :add-to-hq-unseen (str "add " (quantify value "card") " to HQ")
       ;; TODO making this add would be more consistent? Working Prototype uses "add", ??? uses "move"
-      :move-to-top-stack (str "move " value " to the top of the stack")
+      :move-to-top-stack (str "move " (or value "them") " to the top of the Stack")
       :shuffle-rnd (str "shuffle R&D")
       :reveal-and-add (let [[card from to] value]
                         (str "add " card " from " (to-zone-name from) " to " (to-zone-name to)))
@@ -338,7 +338,7 @@
       :trash-rnd (str "trash the top " (quantify value "card") " of R&D")
       :remove-click-next-turn (str "give the Runner -" value " allotted [Click] for [their] next turn")
       :move-grip-to-stack (str "add " (enumerate-str value) " from the Grip to the top of the Stack")
-      :shuffle-into-stack (str "shuffle " value " into the stack")
+      :shuffle-into-stack (str "shuffle " (or value "them") " into the stack")
       :remove-all-virus-counters (str "remove all virus counters from " (render-card value))
       :trash-from-hq (str "trash " value " from HQ")
       :reveal-from-grip (str "reveal " (enumerate-str value) " from the Grip")
@@ -355,7 +355,7 @@
       :credits (str "pay " value " [Credits]")
       :draw-additional (str "draw " (quantify value "additional card"))
       :purge "purge virus counters"
-      :reveal (let [groups (group-by :server value)]
+      :reveal (let [groups (group-by :zone value)]
                 (println groups)
                 (str "to reveal "
                      (enumerate-str (map #(str (enumerate-str (map :card (second %)))

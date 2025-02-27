@@ -44,18 +44,18 @@
         ;; like "add it to the top of the stack" vs "add them to the top of the stack"
         ;; so I'm choosing to match the tokens [it] and [them] for this purpose
         plural-repr (if (< 1 (count cards)) "them" "it")
-        follow-up (when (and and-then (string? and-then)) (string/replace and-then #"(\[it\])|(\[them\])" plural-repr))]
+        follow-up (when (string? and-then) (string/replace and-then #"(\[it\])|(\[them\])" plural-repr))]
     (system-msg state (if forced (other-side side) side)
-                (if (string? follow-up)
+                (if follow-up
                   (str "uses " (:title card)
                        (if forced
                          (str " to force the " (string/capitalize (name side)))
                          "")
                        " to reveal " (enumerate-str strs) follow-up)
-                  {:type :use :card (:title card) :force forced
+                  {:type :use :card (:title card) :force (boolean forced)
                    ;; TODO if this isn't a sign that effects need to be ordered then i don't know what is
                    :effect (merge {:reveal (map #(card-str-map state % {:visible true}) cards)}
-                                  follow-up)}))
+                                  and-then)}))
     (if-not no-event
       (reveal state side eid targets)
       (effect-completed state side eid))))
