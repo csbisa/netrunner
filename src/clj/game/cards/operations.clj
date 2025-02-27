@@ -513,7 +513,7 @@
            :effect (req (let [target-card (first (shuffle (:hand runner)))]
                           (wait-for
                             ;; TODO fix, use :move-grip-to-stack here
-                            (reveal-loud state side card {:and-then " and shuffle it into the Stack"} target-card)
+                            (reveal-loud state side card nil #_{:and-then " and shuffle it into the Stack"} target-card)
                             (move state :runner target-card :deck)
                             (shuffle! state :runner :deck)
                             (effect-completed state side eid))))}}}]
@@ -524,7 +524,7 @@
       :effect (req
                 (let [chosen-cards (take 2 (shuffle (:hand runner)))]
                   (wait-for
-                    (reveal-loud state side card {:and-then " and place [them] on the top of the stack (in a random order)"} chosen-cards)
+                    (reveal-loud state side card nil #_{:and-then " and place [them] on the top of the stack (in a random order)"} chosen-cards)
                     (doseq [c (shuffle chosen-cards)]
                       (move state :runner c :deck {:front true}))
                     (continue-ability

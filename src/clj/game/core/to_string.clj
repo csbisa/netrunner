@@ -25,7 +25,7 @@
                        (when installed-ice
                          (str " at position " (card-index state card)))))))
          ; Runner card messages
-         (if (or facedown visible)
+         (if (or facedown visible) ;; TODO this sure looks like a bug to me
            "a facedown card"
            (get-title card)))
        (when host (str " hosted on " (card-str state (get-card state host)))))))
@@ -46,6 +46,7 @@
                               (when installed-ice
                                 {:pos (card-index state card)})))))
             ;; Runner card messages
-            (if (or facedown visible)
-              :facedown
-              (get-title card))))))
+            (merge {:card (if facedown
+                            :facedown
+                            (get-title card))}
+                   (when (:zone card) {:zone (:zone card)}))))))
