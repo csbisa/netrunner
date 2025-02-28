@@ -112,6 +112,7 @@
       :rfg-program (str "インストール状態のプログラムを" (count value) "つ取り除いて (" (join "と" (map render-card value)) ")")
       :trash-installed (str "インストール状態のカードを" (count value) "つトラッシュして (" (join "と" (map render-card value)) ")")
       :hardware (str "つインストール状態のハードウェアを" (count value) "つトラッシュして (" (join "と" (map render-card value)) ")")
+      ;; TODO this is only harmonic in costs... is something else using this?
       :derez (str (count value) "つカードをデレゾして (" (join "と" (map render-card value)) ")")
       :program (str (count value) "つインストール状態のプログラムをトラッシュして (" (join "と" (map render-card value)) ")")
       :resource (str (count value) "つインストール状態のリソースをトラッシュして (" (join "と" (map render-card value)) ")")
@@ -133,6 +134,8 @@
       :take-core (str value "コアダメージを受けて")
       :shuffle-installed-to-stack (str (count value) "枚のカードを" deck "に加えシャフルして (" (join "と" value) ")")
       :add-installed-to-bottom-of-deck (str (count value) "枚のインストール状態のカードを" deck "の一番下に加えて (" (join "と" (map render-card value)) ")")
+      ;; TODO card name
+      :turn-hosted-matryoshka-facedown (str "搭載されたMatryoshkaの" value "枚を裏向きにする")
       ;; TODO not sure if this makes sense. should be number and never revealed?
       :add-random-from-hand-to-bottom-of-deck (str hand "の" (count value) "枚のランダムなカードを" deck "の一番下に加えて")
       :agenda-counter (let [[host count] value]
@@ -276,6 +279,12 @@
       :credits (str value " [Credits]を支払う")
       :draw-additional (str "追加で" value "枚カードを引く")
       :purge "ウィルスカウンター破棄する"
+      :reveal (let [groups (group-by :zone value)]
+                (str (join "、" (map #(str (to-zone-name (first %)) "から"
+                                           (join "と" (map :card (second %))))
+                                     groups))
+                     "を公開する")
+                )
       ;; TODO
       :swap-ice (throw "foo"))))
 
