@@ -355,8 +355,7 @@
       :credits (str "pay " value " [Credits]")
       :draw-additional (str "draw " (quantify value "additional card"))
       :purge "purge virus counters"
-      :reveal (let [groups (group-by :zone value)]
-                (println groups)
+      :reveal (let [groups (group-by :server value)]
                 (str "to reveal "
                      (enumerate-str (map #(str (enumerate-str (map :card (second %)))
                                                " from " (to-zone-name (first %)))
