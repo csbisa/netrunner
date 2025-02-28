@@ -15,13 +15,13 @@
                            resource? rezzed? runner?]]
    [game.core.card-defs :refer [card-def]]
    [game.core.choose-one :refer [cost-option choose-one-helper]]
-   [game.core.costs :refer [total-available-credits]]
+   [game.core.costs :refer [forced-to-avoid-tags? total-available-credits]]
    [game.core.damage :refer [damage]]
    [game.core.def-helpers :refer [combine-abilities corp-recur defcard
                                   do-brain-damage do-net-damage offer-jack-out
                                   reorder-choice get-x-fn with-revealed-hand]]
    [game.core.drawing :refer [draw maybe-draw draw-up-to]]
-   [game.core.effects :refer [any-effects get-effects is-disabled? is-disabled-reg? register-lingering-effect unregister-effects-for-card unregister-effect-by-uuid unregister-static-abilities update-disabled-cards]]
+   [game.core.effects :refer [get-effects is-disabled? is-disabled-reg? register-lingering-effect unregister-effects-for-card unregister-effect-by-uuid unregister-static-abilities update-disabled-cards]]
    [game.core.eid :refer [complete-with-result effect-completed make-eid make-result]]
    [game.core.engine :refer [gather-events pay register-default-events register-events
                              resolve-ability trigger-event trigger-event-simult unregister-events
@@ -79,11 +79,6 @@
                     (or (not (:broken %))
                         (not (has-subtype? (find-cid (:breaker %) (all-installed state :runner))type))))
                 subs)))))
-
-;;; Checks if the runner has active events that would force them to avoid/prevent a tag
-(defn forced-to-avoid-tags?
-  [state side]
-  (any-effects state side :forced-to-avoid-tag))
 
 ;;; Break abilities on ice should only occur when encountering that ice
 (defn currently-encountering-card

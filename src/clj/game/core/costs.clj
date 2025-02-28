@@ -395,14 +395,17 @@
                               card nil))})
       card nil)))
 
+;;; Checks if the runner has active events that would force them to avoid/prevent a tag
+(defn forced-to-avoid-tags?
+  [state side]
+  (any-effects state side :forced-to-avoid-tag))
+
 ;; Gain tag
 (defmethod value :gain-tag [cost] (:cost/amount cost))
 (defmethod label :gain-tag [cost] (str "take " (quantify (value cost) "tag")))
 (defmethod payable? :gain-tag
-  ;; TODO - shouldn't actually be true if we're forced to avoid tags
-  ;;  QuianjuPT, Jesminder, dorm-computer can do this -nbkelly, Jan '24
-  [_ _ _ _ _]
-  true)
+  [_cost state side _eid _card]
+  (not (forced-to-avoid-tags? state side)))
 (defmethod handler :gain-tag
   [cost state side eid card]
   (wait-for (gain-tags state side (value cost) {:suppress-checkpoint true})
