@@ -111,7 +111,7 @@
       :remove-from-game (str value "を取り除いて")
       :rfg-program (str "インストール状態のプログラムを" (count value) "つ取り除いて (" (join "と" (map render-card value)) ")")
       :trash-installed (str "インストール状態のカードを" (count value) "つトラッシュして (" (join "と" (map render-card value)) ")")
-      :hardware (str "つインストール状態のハードウェアを" (count value) "つトラッシュして (" (join "と" (map render-card value)) ")")
+      :hardware (str "インストール状態のハードウェアを" (count value) "つトラッシュして (" (join "と" (map render-card value)) ")")
       ;; TODO this is only harmonic in costs... is something else using this?
       :derez (str (count value) "つカードをデレゾして (" (join "と" (map render-card value)) ")")
       :program (str (count value) "つインストール状態のプログラムをトラッシュして (" (join "と" (map render-card value)) ")")
