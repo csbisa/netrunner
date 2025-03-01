@@ -320,6 +320,15 @@
   (render-test {:username "Runner" :type :win-game}
                "Runner wins the game."))
 
+;; checking card rendering
+(deftest card
+  (render-test {:username "Corp" :type :trash :card {:card "foo" :server [:hand]}}
+               "")
+  (render-test {:username "Corp" :type :trash :card {:card "foo" :server [:servers :hq :ices] :pos 1}}
+                 "")
+  (render-test {:username "Corp" :type :trash :card {:card "foo" :server [:servers :hq :contents]}}
+                 ""))
+
 ;; TODO silly trailing 'to's here, but does the job for testing for now
 (deftest cost
   (render-test {:username "Corp" :cost {:click 1}}

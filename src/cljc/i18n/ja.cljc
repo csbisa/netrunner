@@ -67,7 +67,7 @@
          (str (render-card-internal hosted) "に搭載される")
          (if server
            (if (not (nil? pos))
-             (str (to-zone-name server) "を位置" pos "に守っている")
+             (str (to-zone-name server) "を位置" pos "を守っている")
              (str (to-zone-name server) "に"))
            ""))
        (if-not (empty? card)
@@ -164,7 +164,8 @@
       :gain-credits (str value " [Credits]を得る")
       :gain-click (str (apply str (repeat value "[Click]")) "を得る")
       :lose-click (str (apply str (repeat value "[Click]")) "を失う")
-      :lose-credits (str value " [Credits]を失う")
+      ;; TODO fix, but currently only used for runner
+      :lose-credits (str "ランナーに" value " [Credits]を失うことをさせる")
       :give-tag (str "ランナーに" value "つタグを与える")
       :take-tag (str value "つタグを受ける")
       :remove-tag (str value "つタグを取り除く")
@@ -358,11 +359,6 @@
            (str install-source "で"))
          (when origin
            (str (to-zone-name origin side) "から"))
-         (when server
-           (str (when new-remote "新しい") ;; i don't like this
-                (to-zone-name server)
-                "に"
-                (when (= card-type :ice) "守っている")))
          (when host
            (str (render-card host) "に"))
          (if (= card-type :ice)
@@ -370,7 +366,12 @@
            (str (or card (if (= card-type :facedown)
                            "未知のカード"
                            "カード"))))
-         "をインストールする")))
+         "を"
+         (when server
+           (str (when new-remote "新しい") ;; i don't like this
+                (to-zone-name server)
+                (when (= card-type :ice) "を守っている位置")))
+         "にインストールする")))
 
 (defmethod render-text :rez
   [{:keys [card alternative-cost ignore-cost]}]

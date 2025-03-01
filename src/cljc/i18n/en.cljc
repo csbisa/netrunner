@@ -98,7 +98,7 @@
              (str " protecting "(to-zone-name server) " at position " pos)
              ;; so for better wording this is probably "from" for a non-root?
              ;; TODO need to confirm actual behavior today...
-             (str " in the root of "
+             (str (if (= (first server) :servers) " in the root of " " from ")
                   (to-zone-name server)))))))
 
 (defn- render-card
@@ -233,6 +233,7 @@
       :gain-credits (str "gain " value " [Credits]")
       :gain-click (str "gain " (apply str (repeat value "[Click]")))
       :lose-click (str "lose " (apply str (repeat value "[Click]")))
+      ;; TODO fix, but currently only used for runner
       :lose-credits (str "force the Runner to lose " value " [Credits]")
       :give-tag (str "give the Runner " (quantify value "tag"))
       :take-tag (str "take " (quantify value "tag"))
