@@ -1,0 +1,176 @@
+prompts
+"アーカイブのカード１枚をＨＱに加えるか？"
+"インストールするＨＱかアーカイブのカードを1枚選ぶ"
+"トラッシュするリソースを1つ選ぶ"
+"トラッシュするgプロラムを1つ選ぶ"
+"トラッシュするインストール状態のカードを1つ選ぶ"
+"トラッシュするHQの任意の数のカードを選ぶ"
+"どこから探すかを選ぶ"
+"デーモンでないプログラムを選ぶ"
+"カードを2枚引くか？"
+(msg "この資財をトラッシュすることで" (get-counters card :advancement) "ミートダメージを与えるか？")
+"サーバーを選ぶ"
+"アイスブレイカーを1つ選ぶ"
+(str (:title icebreaker) "をインストールするか？")
+"インストールするカードを選ぶ"
+"1つ選ぶ"
+"アイスを2つ入れ替えるか？"
+"アイスの2つを選ぶ"
+"アクセスしたカードの1枚につき1 [Credits]を得るか？"
+"トラッシュするHQのカードを1枚選ぶ"
+"トラッシュするプログラムかハードウェアを1つ選ぶ"
+"インストール状態のカードを選ぶ"
+"R&Dに加えシャフルするHQのカードを2枚選ぶ"
+(msg "ウィルスカウンターを" (:title card) "に1つ置くか?")
+"ウィルスカウンターを1つ置く？"
+"2 [Credits]を支払ってHQのカードを2枚トラッシュすることでランの終了するか？"
+"計画書でないカードをR&Dから探すか？"
+"カードを1つ選ぶ"
+"HQに加えるカードを1つ選ぶ"
+(str (:title card) "にアクセスした")
+(str (:title card) "にアクセスした"
+(str (:title card) "の能力を使用する？")
+(str cost " [Credits]を支払って" (:title card) "の能力を使用する？")
+"カードをクリックしてアクセスする。このサーバーの中のすべてのカードにアクセスしなければならない"
+"アクセスするカードを選ぶ。すべてのカードにアクセスしなければならない"
+"R&Dのルートにあるアップグレードを選ぶ"
+"HQのルートにあるアップグレードを選ぶ"
+"Archivesのルートにあるアップグレードを選ぶ"
+"アクセスするカードを選ぶ"
+"解決するカードを選ぶ"
+"HQかアーカイブからインストールするアイスを選ぶ"
+"クレジット元を選ぶ ("
+(str " (残り" count "つ)")
+=== CHOICES ===
+"ランナーは6 [Credits]を得る"
+"ランナーはカードを4枚引く"
+"2 [Credits]を得る"
+"カードを2枚引く"
+"3 [Credits]を得る"
+"カードを3枚引く"
+"3 [Credits]を得てカードを3枚引く"
+"タグを1つ受ける"
+"[Click][Click]を消費する"
+"5 [Credits]を支払う"
+"盗むために支払う"
+"盗む"
+"アクションなし"
+(str cost-strs "で盗む？")
+" and "
+"デッキのカード"
+"未レゾのアップグレード"
+"手札のカード"
+"アーカイブの裏向きのカード"
+"その他すべてのカード"
+"HQ"
+"R&D"
+"アーカイブ"
+(str "サーバー " num)
+"新しい遠隔サーバー"
+"グリップ"
+"スタック"
+"ヒープ"
+(str "トラッシュするために" trash-cost " [Credits]を支払う")
+"完了"
+=== LABELS ===
+"バリアのサブルーチンを1つブレイクする"
+"プログラムを１つトラッシュするか、ランの終了"
+"プログラムを１つトラッシュする"
+"インストール状態のランナーのカード１枚をトラッシュする"
+"このランの残りの間、ランナーはコーポのカードを盗みもトラッシュもできない"
+"ＨＱかアーカイブのカードを１枚インストールする"
+"この資財をトラッシュすることで搭載アドバンスカウンター1つにつき1ミートダメージを与える (ターン開始)"
+"3 [Credits]を取る (ターン開始)"
+"この資財から3 [Credits]を取る"
+"アーカイブのカードを２枚までＲ＆Ｄに加えシャッフルする"
+"1 [Credits]を置いてから、搭載クレジットをすべて取る"
+"ランの終了"
+"ランナーがタグされている場合、ランの終了"
+(str "ランナーにタグを" n "つ与える")
+(str credits " [Credits]を得る")
+(str "ランナーに" credits " [Credits]を失うことをさせる")
+"1ネットダメージを与える"
+"タグを1つ受ける"
+"ランナーが6 [Credits]以下を所有の場合、ランの終了"
+"搭載ウィルスカウンター1つにつき2 [Credits]を得る"
+"エンカウントしているアイスは強度―１される"
+"2 [Credits]を取る (ターン開始)"
+"中央サーバーへのランする"
+"1 [Credits]を取る (ターン開始)"
+"3 [Credits]を置く"
+"この資財から3 [Credits]を取る"
+(str dmg "ネットダメージを与える")
+(str dmg "ミートダメージを与える")
+(str dmg "コアダメージを与える")
+"アーカイブにあるカードをHQに加える"
+"カードをトラッシュする"
+"R&Dへのランする"
+"ランの終了時まで"
+"ターンの終了時まで"
+"強度+" strength "させる"
+"ランナーが4 [Credit]を支払わないかぎりタグを１つ与える"
+"2ネットダメージを与える。ランナーはジャックアウトしてよい"
+(str "ランナーが" (build-cost-label cost) "を支払わないかぎりランの終了")
+"インストール状態のアイスブレイカー1つにつき強度＋１"
+"HQかアーカイブのアイスをインストールする"
+=== COSTS (but also labels, really)
+"reveal from HQ and trash itself"
+(value cost) "枚の計画書を破棄する"
+"この計画書を放棄する"
+"悪名を" (value cost) "つ受けるかタグを" (value cost) "つ取り除く"
+"タグを" (value cost) "つ取り除く"
+"このカードを手札に加える"
+"このカードを取り除く"
+"インストール状態のカードを" (value cost) "つトラッシュする"
+"インストール状態のハードウェアを" (value cost) "つトラッシュする"
+"derez " (value cost) " Harmonic ice"
+(value cost) "つインストール状態のプログラムをトラッシュする"
+(value cost) "つインストール状態のリソースをトラッシュする"
+(value cost) "つインストール状態のコネをトラッシュする"
+(value cost) "つインストールとレゾ状態のアイスをトラッシュする"
+"デッキの一番上から" (value cost) "枚のカードをトラッシュする"
+"手札から" (value cost) "枚のカードをトラッシュする"
+"trash " (quantify (value cost) "card") " randomly from your hand"
+"手札のカードをすべてトラッシュする"
+"trash " (quantify (value cost) "piece") " of hardware in the grip"
+"trash " (quantify (value cost) "program") " in the grip"
+"trash " (quantify (value cost) "resource") " in the grip"
+(value cost) "ネットダメージを受ける"
+(value cost) "ミートダメージを受ける"
+(value cost) "コアダメージを受ける"
+"shuffle " (quantify (value cost) "installed card") " into your deck"
+"add " (quantify (value cost) "installed card") " to the bottom of your deck"
+"turn " (quantify (value cost) "hosted cop" "y" "ies") " of Matryoshka facedown"
+"add " (quantify (value cost) "random card") " to the bottom of your deck"
+"any agenda counter"
+"any " (quantify (value cost) "virus counter")
+(str (value cost) "搭載アドバンスカウンター")
+"搭載アドバンスカウンター"
+(str (value cost) "搭載計画書カウンター")
+"搭載計画書カウンター"
+(str (value cost) "搭載パワーカウンター")
+"搭載パワーカウンター"
+"X hosted power counters"
+(str (value cost) "搭載ウィルスカウンター")
+"搭載ウィルスカウンター"
+(str (lose-click-label cost) "を失う")
+(str (:title current-ice) "の強度まで引き上げる")
+SIMPLE STRINGS
+"インストール状態のプログラム"
+"ランナーの基本アクションカード"
+"コーポの基本アクションカード"
+"がトラッシュされた。"
+"はい"
+"いいえ"
+(str (if (= (side-str active-player) "Corp") "コーポ" "ランナー") "がカード解決することを待っている"))
+(str (if (= (side-str opponent) "Corp") "コーポ" "ランナー") "がカード解決することを待っている"))
+(str message "を待っている")
+(str (if (= (side-str active-player) "Corp") "コーポ" "ランナー") "がカード解決すること")
+(str (if (= (side-str opponent) "Corp") "コーポ" "ランナー") "がカード解決すること")
+(str (if (= (side-str side) "Corp") "コーポ" "ランナー") "が決定すること")
+"ランナーが手札をキープかマリガンすること"
+"コーポが手札をキープかマリガンすること"
+"手札をキープするか?"
+"Keep"
+"Mulligan"
+(#(str %2 %1) "を待っている"

@@ -1,0 +1,176 @@
+dlfuchnksdjafeuiyskad PROMPTS
+"Add 1 card from Archives to HQ?"
+"Choose a card to install from Archives or HQ"
+"Choose a resource to trash"
+"Choose a program to trash"
+"Choose an installed card to trash"
+"Choose any number of cards in HQ to trash"
+"Choose where to install from"
+"Choose a non-daemon program"
+"Draw 2 cards?"
+(msg "Trash this asset to do " (get-counters card :advancement) " meat damage?")
+"Choose a server"
+"Choose an Icebreaker"
+(str "Install " (:title icebreaker) "?")
+"Choose a card to install"
+"Choose one"
+"Swap 2 pieces of ice?"
+"Choose 2 pieces of ice"
+"Gain 1 [Credits] for each card you accessed?"
+"Choose a card in HQ to trash"
+"Choose a program or piece of hardware to trash"
+"Choose an installed card"
+"Choose 2 cards in HQ to shuffle into R&D"
+(msg "Place 1 virus counter on " (:title card) "?")
+"Place 1 virus counter?"
+"Pay 2 [Credits] and trash 2 cards from HQ to end the run?"
+"Search R&D for non-agenda card?"
+"Choose a card"
+"Choose a card to add to HQ"
+(str "You accessed " (:title card) ".")
+(str "You accessed " (:title card) "."
+(str "Use " (:title card) " ability?")
+(str "Pay " cost " [Credits] to use " (:title card) " ability?")
+"Click a card to access it. You must access all cards in this server."
+"Choose a card to access. You must access all cards"
+"Choose an upgrade in root of R&D to access"
+"Choose an upgrade in root of HQ to access"
+"Choose an upgrade in Archives to access"
+"Choose a card to access"
+"Choose a trigger to resolve"
+"Choose an ice to install from Archives or HQ"
+"Choose a credit providing card ("
+(str " (" count " remaining)")
+===================== CHOICES
+"Runner gains 6 [Credits]"
+"Runner draws 4 cards"
+"Gain 2 [Credits]"
+"Draw 2 cards"
+"Gain 3 [Credits]"
+"Draw 3 cards"
+"Gain 3 [Credits] and draw 3 cards"
+"Take 1 tag"
+"Spend [Click][Click]"
+"Pay 5 [Credits]"
+"Pay to steal"
+"Steal"
+"No action"
+(str " " cost-strs " to steal?")
+" and "
+"Card from deck"
+"Unrezzed upgrade"
+"Card from hand"
+"Facedown card in Archives"
+"Everything else"
+"HQ"
+"R&D"
+"Archives"
+(str "Server " num)
+"New remote"
+"Grip"
+"Stack"
+"Heap"
+(str "Pay " trash-cost " [Credits] to trash")
+"Done"
+fldfjalsdjfoweiclajdf LABELS
+"Break 1 Barrier subroutine"
+"Trash 1 program or end the run"
+"Trash a program"
+"Trash an installed Runner card"
+"The Runner cannot steal or trash Corp cards for the remainder of this run"
+"Install a card from HQ or Archives"
+"Trash this asset to do 1 meat damage for each hosted advancement counter (start of turn)"
+"Take 3 [Credits] (start of turn)"
+"Take 3 [Credits] from this asset"
+"Shuffle up to 2 cards from Archives into R&D"
+"Gain 1 [Credits]. Take all hosted credits"
+"End the run"
+"End the run if the Runner is tagged"
+(str "Give the Runner " (quantify n "tag"))
+(str "Gain " credits " [Credits]")
+(str "Make the Runner lose " credits " [Credits]")
+"Do 1 net damage"
+"Take 1 tag"
+"End the run if the Runner has 6 [Credits] or less"
+"Gain 2 [Credits] for each hosted virus counter"
+"Give -1 strength to current piece of ice"
+"Take 2 [Credits] (start of turn)"
+"make a run on a central server"
+"Take 1 [Credits] (start of turn)"
+"Place 3 [Credits]"
+"Take 3 [Credits] from this resource"
+(str "Do " dmg " net damage")
+(str "Do " dmg " meat damage")
+(str "Do " dmg " core damage")
+"add card from Archives to HQ"
+"Trash card"
+"Make a run on R&D"
+" for the remainder of the run"
+" for the remainder of the turn"
+"add " strength " strength"
+"Give the Runner 1 tag unless they pay 4 [Credits]"
+"Do 2 net damage. The Runner may jack out"
+(str "End the run unless the Runner pays " (build-cost-label cost))
+"Add 1 strength for each installed icebreaker"
+"Install an ice from HQ or Archives"
+fldfjalsdjfoweiclajdf COSTS
+"reveal from HQ and trash itself"
+"forfeit " (quantify (value cost) "Agenda")
+"forfeit this Agenda"
+"remove " (quantify (value cost) "tag") " or take " (value cost) " bad publicity"
+"remove " (quantify (value cost) "tag")
+"return this card to your hand"
+"remove this card from the game"
+"trash " (quantify (value cost) "installed card")
+"trash " (quantify (value cost) "installed piece") " of hardware"
+ "derez " (value cost) " Harmonic ice"
+"trash " (quantify (value cost) "installed program")
+"trash " (quantify (value cost) "installed resource")
+"trash " (str "trash " (quantify (value cost) "installed connection resource"))
+"trash " (quantify (value cost) "installed rezzed ice" "")
+"trash " (quantify (value cost) "card") " from the top of your deck"
+"trash " (quantify (value cost) "card") " from your hand"
+"trash " (quantify (value cost) "card") " randomly from your hand"
+"trash all cards in your hand"
+"trash " (quantify (value cost) "piece") " of hardware in the grip"
+"trash " (quantify (value cost) "program") " in the grip"
+"trash " (quantify (value cost) "resource") " in the grip"
+"suffer " (value cost) " net damage"
+"suffer " (value cost) " meat damage"
+"suffer " (value cost) " core damage"
+"shuffle " (quantify (value cost) "installed card") " into your deck"
+"add " (quantify (value cost) "installed card") " to the bottom of your deck"
+"turn " (quantify (value cost) "hosted cop" "y" "ies") " of Matryoshka facedown"
+"add " (quantify (value cost) "random card") " to the bottom of your deck"
+"any agenda counter"
+"any " (quantify (value cost) "virus counter")
+(quantify (value cost) "hosted advancement counter")
+"hosted advancement counter"
+(quantify (value cost) "hosted agenda counter")
+"hosted agenda counter"
+(quantify (value cost) "hosted power counter")
+"hosted power counter"
+"X hosted power counters"
+(quantify (value cost) "hosted virus counter")
+"hosted virus counter"
+(str "Lose " (lose-click-label cost))
+(str "Match strength of " (:title current-ice))
+============== SIMPLE STRINGS -- at the end so they don't clash with others
+"installed program"
+"Runner Basic Action Card"
+"Corp Basic Action Card"
+" is trashed."
+"Yes"
+"No"
+(str (side-str active-player) " to resolve " (event-title event) " triggers"))
+(str (side-str opponent) " to resolve " (event-title event) " triggers"))
+(str "Waiting for " message)
+(str (side-str active-player) " to resolve pending triggers")
+(str (side-str opponent) " to resolve pending triggers")
+(str (side-str side) " to make a decision")
+"Runner to keep hand or mulligan"
+"Corp to keep hand or mulligan"
+"Keep hand?"
+"Keep"
+"Mulligan"
+(str "Waiting for " 
