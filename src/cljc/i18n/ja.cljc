@@ -447,8 +447,8 @@
          sub-count "つ"
          "ブレイクする"
          (when-not break-type
-           (str " (「[subroutine] "
-                (join "」と「[subroutine] " subs)
+           (str " (「[subroutine]"
+                (join "」と「[subroutine]" subs)
                 "」)")))))
 
 (defmethod render-text :resolve-subs
@@ -457,9 +457,9 @@
         ice (:ice info)
         resolved-subs (:subs info)]
     (str ice "の未ブレイクのサブルーチンを" (count resolved-subs) "つ解決する"
-         " (\"[subroutine] "
-         (join "\"と\"[subroutine] " resolved-subs)
-         "\")")))
+         " 「[subroutine] "
+         (join "」と「[subroutine] " resolved-subs)
+         "」)")))
 
 (defmethod render-text :approach-server
   [{:keys [server]}]
