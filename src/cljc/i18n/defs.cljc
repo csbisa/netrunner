@@ -22,6 +22,5 @@
 (defmacro pprint-to-string
   [val]
   (if (cljs-env? &env)
-    `(with-out-str (cljs.pprint/pprint val))
-    ;;`(with-out-str (clojure.pprint/pprint val))
-    ))
+    `(with-out-str (cljs.pprint/pprint ~val))
+    `(with-out-str (clojure.pprint/pprint ~val))))
