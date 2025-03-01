@@ -657,12 +657,12 @@
         :break-cost-bonus (:break-cost-bonus args)
         :additional-ability (:additional-ability args)
         :label (str (or (:label args)
-                        (str "break "
-                             (when (< 1 n) "up to ")
-                             (if (pos? n) n "any number of")
-                             (when-not (= #{"All"} subtypes)
-                               (str " " (string/join " or " (sort subtypes))))
-                             (pluralize " subroutine" n)
+                        (str (when-not (= #{"All"} subtypes)
+                               (str (string/join "か" (sort subtypes)) "の"))
+                             "サブルーチンを"
+                             (if (pos? n) (str n "つ") "任意の数だけ")
+                             (when (< 1 n) "まで")
+                             "ブレイクする"
                              (add-stealth-to-label cost))))
         :effect (effect (continue-ability
                           (let [n (if (fn? n)
@@ -690,8 +690,8 @@
                            (= duration :end-of-turn)
                            " for the remainder of the turn")]
      {:label (str (or (:label args)
-                      (str "add " strength " strength"
-                           duration-string
+                      (str duration-string
+                           "強度+" strength "する"
                            (add-stealth-to-label cost))))
       :req (req (if-let [str-req (:req args)]
                   (str-req state side eid card targets)
@@ -802,10 +802,10 @@
                                            [{:dynamic :auto-pump-and-break
                                              :cost total-cost
                                              :cost-label (build-cost-label total-cost)
-                                             :label (str (if (and pump-ability (pos? times-pump))
-                                                           "Match strength and fully break "
-                                                           "Fully break ")
-                                                         (:title current-ice))}])
+                                             :label (str (:title current-ice)
+                                                         (when (and pump-ability (pos? times-pump))
+                                                           "の強度まで引き上げて")
+                                                         "すべてをブレイクする")}])
                                          (when (and pump-ability
                                                     (pos? times-pump)
                                                     (can-pay? state side eid card total-pump-cost))

@@ -163,20 +163,11 @@
                     (if-let [message (:prompt ability)]
                       message
                       (str
-                        "Choose"
-                        (when min-choices
-                          (str " at least " min-choices))
-                        (when (and min-choices max-choices)
-                          " and")
-                        (when max-choices
-                          (str (if all "" " up to")
-                               " " max-choices))
-                        (if max-choices
-                          (str " " (pluralize "target" max-choices))
-                          (if min-choices
-                            (str " " (pluralize "target" min-choices))
-                            " a target"))
-                        " for " (:title card)))
+                       (:title card) "の対象を"
+                       (cond (and min-choices max-choices) (str min-choices "~" max-choices "つ")
+                             min-choices (str min-choices "つ以上")
+                             max-choices (str "最大" max-choices "つ"))
+                       "選ぶ"))
                     (if all ["Hide"] ["Done"])
                     (if all
                       (fn [_]
