@@ -236,7 +236,7 @@
                         (str (case (keyword type)
                                :target card
                                :exclusive (str card "以外"))
-                             "をアクセスすることを妨害する"))
+                             "にアクセスすることを妨害する"))
       :trash-stack (str "スタックの一番上から" (join "と" value) "をトラッシュする")
       :prevent-net (str value "ネットダメージを妨害する")
       :prevent-encounter-ability (let [[card ability] value]
@@ -477,11 +477,11 @@
            (if (or (= server [:deck]) (= server ["deck"]))
              "未知のカード"
              "カード"))
-       "をアクセスする"))
+       "にアクセスする"))
 
 (defmethod render-text :access-all
   [_]
-  "アーカイブの他のカードをすべてアクセスする")
+  "アーカイブの残りのカードにすべてアクセスする")
 
 (defmethod render-text :trash
   [{:keys [card server]}]
