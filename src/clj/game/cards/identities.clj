@@ -2431,16 +2431,16 @@
                             :prompt "Choose which card to remove from the game"
                             :player :corp
                             :choices [c1 c2]
-                            :msg (msg (let [[chosen other](if (= target c1)
-                                                            [c1 c2]
-                                                            [c2 c1])]
-                                        ;; TODO this is fun... split it into two msgs?
-                                        (str "add " (:title other) " from the heap to the grip."
-                                             " Corp removes " (:title chosen) " from the game")))
+                            :msg (map-msg-apply (let [[chosen other](if (= target c1)
+                                                                [c1 c2]
+                                                                [c2 c1])]
+                                                  {:add-card [(:title other) [:discard] [:hand]]}))
                             :effect (req (let [[chosen other] (if (= target c1)
                                                                 [c1 c2]
                                                                 [c2 c1])]
                                            (move state :runner chosen :rfg)
+                                           (system-msg state :corp {:type :use :card (:title card)
+                                                                    :effect {:rfg [(:title chosen)]}})
                                            (move state :runner other :hand)))})
                          card nil))}}}]
    :abilities [(set-autoresolve :auto-fire "Steve Cambridge: Master Grifter")]})

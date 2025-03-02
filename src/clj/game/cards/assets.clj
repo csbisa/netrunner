@@ -1,6 +1,5 @@
 (ns game.cards.assets
   (:require
-   [clojure.pprint :as pprint]
    [clojure.set :as set]
    [clojure.string :as str]
    [game.core.access :refer [access-bonus access-card get-only-card-to-access installed-access-trigger num-cards-to-access]]
@@ -899,11 +898,9 @@
                                            :card #(some (fn [c] (same-card? c %)) drawn)
                                            :all true}
                                  :effect (req (doseq [c (reverse targets)]
-                                                ;; TODO blah
                                                 (system-msg state side
-                                                            (str "uses " (:title card) " to add the "
-                                                                 (pprint/cl-format nil "~:R" (inc (first (keep-indexed #(when (same-card? c %2) %1) drawn))))
-                                                                 " card drawn to the bottom of R&D"))
+                                                            {:type :use :card (:title card)
+                                                             :effect {:add-to-bottom-rnd {:card :drawn-card :pos (inc (first (keep-indexed #(when (same-card? c %2) %1) drawn)))}}})
                                                 (move state side c :deck)
                                                 (remove-from-currently-drawing state side c)))})
                               card nil)))}]})
@@ -2763,7 +2760,8 @@
    :abilities [{:action true
                 :cost [(->c :click 1) (->c :trash-can)]
                 :label "Force the Runner to lose 4 [Credits] per advancement"
-                :msg (map-msg :lose-credits-force (min (* 4 (get-counters card :advancement)) (:credit runner)))
+                :msg (map-msg :lose-credits (min (* 4 (get-counters card :advancement)) (:credit runner)))
+                :msg-forced true
                 :async true
                 :effect (effect (lose-credits :runner eid (* 4 (get-counters card :advancement))))}]})
 

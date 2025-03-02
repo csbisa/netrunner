@@ -1561,8 +1561,10 @@
                                   (str "Rez " (card-str state ice)))
                                 (str "Trash " (card-str state ice))]
                       :async true
-                      ;; TODO can't figure out how to get the card state from here
-                      :msg (msg "force the Corp to " (decapitalize target))
+                      :msg (map-msg-apply (if (str/starts-with? target "Rez")
+                                            {:rez (card-str-map state ice)}
+                                            {:trash (card-str-map state ice)}))
+                      :msg-forced true
                       :waiting-prompt true
                       :effect (req (if (str/starts-with? target "Rez")
                                      (rez state :corp eid ice)
@@ -2651,8 +2653,7 @@
                               {:prompt (msg "Pay 1 [Credits] to add " (:title card) " to Grip?")
                                :yes-ability
                                {:cost [(->c :credit 1)]
-                                ;; TODO same, self-reference here
-                                :msg {:add-to-grip "itself"}
+                                :msg {:add-to-grip nil}
                                 :effect (effect (move card :hand))}}}
                              card nil)))}})
 

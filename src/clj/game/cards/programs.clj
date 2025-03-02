@@ -807,12 +807,10 @@
 (defcard "Chameleon"
   (auto-icebreaker {:on-install {:prompt "Choose one"
                                  :choices ["Barrier" "Code Gate" "Sentry"]
-                                 ;; TODO
-                                 :msg (msg "choose " target)
+                                 :msg (map-msg :choose-subtype target)
                                  :effect (effect (update! (assoc card :subtype-target target)))}
                     :events [{:event :runner-turn-ends
-                              ;; TODO self-reference again
-                              :msg {:add-to-grip "itself"}
+                              :msg {:add-to-grip nil}
                               :interactive (req true)
                               :effect (effect (move card :hand))}]
                     :abilities [(break-sub 1 1 "All" {:req (req (if-let [subtype (:subtype-target card)]
@@ -1462,12 +1460,9 @@
     {:on-install
      {:prompt "Choose a piece of ice to target for bypassing"
       :choices {:card ice?}
+      :msg (map-msg :choose-ice (card-str-map state target))
       :effect (req (let [ice target]
                      (add-icon state side card ice "FF" (faction-label card))
-                     ;; TODO
-                     (system-msg state side
-                                 (str "selects " (card-str state ice)
-                                      " for " (:title card) "'s bypass ability"))
                      (register-events
                        state side card
                        [{:event :encounter-ice

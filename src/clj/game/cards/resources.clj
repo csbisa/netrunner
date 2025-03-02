@@ -3183,8 +3183,8 @@
                  :skippable true
                  :choices (req (concat servers ["No server"]))
                  :interactive (req true)
-                 ;; TODO
-                 :msg (msg "target " target)
+                 ;; TODO doesn't work with 'no server'
+                 :msg (map-msg :target-server (server->zone state target))
                  :req (req (and (:runner-phase-12 @state)
                                 (not (used-this-turn? (:cid card) state))))
                  :effect (req (when (not= target "No server")

@@ -3097,7 +3097,7 @@
              {:req (req (not-last-turn? state :runner :made-run))
               :prompt (msg "Add " (:title card) " to HQ?")
               :yes-ability
-              {:msg {:reveal-and-add ["itself" [:discard] [:hand]]} ;; TODO need to handle self-references
+              {:msg {:reveal-and-add [nil [:discard] [:hand]]}
                :async true
                :effect (req (wait-for (reveal state side card)
                                       (move state side card :hand)
