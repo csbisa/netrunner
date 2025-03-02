@@ -410,10 +410,19 @@
   (let [cost-spend-msg (build-spend-msg-suffix cost "play")]
     (str cost-spend-msg card)))
 
+(defn- cost-discount-str
+  [{:keys [ignore-all-costs ignore-install-costs cost-bonus alternative-cost]}]
+  (cond
+    ignore-all-costs " (ignoring all costs))"
+    ignore-install-costs " (ignoring its install cost)"
+    alternative-cost " (by paying its alternative cost)"
+    (and cost-bonus (pos? cost-bonus)) (str " (paying " cost-bonus " [Credits] more)")
+    (and cost-bonus (neg? cost-bonus)) (str " (paying " (* -1  cost-bonus) " [Credits] less)")))
+
 ;; TODO this should probably be squashed with render-card-internal somehow
 ;; TODO need to handle the "... as a facedown card" logic. i don't think 'unseen' here is ever used
 (defmethod render-text :install
-  [{:keys [card card-type server new-remote origin install-source cost host hosted side ignore-all-costs ignore-install-costs cost-bonus no-cost]}]
+  [{:keys [card card-type server new-remote origin install-source cost host hosted side ignore-all-costs ignore-install-costs cost-bonus no-cost] :as input}]
   (let [card-type (keyword card-type)]
     (str (if install-source
            (str (build-spend-msg-suffix cost "use") install-source " to install ")
@@ -432,22 +441,18 @@
                   " in the root of ")
                 (to-zone-name server)
                 (when new-remote " (new remote)")))
-         (cond
-           ignore-all-costs " (ignoring all costs))"
-           ignore-install-costs " (ignoring its install cost)"
-           (and cost-bonus (pos? cost-bonus)) (str " (paying " cost-bonus " [Credits] more]")
-           (and cost-bonus (neg? cost-bonus)) (str " (paying " (* -1  cost-bonus) " [Credits] less]"))
+         (cost-discount-str input)
          (when host
            (str " on " (render-card host)))
          (when no-cost " at no cost"))))
 
 (defmethod render-text :rez
-  [{:keys [card alternative-cost ignore-cost cost]}]
-  (str (if cost "rez " "rezzes ")
+  [{:keys [card alternative-cost ignore-cost cost-bonus rez-source cost] :as input}]
+  (str (if rez-source
+         (str (build-spend-msg-suffix cost "use") rez-source " to rez ")
+         (if cost "rez " "rezzes "))
        (if (string? card) card (render-card card))
-       (if alternative-cost " by paying its alternative cost"
-           ;; shouldn't this be ", ignoring all costs" ?
-           (when ignore-cost " at no cost"))))
+       (cost-discount-str input)))
 
 (defmethod render-text :use
   [{:keys [card cost effect]}]

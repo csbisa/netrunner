@@ -1873,8 +1873,6 @@
                  :waiting-prompt true
                  :interactive (req true)
                  :choices (req (cancellable (filter ice? (:deck corp)) true))
-                 ;; TODO discounts
-                 :msg (msg "install and rez " (card-str state target) ", paying a total of 3 [Credits] less")
                  :effect (req (wait-for (corp-install state side (make-eid state eid) target nil {:install-state :rezzed :combined-credit-discount 3
                                                                                                   :msg-keys {:install-source card
                                                                                                              :display-origin true}})

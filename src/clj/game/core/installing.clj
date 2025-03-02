@@ -142,7 +142,7 @@
 
 (defn- corp-install-message
   "Prints the correct install message."
-  [state side card server install-state cost-str {:keys [counters msg-keys] :as args}]
+  [state side card server install-state cost-str {:keys [counters msg-keys cost-bonus] :as args}]
   (when (:display-message args true)
     (let [{:keys [display-origin install-source origin-index known set-zone]} msg-keys
           prepend-cost-str (get-in msg-keys [:include-cost-from-eid :latest-payment-str])
@@ -162,6 +162,9 @@
                         {:server [:servers (keyword (str ":remote" (dec (:rid @state))))]
                          :new-remote true}
                         {:server (server->zone state server)})
+          discount-str (cond
+                         cost-bonus {:cost-bonus cost-bonus}
+                         :else nil)
           origin (when display-origin
                    ;; TODO it's now (or set-zone (name-zone :corp (:zone card)))) -- what's set-zone and how do we handle that?
                    (merge {:origin (:zone card)}
@@ -174,6 +177,7 @@
                                     server-info
                                     (when install-source {:install-source (:title install-source)})
                                     origin
+                                    discount-str
                                     (format-counters-msg counters)))
       (when (and (= :face-up install-state)
                  (agenda? card))
