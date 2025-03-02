@@ -3709,8 +3709,7 @@
                                  {:prompt "Choose a piece of ice protecting this server"
                                   :choices {:card #(and (ice? %)
                                                         (= (first (:server run)) (second (get-zone %))))}
-                                  ;; TODO
-                                  :msg (msg "host " (:title trojan) " on " (card-str state target))
+                                  :msg (map-msg :host-on [(card-str-map state trojan) (card-str-map state target)])
                                   :effect (req (host state side target trojan)
                                                (update-all-ice state side))}
                                  card nil)))}]})
