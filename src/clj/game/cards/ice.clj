@@ -2538,28 +2538,12 @@
    :rez-cost-bonus (req (- (subtype-ice-count corp "Code Gate")))})
 
 (defcard "Jaguarundi"
-  {:on-encounter {:req (req (threat-level 4 state))
-                  :async true
-                  :effect (req
-                            (continue-ability
-                              state side
-                              {:player :runner
-                               :prompt "Choose one"
-                               :choices (req ["Take 1 tag"
-                                              (when (can-pay? state :runner nil card nil [(->c :click 1)])
-                                                "Spend [Click]")])
-                               :waiting-prompt true
-                               :async true
-                               :msg (map-msg-apply (if (= target "Take 1 tag")
-                                                     {:give-tag 1}
-                                                     ;; TODO force / spend / blah
-                                                     {:lose-click 1}))
-                               :effect (req (if (= target "Take 1 tag")
-                                              (gain-tags state :runner eid 1)
-                                              (wait-for (pay state :runner (make-eid state eid) card (->c :click 1))
-                                                        (system-msg state side (:msg async-result))
-                                                        (effect-completed state :runner eid))))}
-                              card nil))}
+  {:on-encounter (choose-one-helper
+                  {:player :runner
+                   :req (req (threat-level 4 state))
+                   :async true}
+                  [(cost-option [(->c :gain-tag 1)] :runner)
+                   (cost-option [(->c :click 1)] :runner)])
    :subroutines [(give-tags 1)
                  {:label "Do 1 core damage if the Runner is tagged"
                   :change-in-game-state {:silent true :req (req tagged)}
