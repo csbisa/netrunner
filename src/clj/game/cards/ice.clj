@@ -4227,10 +4227,7 @@
                                               :async true
                                               :effect (req (wait-for (swap-cards-async state side (make-eid state eid) target (get-card state card))
                                                                      (gain-credits state :corp eid 4)))
-                                              ;; TODO awfully specific here
-                                              ;; could try card-str-state and add 'from HQ' as a target?
-                                              :msg (map-msg :raw-text "swap " (card-str state card)
-                                                            " with a piece of ice from HQ"
+                                              :msg (map-msg :swap-ice-from-hand (card-str state card)
                                                             :gain-credits 4)}}}
                               {:prompt "You have no ice"
                                :choices ["OK"]
