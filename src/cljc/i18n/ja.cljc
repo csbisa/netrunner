@@ -76,6 +76,7 @@
            :facedown "裏向きのカード"
            :ice "アイス"
            :card "カード"
+           :drawn-card (str pos "枚目に引いたカード")
            ""))))
 
 (defn- render-card
@@ -217,6 +218,7 @@
       :rez (str value "レゾする")
       :install-and-rez-free (str value "をすべてのコストを無視してインストールしてレゾする")
       :host (str (render-card value) "を搭載する")
+      :host-on (str (render-card (second value)) "に" (render-card (first value)) "を搭載する")
       :bypass (str (render-card value) "を迂回する")
       :trash-free (str "無料で" value "をトラッシュする")
       :str-pump (let [[base-str target-str duration] value]
@@ -267,7 +269,7 @@
       :trash-from-hq (str "ＨＱから" value "をトラッシュする")
       :reveal-from-grip (str "グリップから" (join "と" value) "を公開する")
       :add-to-top-rnd (str "Ｒ＆Ｄの一番上に" value "を加える")
-      :add-to-bottom-rnd (str "Ｒ＆Ｄの一番下に" value "を加える")
+      :add-to-bottom-rnd (str "Ｒ＆Ｄの一番下に" (render-card value) "を加える")
       :force-reveal (str "ＨＱのランダムなカード" value "枚を公開する")
       :shuffle-zone-into (str "スタックに" (join "と" (map to-zone-name value)) "に加えシャフルする")
       :rfg (str (join "と" value) "を取り除く")
