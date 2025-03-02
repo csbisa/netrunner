@@ -2,6 +2,7 @@
   (:require
    [clojure.string :refer [join split starts-with? ends-with?] :as s]
    [i18n.defs :refer [render-map try-catchall pprint-to-string] :include-macros true]
+   [clojure.pprint :as pprint]
    [malli.core :as m]))
 
 (defn pluralize
@@ -90,6 +91,7 @@
            :facedown "facedown card"
            :ice "ice"
            :card "a card"
+           :drawn-card (pprint/cl-format nil "the ~:R card drawn" pos)
            ""))
        (if hosted
          (str " hosted on " (render-card-internal hosted))
@@ -294,6 +296,7 @@
       :rez (str "rez " value)
       :install-and-rez-free (str "install and rez " value ", ignoring all costs")
       :host (str "host " (render-card value))
+      :host-on (str "host " (render-card (first value)) " on " (render-card (second value)))
       :bypass (str "bypass " (render-card value))
       :trash-free (str "trash " value " at no cost")
       :str-pump (let [[base-str target-str duration] value]
@@ -345,7 +348,8 @@
       :trash-from-hq (str "trash " value " from HQ")
       :reveal-from-grip (str "reveal " (enumerate-str value) " from the Grip")
       :add-to-top-rnd (str "add " value " to the top of R&D")
-      :add-to-bottom-rnd (str "add " value " to the bottom of R&D")
+      ;; so extend this to render cards, and render cards using other sources too?
+      :add-to-bottom-rnd (str "add " (render-card value) " to the bottom of R&D")
       :force-reveal (str "reveal " (quantify value "random card") " from HQ")
       :shuffle-zone-into (str "shuffle " (enumerate-str (map to-zone-name value)) " into " (to-zone-name [:deck]))
       :rfg (str "remove " (enumerate-str value) " from the game")

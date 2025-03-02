@@ -585,6 +585,8 @@
                "Corp uses foo to add bar to the top of R&D.")
   (render-test {:username "Corp" :type :use :card "foo" :effect {:add-to-bottom-rnd "bar"}}
                "Corp uses foo to add bar to the bottom of R&D.")
+  (render-test {:username "Corp" :type :use :card "foo" :effect {:add-to-bottom-rnd {:card-type :drawn-card :pos 1}}}
+               "Corp uses foo to add the first card drawn to the bottom of R&D.")
   (render-test {:username "Corp" :type :use :card "foo" :effect {:force-reveal 2}}
                "Corp uses foo to reveal 2 random cards from HQ.")
   (render-test {:username "Corp" :type :use :card "foo" :effect {:shuffle-zone-into [[:hand] [:discard]]}}
