@@ -913,23 +913,14 @@
              :effect (req (if (and (threat-level 3 state)
                                    (not (is-disabled-reg? state card)))
                             (damage state side eid :net 1 {:card card})
-                            (continue-ability
-                              state side
-                              {:prompt "Choose one"
-                               :waiting-prompt true
-                               :player :runner
-                               :async true
-                               :choices (req ["Take 1 net damage"
-                                              (when (can-pay? state :runner (assoc eid :source card :source-type :ability) card nil [(->c :credit 2)])
-                                                "Pay 2 [Credits]")])
-                               :effect
-                               (req (if (= "Take 1 net damage" target)
-                                      (damage state side eid :net 1 {:card card})
-                                      (pay state :runner eid card (->c :credit 2))))
-                               :msg (msg (if (= "Take 1 net damage" target)
-                                           {:deal-net 1}
-                                           ;; TODO force
-                                           {:lose-credits 2}))}
+                            (continue-ability state side
+                             (choose-one-helper
+                              {:player :runner
+                               :async true}
+                              [{:option "Take 1 net damage"
+                                :ability {:msg {:deal-net 1}
+                                          :effect (req (damage state side eid :net 1 {:card card}))}}
+                               (cost-option [(->c :credit 2)] :runner)])
                               card nil)))}]
     {:events [{:event :pre-resolve-subroutine
                :req (req (threat-level 3 state))
