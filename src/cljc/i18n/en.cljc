@@ -362,6 +362,7 @@
                                                " from " (to-zone-name (first %)))
                                          groups))))
       ;; TODO
+      :swap-ice-from-hand (str "swap " (render-card value) " with a piece of ice from HQ")
       :swap-ice (throw "foo"))))
 
 (defn render-single-effect-force-check
