@@ -342,10 +342,8 @@
       (wait-for (pay state side (make-eid state eid) card total-pump-cost)
                 (dotimes [_ times-pump]
                   (resolve-ability state side (dissoc pump-ability :cost :msg) (get-card state card) nil))
-                (system-msg state side {:cost (:msg async-result)
-                                        :raw-text (str (build-spend-msg-suffix (:msg async-result) "increase")
-                                                       "the strength of " (:title card) " to "
-                                                       (get-strength (get-card state card)))})
+                (system-msg state side {:type :str-boost :cost (:msg async-result)
+                                        :card (:title card) :strength (get-strength (get-card state card))})
                 (effect-completed state side eid)))))
 
 (defn- play-heap-breaker-auto-pump-and-break-impl
