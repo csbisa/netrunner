@@ -451,6 +451,10 @@
                 (join "」と「[subroutine]" subs)
                 "」)")))))
 
+(defmethod render-text :str-boost
+  [{:keys [card strength]}]
+  (str card "の強度を" strength "まで上げる"))
+
 (defmethod render-text :resolve-subs
   [input]
   (let [info (:resolved input)
@@ -514,6 +518,10 @@
            (coll? card) (join "と" card)
            true (render-card card))
          "を捨てる")))
+
+(defmethod render-text :increase-trace-link
+  [{:keys [strength side]}]
+  (str (if (= (keyword side) :corp) "トレース" "リンク") "強度を" strength "に上げる"))
 
 (defmethod render-text :win-game
   [_]
