@@ -2763,7 +2763,7 @@
    :abilities [{:action true
                 :cost [(->c :click 1) (->c :trash-can)]
                 :label "Force the Runner to lose 4 [Credits] per advancement"
-                :msg (map-msg :lose-credits (min (* 4 (get-counters card :advancement)) (:credit runner)))
+                :msg (map-msg :lose-credits-force (min (* 4 (get-counters card :advancement)) (:credit runner)))
                 :async true
                 :effect (effect (lose-credits :runner eid (* 4 (get-counters card :advancement))))}]})
 

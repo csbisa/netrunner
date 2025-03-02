@@ -2166,7 +2166,7 @@
   {:events [{:event :encounter-ice
              :req (req (first-event? state side :encounter-ice))
              ;; TODO figure out the type here
-             :msg (map-msg :gain-type [(:title (:ice context)) ["Code Gate"]])
+             :msg (map-msg :gain-type [(:title (:ice context)) ["Code Gate"] :end-of-run])
              :effect (effect (register-lingering-effect
                                card
                                (let [ice (:ice context)]
