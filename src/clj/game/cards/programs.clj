@@ -1708,17 +1708,19 @@
                                 is-facedown?
                                 {:optional
                                  {:prompt "Host face-down card on this program instead of accessing it?"
-                                  :yes-ability {:msg "host a facedown card on itself instead of accessing it"
+                                  ;; TODO
+                                  :yes-ability {:msg (map-msg :host-instead-of-access "a facedown card")
                                                 :effect (effect (update! (assoc-in card [:special :host-available] false))
                                                                 (host card target-card))}}}
                                 (or is-agenda? is-poison?)
                                 {:optional
                                  {:prompt (msg "Host " (:title target-card) " on this program instead of accessing it?")
-                                  :yes-ability {:msg (msg "host " (:title target-card) " on itself instead of accessing it")
+                                  :yes-ability {:msg (map-msg :host-instead-of-access (:title target-card))
                                                 :effect (effect (update! (assoc-in card [:special :host-available] false))
                                                                 (host card target-card))}}})
                               card nil)))}
             {:event :purge
+             ;; TODO blah
              :msg "force the Corp to trash 2 cards from HQ at random, then trash itself"
              :async true
              :effect (req (wait-for
