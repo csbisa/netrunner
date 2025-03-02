@@ -3848,24 +3848,14 @@
 
 (defcard "Seraph"
   (let [encounter-ab
-        {:prompt "Choose one"
-         :player :runner
-         :waiting-prompt true
-         :choices (req ["Lose 3 [Credits]"
-                        (when (>= (count (:hand runner)) 2)
-                          "Suffer 2 net damage")
-                        (when-not (forced-to-avoid-tags? state side)
-                          "Take 1 tag")])
-         ;; TODO well this is different than tollbooth etc, need to unify it
-         :msg (msg "force the Runner to " (decapitalize target) " on encountering it")
-         :async true
-         :effect (req (cond
-                        (= "Lose 3 [Credits]" target)
-                          (lose-credits state :runner eid 3)
-                        (= "Suffer 2 net damage" target)
-                          (pay state :runner eid card [(->c :net 2)])
-                        (= "Take 1 tag" target)
-                          (gain-tags state :runner eid 1 {:unpreventable true})))}]
+        (choose-one-helper
+         {:player :runner
+          :async true}
+         [{:option "Lose 3 [Credits]"
+           :ability {:msg {:lose-credits-force 3}
+                     :effect (req (lose-credits state :runner eid 3))}}
+          (cost-option [(->c :net 2)] :runner)
+          (cost-option [(->c :gain-tag 1)] :runner)])]
     {:on-encounter encounter-ab
      :subroutines [(runner-loses-credits 3)
                    (do-net-damage 2)
