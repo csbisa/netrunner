@@ -45,8 +45,8 @@
 (defn- to-duration
   [duration]
   (case (keyword duration)
-    :end-of-run " ランの終了まで"
-    :end-of-turn "ターンの終了まで"
+    :end-of-run "ランの終了時まで"
+    :end-of-turn "ターンの終了時まで"
     ""))
 
 (defn- to-counter
@@ -243,8 +243,7 @@
                                    (str card "のエンカウントした時能力を妨害する"
                                         (when ability (str " (" ability ")"))))
       :prevent-etr (str (render-card value) "でランを終了することを妨害する")
-      ;; TODO different duration when supported
-      :gain-str (str "ターンの終了時まで強度ー" value "する")
+      :gain-str (let [[strength duration] value] (str (to-duration duration) "強度+" strength "する"))
       :breach-server (str (to-zone-name value) "に侵入する")
       :derez (str (if (list? value)
                     (join "と" (map render-card value))
@@ -287,6 +286,7 @@
                      "を公開する")
                 )
       ;; TODO
+      :swap-ice-from-hand (str (render-card value) "とHQにあるアイスを交換する")
       :swap-ice (throw "foo"))))
 
 ;; TODO this keyword logic is just silly
@@ -534,6 +534,10 @@
 (defmethod render-text :use-command
   [{:keys [command]}]
   (str "コマンドを使う: " command))
+
+(defmethod render-text :force
+  [{:keys [card side]}]
+  (str card "の条件を満たす"))
 
 (defmethod render-text :raw-text
   [input]
