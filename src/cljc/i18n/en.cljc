@@ -255,7 +255,7 @@
       :make-run (str "make a run on " (to-zone-name value))
       :end-run "end the run"
       ;; TODO probably need a duration here, others are encounter-only IIRC
-      :gain-type (let [[card type] value] (str "make " card " gain " type " until the end of the run"))
+      :gain-type (let [[card type] value] (str "make " card " gain " (enumerate-str type) " until the end of the run"))
       :place-counter (let [[type count target] value]
                        (str "place "
                             (if (or (= (keyword type) :credit) (= (keyword type) :credits))
