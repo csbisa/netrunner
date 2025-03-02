@@ -318,8 +318,7 @@
       :prevent-encounter-ability (let [[card ability] value]
                                    (str "prevent the encounter ability on " card (when ability (str " (" ability ")"))))
       :prevent-etr (str "prevent " (render-card value) " from ending the run this encounter")
-      ;; TODO different duration when supported
-      :gain-str (str "gain " value " strength for the remainder of the turn")
+      :gain-str (let [[strength duration] value] (str "gain " strength " strength" (to-duration duration)))
       :breach-server (str "breach " (to-zone-name value))
       :derez (str "derez "
                   (if (coll? value)
