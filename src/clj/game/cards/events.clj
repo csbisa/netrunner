@@ -204,7 +204,6 @@
               :label "Draw 2 cards"
               :msg {:draw-cards 2}}
              {:label "Install a card from the grip, paying 1 [Credits] less"
-              :msg "install a card from the grip, paying 1 [Credits] less" ;; TODO not specifying a card...
               :async true
               :req (req (not (install-locked? state side)))
               :effect (effect (continue-ability
