@@ -225,7 +225,7 @@
 ;; ? {:username Runner, :type :use, :cost {:click 1}, :effect {:make-run HQ}, :card Red Team, :forced false, :raw-text nil}
 ;; ? Runner spends [Click] to use Red Team to  to make a run on unknown server HQ.
 (defn- render-single-effect
-  [effect value]
+  [effect value side]
   (when-not (and (number? value) (zero? value))
     (case effect
       :advance (str "advance " (render-card value))
@@ -233,8 +233,10 @@
       :gain-credits (str "gain " value " [Credits]")
       :gain-click (str "gain " (apply str (repeat value "[Click]")))
       :lose-click (str "lose " (apply str (repeat value "[Click]")))
-      ;; TODO fix, but currently only used for runner
-      :lose-credits (str "force the Runner to lose " value " [Credits]")
+      ;; TODO ideally part of force logic, but the problem is that these are effects
+      ;; either bring back the silly keyword logic or just support the few cases that exist
+      :lose-click-force (str "force the " (if (= (keyword side) :corp) "Runner" "Corp")" to lose " (apply str (repeat value "[Click]")))
+      :lose-credits-force (str "force the " (if (= (keyword side) :corp) "Runner" "Corp")" to lose " value " [Credits]")
       :give-tag (str "give the Runner " (quantify value "tag"))
       :take-tag (str "take " (quantify value "tag"))
       :remove-tag (str "remove " (quantify value "tag"))
@@ -365,15 +367,14 @@
       :swap-ice (throw "foo"))))
 
 (defn render-single-effect-force-check
-  [effect value side]
-  (let [effect (name effect)]
-    (str
-     (when forced
-       (str "force the "
-            ;; This is inverted -- corp forcing effect means it's forcing runner to take the effect.
-            (if (= (keyword side) :corp) "Runner" "Corp")
-            " to "))
-     (render-single-effect (keyword effect) value))))
+  [effect value side forced]
+  (str
+   (when forced
+     (str "force the "
+          ;; This is inverted -- corp forcing effect means it's forcing runner to take the effect.
+          (if (= (keyword side) :corp) "Runner" "Corp")
+          " to "))
+   (render-single-effect (keyword effect) value side)))
 
 (defn render-effect
   [effects side]
