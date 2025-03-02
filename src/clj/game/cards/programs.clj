@@ -2019,8 +2019,7 @@
   (auto-icebreaker
     (trojan
       {:on-install {:req (req (threat-level 4 state))
-                    ;; TODO add duration
-                    :msg {:gain-str 3}
+                    :msg {:gain-str [3 :end-of-turn]}
                     :effect (effect (pump card 3 :end-of-turn))}
        :abilities [(break-sub 1 1 "Sentry" {:req (req (protecting-same-server? current-ice (:host card)))})
                    (strength-pump 1 2)]})))
