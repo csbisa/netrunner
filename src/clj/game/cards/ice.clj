@@ -333,7 +333,7 @@
   "Runner loses credits effect"
   [credits]
   {:label (str "Make the Runner lose " credits " [Credits]")
-   :msg {:lose-credits credits}
+   :msg {:lose-credits-force credits}
    :change-in-game-state {:silent (req true) :req (req (pos? (:credit runner)))}
    :async true
    :effect (effect (lose-credits :runner eid credits))})
