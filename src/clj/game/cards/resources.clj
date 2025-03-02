@@ -1729,8 +1729,7 @@
                                      (map unknown->kw)
                                      (filter is-remote?)
                                      (map remote->name))))
-                ;; TODO confirm target, this is wrong i think
-                :msg (map-msg :gain-click 1 :make-run (unknown->kw target))
+                :msg (map-msg :gain-click 1 :make-run (server->zone state target))
                 :makes-run true
                 :effect (req (gain-clicks state side 1)
                              (register-events
