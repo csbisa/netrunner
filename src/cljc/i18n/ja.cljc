@@ -156,7 +156,7 @@
     (join "" (for [[c v] cost] (render-single-cost c v)))))
 
 (defn- render-single-effect
-  [effect value]
+  [effect value side]
   (when-not (and (number? value) (zero? value))
     (case effect
       :advance (str (render-card value) "をアドバンスする")
@@ -164,8 +164,8 @@
       :gain-credits (str value " [Credits]を得る")
       :gain-click (str (apply str (repeat value "[Click]")) "を得る")
       :lose-click (str (apply str (repeat value "[Click]")) "を失う")
-      ;; TODO fix, but currently only used for runner
-      :lose-credits (str "ランナーに" value " [Credits]を失うことをさせる")
+      :lose-click-force (str (if (= (keyword side) :corp) "ランナー" "コーポ") "に" (apply str (repeat value "[Click]")) "を失うことをさせる")
+      :lose-credits-force (str (if (= (keyword side) :corp) "ランナー" "コーポ") "に" value " [Credits]を失うことをさせる")
       :give-tag (str "ランナーに" value "つタグを与える")
       :take-tag (str value "つタグを受ける")
       :remove-tag (str value "つタグを取り除く")
@@ -289,18 +289,13 @@
       :swap-ice-from-hand (str (render-card value) "とHQにあるアイスを交換する")
       :swap-ice (throw "foo"))))
 
-;; TODO this keyword logic is just silly
 (defn render-single-effect-force-check
-  [effect value side]
-  (let [effect (name effect)]
-    (if (ends-with? effect "-force")
-      (str ;; This is inverted -- corp forcing effect means it's forcing runner to take the effect.
-           (if (= (keyword side) :corp) "ランナー" "コーポ")
-           "に"
-           ;; oh god
-           (render-single-effect (keyword (subs effect 0 (- (count effect) (count "-force")))) value)
-           "ことをさせる")
-      (render-single-effect (keyword effect) value))))
+  [effect value side forced]
+  (str
+   (when forced
+     (str (if (= (keyword side) :corp) "ランナー" "コーポ") "に"))
+   (render-single-effect (keyword effect) value)
+   (when forced "ことをさせる")))
 
 (defn do-conj
   [input]
