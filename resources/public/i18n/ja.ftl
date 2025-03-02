@@ -276,6 +276,21 @@ game_no-further = これ以上アクションしない
 
 game_play-area = プレイエリア
 
+game_prompt = {$msg ->
+    [advance] アドバンスする
+    [archives] アーカイブ
+    [derez] デレゾする
+    [expend] 消耗する
+    [hq] HQ
+    [new-remote] 新しい遠隔サーバー
+    [r-d] R&D
+    [rez] レゾする
+    [score] 得点する
+    [trash] トラッシュする
+    [server-num] サーバー{$num}
+    *[unknown] Unknown game prompt ({$msg})
+}
+
 game_purge = ウィルスカウンター破棄
 
 game_remove-tag = タグを除去
