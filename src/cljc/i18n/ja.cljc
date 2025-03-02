@@ -183,7 +183,7 @@
       :make-run (str (to-zone-name value) "にランする")
       :end-run "ランを終了する"
       ;; TODO probably need a duration here, others are encounter-only IIRC
-      :gain-type (let [[card type] value] (str "ランの終了時まで" card "が" type "を得る"))
+      :gain-type (let [[card type] value] (str "ランの終了時まで" card "が" (join "と" type) "を得る"))
       :place-counter (let [[type count target] value]
                        (str (if target (render-card target) "それ自体")
                             "に"
