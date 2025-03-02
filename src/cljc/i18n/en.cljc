@@ -506,6 +506,7 @@
   (str "passes " (render-card ice)))
 
 ;; TODO cost can be {} so need a better check for that one
+;; TODO this is redundant, should just reuse the effect. would have to fix stalone cost+effect though
 (defmethod render-text :break-subs
   [{:keys [card ice subtype subs break-type sub-count str-boost cost]}]
   (let [sub-count (or sub-count (count subs))]
@@ -526,6 +527,11 @@
            (str " (\"[subroutine] "
                 (join "\" and \"[subroutine] " subs)
                 "\")")))))
+
+;; TODO similar to above
+(defmethod render-text :str-boost
+  [{:keys [card strength]}]
+  (str "increase the strength of " card " to " strength))
 
 ;; TODO red-headed stepchild here, burying stuff into :resolved unlike everything else
 (defmethod render-text :resolve-subs
@@ -590,6 +596,10 @@
          (when reason
            ;; TODO only end of turn is supported here, so...
            " at end of turn"))))
+
+(defmethod render-text :increase-trace-link
+  [{:keys [strength side]}]
+  (str "increase " (if (= (keyword side) :corp) "trace" "link") " strength to " strength))
 
 (defmethod render-text :win-game
   [_]
