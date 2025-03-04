@@ -2878,8 +2878,8 @@
                :async true
                :effect (effect (derez :corp eid card))}]
      :subroutines [{:label "(Code Gate) Force the Runner to lose [Click] and 1 [Credit]"
-                    ;; TODO 'force' gone
-                    :msg {:lose-click-force 1 :lose-credits-force 1}
+                    :msg {:lose-click 1 :lose-credits 1}
+                    :msg-forced true
                     :change-in-game-state {:silent true
                                            :req (req (and (has-subtype? card "Code Gate")
                                                           (or (pos? (:credit runner))
