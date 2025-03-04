@@ -1374,13 +1374,12 @@
                          (some #{:hq} (:successful-run runner-reg))
                          (some #{:rd} (:successful-run runner-reg))
                          (some #{:archives} (:successful-run runner-reg))))
-             ;; TODO
-             :msg "add itself to the score area as an assassination agenda worth 0 agenda points"
+             :msg {:add-to-score [nil :assassination 0]}
              :async true
              :effect (req (as-agenda state :runner card 0)
                           (if (= 3 (count (filter #(= (:printed-title %) (:printed-title card))
                                                   (get-in @state [:runner :scored]))))
-                            (do (system-msg state side "wins the game")
+                            (do (system-msg state side {:type :win-game})
                                 (win state :runner "assassination plot (Jeitinho)")
                                 (effect-completed state side eid))
                             (effect-completed state side eid)))}]})
