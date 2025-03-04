@@ -327,13 +327,15 @@
    :change-in-game-state {:silent (req true) :req (req (pos? (:click runner)))}
    ;; TODO losing force / if able
    :msg {:lose-click 1}
+   :msg-forced true
    :effect (effect (lose-clicks :runner 1))})
 
 (defn runner-loses-credits
   "Runner loses credits effect"
   [credits]
   {:label (str "Make the Runner lose " credits " [Credits]")
-   :msg {:lose-credits-force credits}
+   :msg {:lose-credits credits}
+   :msg-forced true
    :change-in-game-state {:silent (req true) :req (req (pos? (:credit runner)))}
    :async true
    :effect (effect (lose-credits :runner eid credits))})

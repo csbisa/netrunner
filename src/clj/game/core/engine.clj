@@ -312,8 +312,15 @@
           disp-side (or (:display-side ability) (to-keyword (:side card)))]
       (if (string? desc)
         (system-msg state disp-side {:cost payment-str :raw-text (str cost-spend-msg (get-title card) (str " to " desc))})
-        (system-msg state disp-side {:type :use :cost payment-str :effect desc
-                                     :card (get-title card) :forced (= :cost desc)})))))
+        (system-msg state disp-side (merge {:cost payment-str :card (get-title card)}
+                                           (if (= :cost desc)
+                                             {:type :force}
+                                             {:type :use :effect desc})
+                                           ;; TODO consider if we need both of these or just one
+                                           (when-not (= disp-side (to-keyword (:side card)))
+                                             {:forced true})
+                                           (when (:msg-forced ability)
+                                             {:forced true})))))))
 
 (defn register-once
   "Register ability as having happened if :once specified"
