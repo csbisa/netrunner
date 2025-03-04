@@ -156,7 +156,7 @@
                           ;; so where's the original cost? in the ice def, as ->c
                           ;; so the above could be transformed, but...?
                           ;; isn't there normally a cost/msg or something? build-cost-label...
-                          cost))
+                          :cost))
     :effect (req (if (= "End the run" target)
                    (end-run state :corp eid card)
                    (wait-for (pay state :runner (make-eid state eid) card cost)
