@@ -317,7 +317,8 @@
              {:prompt "Trash this resource to force the Corp to lose 10 [Credits]?"
               :req (req (>= (get-counters (get-card state card) :power) 3))
               :yes-ability
-              {:msg {:trash-self true :lose-credits-force 10}
+              {:msg {:trash-self true :lose-credits 10}
+               :msg-forced true
                :async true
                :effect (req (wait-for
                               (trash state side card {:cause-card card})
