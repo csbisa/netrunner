@@ -105,7 +105,10 @@
 
 (defn- render-card
   [card]
-  (if (string? card) card (render-card-internal card)))
+  (cond
+    (string? card) card
+    (nil? card) "itself"
+    true (render-card-internal card)))
 
 ;; (render-card-list value "removes" "installed program" " from the game")
 ;; -> removes COUNT installed program(s) from the game (VAL1, VAL2, ...)
@@ -246,6 +249,11 @@
       ;; TODO this is a clusterfuck, figure out how to unify it later
       :add-from-stack (str "add " value " from the stack to the grip and shuffle the stack")
       :add-from-rnd (str  "reveal " value " from R&D and add it to HQ")
+      ;; TODO this is probably the best generic mechanism, need to squash it with several others here
+      :add-card (let [[card from to] value]
+                  (str "add " (or card "itself")
+                       (when from) (str " from " (to-zone-name from))
+                       (when to) (str " to " (to-zone-name to))))
       :add-to-hq (str "add " (render-card value) " to HQ")
       ;; TODO not sure if this should be string or rendered card
       :add-to-grip (str "add " (render-card value) " to the Grip")
@@ -254,7 +262,7 @@
       :move-to-top-stack (str "move " (or value "them") " to the top of the Stack")
       :shuffle-rnd (str "shuffle R&D")
       :reveal-and-add (let [[card from to] value]
-                        (str "add " card " from " (to-zone-name from) " to " (to-zone-name to)))
+                        (str "add " (or card "itself") " from " (to-zone-name from) " to " (to-zone-name to)))
       :reveal-from-hq (str "reveal " (enumerate-str value) " from HQ")
       :make-run (str "make a run on " (to-zone-name value))
       :end-run "end the run"
@@ -293,7 +301,7 @@
       :deal-meat (str "deal " value " meat damage")
       :deal-core (str "deal " value " core damage")
       :install (str "install " value)
-      :rez (str "rez " value)
+      :rez (str "rez " (render-card value))
       :install-and-rez-free (str "install and rez " value ", ignoring all costs")
       :host (str "host " (render-card value))
       :host-on (str "host " (render-card (first value)) " on " (render-card (second value)))
@@ -366,6 +374,15 @@
                      (enumerate-str (map #(str (enumerate-str (map :card (second %)))
                                                " from " (to-zone-name (first %)))
                                          groups))))
+      :choose-server (str "target " (to-zone-name value))
+      :choose-subtype (str "choose " value)
+      :choose-ice (str "choose " (render-card value))
+      :add-to-score (let [[card kind points] value]
+                      (str "add " (or card "itself") " to the score area"
+                           (when points
+                             (str " as an "
+                                  (when (= (keyword kind) :assassination) "assassination ")
+                                  "agenda worth " (quantify points "agenda point")))))
       ;; TODO
       :swap-ice-from-hand (str "swap " (render-card value) " with a piece of ice from HQ")
       :swap-ice (throw "foo"))))
