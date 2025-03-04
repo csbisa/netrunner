@@ -81,7 +81,10 @@
 
 (defn- render-card
   [card]
-  (if (string? card) card (render-card-internal card)))
+  (cond
+    (string? card) card
+    (nil? card) "それ自体"
+    true (render-card-internal card)))
 
 (defn- render-card2
   [cards]
@@ -173,13 +176,17 @@
       :take-bp (str "悪名を" value "つ受ける")
       :add-from-stack (str "スタックから" value "をグリップに加えてスタックをシャッフルする")
       :add-from-rnd (str  "R&Dから " value "を公開してHQに加える")
+      :add-card (let [[card from to] value]
+                  (str (when from (str (to-zone-name from) "から"))
+                       (when to (str (to-zone-name to) "に"))
+                       (or  card "それ自体") "を加える"))
       :add-to-hq (str "HQに" (render-card value) "を加える")
-      :add-to-grip (str "グリップに" value "を加える")
+      :add-to-grip (str "グリップに" (render-card value) "を加える")
       :add-to-hq-unseen (str "HQにカードを" value "枚加える")
       :move-to-top-stack (str "スタックの一番上に" value "を加える")
       :shuffle-rnd (str "R&Dをシャフルする")
       :reveal-and-add (let [[card from to] value]
-                        (str (to-zone-name from) "から" (to-zone-name to) "に" card "を加える"))
+                        (str (to-zone-name from) "から" (to-zone-name to) "に" (or  card "それ自体") "を加える"))
       :reveal-from-hq (str "HQから" (join "と" value) "を公開する")
       :make-run (str (to-zone-name value) "にランする")
       :end-run "ランを終了する"
@@ -285,9 +292,17 @@
                 (str (join "、" (map #(str (to-zone-name (first %)) "から"
                                            (join "と" (map :card (second %))))
                                      groups))
-                     "を公開する")
-                )
-      ;; TODO
+                     "を公開する"))
+      :target-server (str (to-zone-name value) "を選ぶ")
+      :choose-subtype (str value "を選ぶ")
+      :choose-ice (str (render-card value) "を選ぶ")
+      :add-to-score (let [[card kind points] value]
+                      (str (or card "それ自体") "を"
+                           (when points
+                             (str points "価値を持つ"
+                                  (when (= (keyword kind) :assassination) "暗殺の")
+                                  "計画書として自身の得点エリア"))
+                       "に加える"))      ;; TODO
       :swap-ice-from-hand (str (render-card value) "とHQにあるアイスを交換する")
       :swap-ice (throw "foo"))))
 
@@ -296,7 +311,7 @@
   (str
    (when forced
      (str (if (= (keyword side) :corp) "ランナー" "コーポ") "に"))
-   (render-single-effect (keyword effect) value)
+   (render-single-effect (keyword effect) value side)
    (when forced "ことをさせる")))
 
 (defn do-conj
@@ -317,10 +332,10 @@
       (s/replace #"させる$" "させて")))
 
 (defn render-effect
-  [effects side]
+  [effects side forced]
   (when effects
     (let [effect-strs (remove nil? (for [[c v] effects]
-                                     (render-single-effect-force-check c v side)
+                                     (render-single-effect-force-check c v side forced)
                                      #_(render-single-effect c v)))]
       (str (apply str (map do-conj (butlast effect-strs))) (last effect-strs)))))
 
@@ -545,11 +560,11 @@
   (str "unknown type " input))
 
 (defmethod render-map "ja"
-  [_ {:keys [username raw-text cost effect side urgent] :as input}]
+  [_ {:keys [username raw-text cost effect forced side urgent] :as input}]
   (println input)
   (try-catchall
     (let [cost-str (render-cost cost)
-          effect-str (render-effect effect side)]
+          effect-str (render-effect effect side forced)]
       (let [output (str (when urgent "[!]")
                         (if username
                           (str username "は"
