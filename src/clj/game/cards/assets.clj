@@ -59,7 +59,7 @@
    [game.core.toasts :refer [toast]]
    [game.core.update :refer [update!]]
    [game.core.winning :refer [check-win-by-agenda win]]
-   [game.macros :refer [continue-ability effect msg map-msg req wait-for]]
+   [game.macros :refer [continue-ability effect msg map-msg map-msg-apply req wait-for]]
    [game.utils :refer :all]
    [jinteki.utils :refer :all]
    [game.core.link :refer [get-link]]))
@@ -2241,9 +2241,11 @@
   {:flags {:rd-reveal (req true)}
    :poison true
    :on-access {:async true
-               :msg (msg (if (= target "Suffer 1 core damage")
-                           "do 1 core damage"
-                           (str "force the runner to " (decapitalize target))))
+               :msg (map-msg-apply (if (= target "Suffer 1 core damage")
+                                     {:deal-core 1}
+                                     {:add-to-score [nil nil -1]}))
+               ;; TODO this does not work. do i need to add msg-forced to some kind of whitelist?
+               :msg-forced (req (not (= target "Suffer 1 core damage")))
                :player :runner
                :prompt "Choose one"
                :choices ["Suffer 1 core damage" "Add Nightmare Archive to score area"]
