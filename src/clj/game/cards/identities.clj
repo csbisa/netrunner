@@ -456,7 +456,9 @@
                 :async true
                 :prompt "Choose a hosted card"
                 :choices (req (cancellable (:hosted card)))
-                ;; TODO special snowflake here?
+                ;; TODO two options:
+                ;; - follow current ayla wording, support a 'set-aside' zone and use that as a source
+                ;; - keep host wording, this will turn into 'card hosted on Ayla...' but it's technically incorrect
                 :msg "add a hosted card to the grip"
                 :effect (effect (move target :hand)
                                 (effect-completed eid))}]
