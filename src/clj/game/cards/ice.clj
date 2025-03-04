@@ -3854,7 +3854,8 @@
          {:player :runner
           :async true}
          [{:option "Lose 3 [Credits]"
-           :ability {:msg {:lose-credits-force 3}
+           :ability {:msg {:lose-credits 3}
+                     :msg-forced true
                      :effect (req (lose-credits state :runner eid 3))}}
           (cost-option [(->c :net 2)] :runner)
           (cost-option [(->c :gain-tag 1)] :runner)])]
