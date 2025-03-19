@@ -1300,7 +1300,12 @@
                               state side eid
                               {:msg (->> payment-result
                                          (keep :paid/msg)
-                                         (apply merge {}))
+                                         ;; comes in as a hash map of a bunch of things
+                                         (apply merge {})
+                                         ;; but if we want to make it, e.g.
+                                         ;; {:click 1 :credits 1} -> [[:click 1] [:credits 1]]
+                                         (vec)
+                                         )
                                :cost-paid (->> payment-result
                                                (keep #(not-empty (dissoc % :paid/msg)))
                                                (reduce

@@ -207,10 +207,14 @@
       :turn-hosted-matryoshka-facedown (str "turns "(quantify value "hosted cop" "y" "ies")
                                             " of Matryoshka facedown"))))
 
+;; comes in as either
+;; [[cost1 value1] [cost2 value2]]
+;; [[[cost1 value1] [cost2 value2]] [cost3 value3]]
+;; so cost is a vector, first cost is also a vector, first first cost is a keyword or vector?
 (defn render-cost
   [cost side]
   (when cost
-    (if (vector? cost)
+    (if (vector? (first (first cost)))
       (str
        (enumerate-str (for [[c v] (first cost)] (render-single-cost c v side)))
        ", and then "

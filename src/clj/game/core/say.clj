@@ -2,7 +2,11 @@
   (:require
    [cljc.java-time.instant :as inst]
    [clojure.string :as str]
+   [game.core.msg_schema :refer [MapMsg MapMsgOrString]]
    [game.core.toasts :refer [toast]]))
+
+(require '[malli.core :as m])
+(require '[malli.error :as me])
 
 (defn make-message
   "Create a message map, along with timestamp if none is provided."
@@ -73,12 +77,35 @@
 
 (defn system-msg
   "Prints a message to the log without a username."
+  #_{:malli/schema [:function
+                  [:=> [:cat any? any? MapMsgOrString] any?]
+                  [:=> [:cat any? any? MapMsgOrString any?] any?]]}
   ([state side text] (system-msg state side text nil))
   ([state side text args]
    (let [username (get-in @state [side :user :username])]
-     (system-say state side (merge {:username username :side side}
-                                   (if (string? text) {:raw-text text} text))
-                 args))))
+     ;; TODO this is just a workaround to fix any cards that still use (:msg async-result)
+     ;; directly. can be used to suss out any cards doing this that go through tests
+     (let [text (if (vector? text) {:cost text} text)
+           ;; TODO now let's convert our map to a vector...
+           ;; {:a 1 :b [2 3]} -> [[:a 1] [:b 2 3]]
+           ;; however, it's not unconditional...
+           ;; some lists should stay lists. well, we can just let tests take care of those?
+           text (if (:effect text)
+                  (assoc text :effect (mapv #(apply conj (vector (first %))
+                                                    (cond
+                                                      (and (vector? (second %))
+                                                           (not (#{:make-run :reveal :trash-stack :rfg :choose-server :breach-server :reveal-from-stack} (first %)))) (second %)
+                                                      true (vector (second %))))
+                                            (vec (:effect text))))
+                  text)]
+       (when-not (m/validate MapMsgOrString text)
+         (throw (Exception. (ex-info "malli validation failed"
+                                     {:explain (me/humanize (m/explain MapMsgOrString text)
+                                                            #_{:wrap #(select-keys % [:value :message])})
+                                      :input text}))))
+       (system-say state side (merge {:username username :side side}
+                                     (if (string? text) {:raw-text text} text))
+                   args)))))
 
 (defn enforce-msg
   "Prints a message related to a rules enforcement on a given card.
