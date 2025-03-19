@@ -234,6 +234,7 @@
                        (or card "各インストール状態のアイスブレイカー")
                        "を強度ー" strength "する")
       :shuffle-into-rnd (str "Ｒ＆Ｄに" (render-card2 value) "を加えシャフルする")
+      :shuffle-from-hq-into-rnd (str "Ｒ＆ＤにＨＱのカードを" value "枚加えシャフルする")
       :rearrange-rnd (str "Ｒ＆Ｄの一番上のカード" value "枚を並べ替える")
       :reveal-from-rnd (str "Ｒ＆Ｄの一番上から" value "を公開する")
       :look-top-rnd (str "Ｒ＆Ｄの一番上のカード" value "枚を見る")
