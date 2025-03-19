@@ -52,10 +52,10 @@
                      (continue-ability state side
                                        (pick-virus-counters-to-spend specific-card target-count selected-cards counter-count)
                                        card nil)
-                     (let [message {:virus (map #(let [{:keys [card number]} %
-                                                       title (:title card)]
-                                                   [title number])
-                                                (vals selected-cards))}]
+                     (let [message {:virus (mapv #(let [{:keys [card number]} %
+                                                        title (:title card)]
+                                                    [title number])
+                                                 (vals selected-cards))}]
                        (pick-counter-triggers state side eid selected-cards selected-cards :virus counter-count message)))))
     :cancel-effect (if target-count
                      (req (doseq [{:keys [card number]} (vals selected-cards)]
