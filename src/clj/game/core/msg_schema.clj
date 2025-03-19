@@ -26,12 +26,12 @@
         [:server {:optional true} server]
         [:pos {:optional true} number?]]}}])
 (def card
-  [:maybe ;; Self-references use nil so accept this too.
-   [:or
-    :string
-    card-map]])
+  [:or
+   nil?
+   :string
+   card-map])
 (def card-list [:or [:vector card] [:sequential card]])
-(def maybe-unseen-cards [:vector [:or string? [:enum :unseen]]])
+(def maybe-unseen-cards [:or nil? [:sequential [:or string? [:enum :unseen]]]])
 (def count-or-card-list [:or number? card-list])
 
 ;; TODO any :sequential here is just a workaround, it's because something is passing down
@@ -41,7 +41,10 @@
    [:multi {:dispatch first}
     [:click [:tuple keyword? number?]]
     [:lose-click [:tuple keyword? number?]]
-    [:credits [:tuple keyword? [:or number? [:map [:cards [:sequential [:tuple string? number?]]]]]]]
+    ;; TODO what? this isn't right
+    [:credits [:tuple keyword? [:or number?
+                                [:map [:cards {:optional true} [:sequential [:tuple string? number?]]]
+                                 [:pool {:optional true} number?]]]]]
     [:trash [:tuple keyword? card]]
     [:forfeit [:tuple keyword? count-or-card-list]]
     [:gain-tag [:tuple keyword? number?]]
@@ -71,13 +74,16 @@
     [:add-installed-to-bottom-of-deck [:tuple keyword? card-list]]
     [:add-random-from-hand-to-bottom-of-deck [:tuple keyword? number?]]
     [:agenda-counter [:cat keyword? [:+ [:tuple card number?]]]]
-    [:virus [:cat keyword? [:+ [:tuple card number?]]]]
+    ;; TODO i'm not sure why the hack isn't flattening the list
+    #_[:virus [:cat keyword? [:+ [:tuple card number?]]]]
+    [:virus [:or [:cat keyword? [:+ [:tuple card number?]]]
+             [:cat keyword? [:vector [:tuple card number?]]]]]
     [:advancement [:cat keyword? [:+ [:tuple card number?]]]]
     [:power [:cat keyword? [:+ [:tuple card number?]]]]
     [:turn-hosted-matryoshka-facedown [:tuple keyword? number?]]]])
 
 (def MapCosts
-  [:vector MapCost])
+  [:or [:vector MapCost] [:tuple [:vector MapCost] [:vector MapCost]]])
 
 (def MapEffect
   [:multi {:dispatch first ;:error/message {:en "unknown value in :type"}
@@ -85,6 +91,8 @@
    [:advance [:tuple keyword? card]]
    [:draw-cards [:tuple keyword? number?]]
    [:gain-credits [:tuple keyword? number?]]
+   ;; TODO need to check where i am wrt force effects
+   [:lose-credits [:tuple keyword? number?]]
    [:gain-click [:tuple keyword? number?]]
    [:lose-click [:tuple keyword? number?]]
    [:lose-click-force [:tuple keyword? number?]]
@@ -100,16 +108,17 @@
    [:add-to-grip [:tuple keyword? card]]
    [:add-to-hq-unseen [:tuple keyword? number?]]
    [:move-to-top-stack [:tuple keyword? card]]
-   [:shuffle-rnd [:tuple keyword?]]
+   [:shuffle-rnd [:tuple keyword? boolean?]]
    [:reveal-and-add [:tuple keyword? card server server]]
    [:reveal-from-hq [:tuple keyword? card-list]]
    [:make-run [:tuple keyword? server]]
    [:end-run [:tuple keyword? boolean?]]
-   [:gain-type [:tuple keyword? string? [:vector string?]]]
+   [:gain-type [:tuple keyword? card [:vector string?]]]
    [:place-counter [:or [:tuple keyword? counter-type number?]
                     [:tuple keyword? counter-type number? card]]]
-   [:remove-counter [:tuple keyword? counter-type number? card]]
-   [:move-counter [:tuple keyword? counter-type number? card]]
+   [:remove-counter [:or [:tuple keyword? counter-type number? card]
+                     [:tuple keyword? counter-type number?]]]
+   [:move-counter [:tuple keyword? counter-type number? card card]]
    [:trash-from-hand [:tuple keyword? [:or number? card-list]]]
    [:add-str [:tuple keyword? card number?]]
    [:reduce-str [:tuple keyword? card number?]]
@@ -119,25 +128,27 @@
    [:deal-meat [:tuple keyword? number?]]
    [:deal-core [:tuple keyword? number?]]
    [:install [:tuple keyword? string?]]
-   [:rez [:tuple keyword? card]]
+   [:rez [:tuple keyword? [:or card card-list]]]
    [:install-and-rez-free [:tuple keyword? string?]]
    [:host [:tuple keyword? card]]
    [:host-on [:tuple keyword? card card]]
    [:bypass [:tuple keyword? card]]
    [:trash-free [:tuple keyword? string?]]
    [:str-pump [:tuple keyword? [:int {:title "from-str"}] [:int {:title "to-str"}] duration]]
-   [:lower-ice-str [:tuple keyword? number? card]]
+   [:lower-ice-str [:or [:tuple keyword? number? card]
+                    [:tuple keyword? number?]]]
    [:shuffle-into-rnd [:tuple keyword? maybe-unseen-cards]]
    [:rearrange-rnd [:tuple keyword? number?]]
-   [:reveal-from-rnd [:tuple keyword? number?]]
+   [:reveal-from-rnd [:tuple keyword? card]]
    [:look-top-rnd [:tuple keyword? number?]]
    [:move-hq-rnd [:tuple keyword? number?]]
    [:play [:tuple keyword? string?]]
-   [:move-server [:tuple keyword? server card]]
+   [:move-server [:or [:tuple keyword? server]
+                  [:tuple keyword? server card]]]
    [:prevent-access [:tuple keyword? [:enum :target :exclusive] card]]
-   [:trash-stack [:tuple keyword? number?]]
+   [:trash-stack [:tuple keyword? [:or card card-list]]]
    [:prevent-net [:tuple keyword? number?]]
-   [:prevent-encounter-ability [:tuple keyword? card string?]]
+   [:prevent-encounter-ability [:tuple keyword? card [:or nil? string?]]]
    [:prevent-etr [:tuple keyword? card]]
    [:gain-str [:tuple keyword? number? duration]]
    [:breach-server [:tuple keyword? server]]
@@ -147,14 +158,14 @@
    [:reveal-self [:tuple keyword? server]]
    [:add-from-hq-to-score [:tuple keyword? string?]]
    [:turn-faceup [:tuple keyword? string?]]
-   [:add-self-to-hq [:tuple keyword?]]
+   [:add-self-to-hq [:tuple keyword? boolean?]]
    [:trash [:tuple keyword? card]]
    [:add-str-new [:tuple keyword? card number?]]
    [:add-sub [:tuple keyword? string?]]
    [:trash-rnd [:tuple keyword? number?]]
    [:remove-click-next-turn [:tuple keyword? number?]]
    [:move-grip-to-stack [:tuple keyword? card-list]]
-   [:shuffle-into-stack [:tuple keyword? card-list]]
+   [:shuffle-into-stack [:tuple keyword? [:or nil? card-list]]]
    [:remove-all-virus-counters [:tuple keyword? card]]
    [:trash-from-hq [:tuple keyword? string?]]
    [:reveal-from-grip [:tuple keyword? card-list]]
@@ -166,21 +177,22 @@
    [:reveal-from-stack [:tuple keyword? card-list]]
    [:host-on-self [:tuple keyword? string?]]
    [:host-instead-of-access [:tuple keyword? string?]]
-   [:shuffle-stack [:tuple keyword?]]
-   [:trash-self [:tuple keyword?]]
+   [:shuffle-stack [:tuple keyword? boolean?]]
+   [:trash-self [:tuple keyword? boolean?]]
    [:credits [:tuple keyword? number?]]
    [:draw-additional [:tuple keyword? number?]]
-   [:purge [:tuple keyword?]]
+   [:purge [:tuple keyword? boolean?]]
    [:reveal [:tuple keyword? [:+ card]]]
    [:choose-server [:tuple keyword? server]]
    [:choose-subtype [:tuple keyword? string?]]
    [:choose-ice [:tuple keyword? card]]
    [:add-to-score [:tuple keyword? card [:enum :assassination nil] number?]]
    [:swap-ice-from-hand [:tuple keyword? card]]
+   [:swap-ice [:tuple keyword? card card]]
    ])
 
 (def MapEffects
-  [:vector MapEffect])
+  [:or nil? [:vector MapEffect]])
 
 ;; TODO string is only to deal with empty string which still comes down in some cases
 ;; can be removed after chasing down whatever's causing that
@@ -212,7 +224,8 @@
           [:rez-source {:optional true} string?] costs]]
    [:use [:map [:type keyword?] [:card card] costs effects]]
    [:advance [:map [:type keyword?] [:card card]]]
-   [:score [:map [:type keyword?] [:card string?] [:points number?]]]
+   ;; azef protocol score has no points, need to check behavior there
+   [:score [:map [:type keyword?] [:card string?] [:points {:optional true} number?]]]
    [:steal [:map [:type keyword?] [:card string?] [:points number?]]]
    [:start-run [:map [:type keyword?]]]
    [:continue-run [:map [:type keyword?]]]
@@ -238,6 +251,8 @@
    [:direct-effect [:map [:type keyword?]]]
    [:fire-unbroken [:map [:type keyword?]]]
    [:use-command [:map [:type keyword?]]]
+   ;; TODO this needs to be fixed/cleaned up
+   [:force [:map [:type keyword?]]]
    ;; TODO default for testing for now
    ;; okay, so maybe we won't have a type, in which case it's *just* raw-text
    #_[::m/default [:map [:type keyword?]]]
@@ -289,6 +304,11 @@
 
 (m/explain MapMsg {:type :use :card "foo" :cost [[:click nil]]})
 (me/humanize (m/explain MapMsg {:type :use :card "foo" :cost [[:click nil]]}))
+
+;; checking credits
+(and
+ (m/validate MapCosts [[:credits 1]])
+ (m/validate MapCosts [[:credits {:pool 1}]]))
 
 (require '[malli.instrument :as mi])
 (mi/collect!)
