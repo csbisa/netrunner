@@ -319,7 +319,7 @@
                             " by " strength))
       :shuffle-into-rnd (str "shuffle " (render-card2 value) " into R&D")
       :rearrange-rnd (str "rearrange the top " (quantify value "card") " of R&D")
-      :reveal-from-rnd (str "reveal " (quantify value "card") " from the top of R&D")
+      :reveal-from-rnd (str "reveal " value " from the top of R&D")
       :look-top-rnd (str "look at the top " (quantify value "card") " of R&D")
       :move-hq-rnd (str "add " (quantify value "card") " from HQ to to the top of R&D")
       :play (str "play " value)
