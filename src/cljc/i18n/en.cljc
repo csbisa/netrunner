@@ -88,7 +88,7 @@
   (str (if-not (empty? card)
          card
          (case (keyword card-type)
-           :facedown "facedown card"
+           :facedown "a facedown card"
            :ice "ice"
            :card "a card"
            :drawn-card (pprint/cl-format nil "the ~:R card drawn" pos)
@@ -318,6 +318,7 @@
                             (or card "each installed icebreaker")
                             " by " strength))
       :shuffle-into-rnd (str "shuffle " (render-card2 value) " into R&D")
+      :shuffle-from-hq-into-rnd (str "shuffle " (quantify value "card") " from HQ into R&D")
       :rearrange-rnd (str "rearrange the top " (quantify value "card") " of R&D")
       :reveal-from-rnd (str "reveal " value " from the top of R&D")
       :look-top-rnd (str "look at the top " (quantify value "card") " of R&D")
