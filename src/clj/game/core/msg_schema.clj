@@ -138,6 +138,7 @@
    [:lower-ice-str [:or [:tuple keyword? number? card]
                     [:tuple keyword? number?]]]
    [:shuffle-into-rnd [:tuple keyword? maybe-unseen-cards]]
+   [:shuffle-from-hq-into-rnd [:tuple keyword? number?]]
    [:rearrange-rnd [:tuple keyword? number?]]
    [:reveal-from-rnd [:tuple keyword? card]]
    [:look-top-rnd [:tuple keyword? number?]]
