@@ -609,7 +609,7 @@
                                                  :async true
                                                  :silent (req true)
                                                  :req (req (= :subroutine (->> context :source-eid :source-type)))
-                                                 :msg "prevent the run from ending"
+                                                 :msg [[:prevent-etr]]
                                                  :effect (req (prevent-end-run state side eid))}])))}]}))
 
 (defcard "Battering Ram"

@@ -3935,7 +3935,7 @@
                (wait-for (mill state :runner (make-eid state eid) :runner 4)
                          (let [trashed-cards async-result]
                            (system-msg state side {:type :use :card (:title card)
-                                                   :effect {:trash-stack (enumerate-str (map :title trashed-cards))}})
+                                                   :effect {:trash-stack (mapv :title trashed-cards)}})
                            (continue-ability
                              state side
                              {:prompt "Choose a card to install"

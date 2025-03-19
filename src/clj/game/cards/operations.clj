@@ -1806,8 +1806,8 @@
              :choices ["Gain 4 [Credits] and draw 2 cards"
                        "Do 1 net damage per tag (up to 3)"]
              :msg (map-msg-apply (if (= target "Do 1 net damage per tag (up to 3)")
-                                   (str {:deal-net (min 3 (count-tags state))}
-                                        {:gain-credits 4 :draw-cards 2})))
+                                   {:deal-net (min 3 (count-tags state))}
+                                   {:gain-credits 4 :draw-cards 2}))
              :async true
              :effect (req (if (= "Do 1 net damage per tag (up to 3)" target)
                             (damage state :corp eid :net (min 3 (count-tags state)) {:card card})
