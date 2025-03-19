@@ -900,7 +900,7 @@
                                  :effect (req (doseq [c (reverse targets)]
                                                 (system-msg state side
                                                             {:type :use :card (:title card)
-                                                             :effect {:add-to-bottom-rnd {:card :drawn-card :pos (inc (first (keep-indexed #(when (same-card? c %2) %1) drawn)))}}})
+                                                             :effect {:add-to-bottom-rnd {:card-type :drawn-card :pos (inc (first (keep-indexed #(when (same-card? c %2) %1) drawn)))}}})
                                                 (move state side c :deck)
                                                 (remove-from-currently-drawing state side c)))})
                               card nil)))}]})

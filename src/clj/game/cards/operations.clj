@@ -599,7 +599,7 @@
               :card #(and (corp? %)
                           (in-hand? %))}
     :change-in-game-state {:req (req (seq (:hand corp)))}
-    :msg (map-msg :reveal (map :title (sort-by :title targets)) :gain-credits (* 2 (count targets)))
+    :msg (map-msg :reveal (mapv :title (sort-by :title targets)) :gain-credits (* 2 (count targets)))
     :async true
     :effect (req (wait-for
                    (reveal state side targets)
@@ -3316,7 +3316,7 @@
                                (let [source target]
                                  {:prompt "How many advancement counters do you want to move?"
                                   :choices (take (inc (get-counters source :advancement)) ["0" "1" "2"])
-                                  :msg (map-msg :move-counter [:adv target
+                                  :msg (map-msg :move-counter [:adv (str->int target)
                                                                (card-str-map state source)
                                                                (card-str-map state card-to-advance)])
                                   :async true

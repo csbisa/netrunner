@@ -1745,7 +1745,7 @@
                   :label "Search R&D and add 1 card to HQ"
                   ;; we need the req or the prompt will still show
                   :req (req (pos? (get-counters card :agenda)))
-                  :msg (map-msg :reveal-and-add (:title target))
+                  :msg (map-msg :reveal-and-add [(:title target) :deck :hand])
                   :choices (req (cancellable (:deck corp) :sorted))
                   :cancel-effect (effect (system-msg (str "declines to use " (:title card)))
                                          (effect-completed eid))
