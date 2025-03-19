@@ -222,7 +222,7 @@
       :deal-meat (str value "ミートダメージを与える")
       :deal-core (str value "コアダメージを与える")
       :install (str value "をインストールする")
-      :rez (str value "レゾする")
+      :rez (str (render-card value) "をレゾする")
       :install-and-rez-free (str value "をすべてのコストを無視してインストールしてレゾする")
       :host (str (render-card value) "を搭載する")
       :host-on (str (render-card (second value)) "に" (render-card (first value)) "を搭載する")
