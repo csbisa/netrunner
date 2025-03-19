@@ -46,7 +46,6 @@
                               (when installed-ice
                                 {:pos (card-index state card)})))))
             ;; Runner card messages
-            (merge {:card (if facedown
-                            :facedown
-                            (get-title card))}
+            (merge (when-not facedown {:card (get-title card)})
+                   (when facedown {:card-type :facedown})
                    (when (:zone card) {:zone (:zone card)}))))))
