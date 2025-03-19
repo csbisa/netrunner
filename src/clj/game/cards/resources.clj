@@ -4018,7 +4018,7 @@
                                                              (system-msg state :runner {:type :use :card (:title card)
                                                                                         :effect {:remove-tag 1}}))
                                (= "Gain 2 [Credits]" target) (do (gain-credits state :runner eid 2)
-                                                                 (system-msg state :runner {:type :Use :card (:title card)
+                                                                 (system-msg state :runner {:type :use :card (:title card)
                                                                                             :effect {:gain-credits 2}}))
                                :else (effect-completed state side eid)))}
    :events [{:event :runner-lose-tag

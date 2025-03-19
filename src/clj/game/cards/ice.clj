@@ -2850,8 +2850,7 @@
                               ;; if the card is hushed, it will not derez, so the subtypes will stay!
                               ;; - nbkelly, jan '24
                               (system-msg state side {:type :use :card (:title card)
-                                                      ;; TODO deal with the self-reference
-                                                      :effect {:gain-type ["itself" target]}})
+                                                      :effect {:gain-type [nil [target]]}})
                               (register-lingering-effect
                                 state side card
                                 (let [ice card]
