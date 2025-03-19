@@ -54,7 +54,7 @@
                        " to reveal " (enumerate-str strs) follow-up)
                   {:type :use :card (:title card) :force (boolean forced)
                    ;; TODO if this isn't a sign that effects need to be ordered then i don't know what is
-                   :effect (merge {:reveal (map #(card-str-map state % {:visible true}) cards)}
+                   :effect (merge {:reveal (mapv #(card-str-map state % {:visible true}) cards)}
                                   and-then)}))
     (if-not no-event
       (reveal state side eid targets)
