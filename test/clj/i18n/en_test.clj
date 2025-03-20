@@ -426,220 +426,220 @@
                  ""))
 
 (deftest effect
-  (render-test {:username "Corp" :type :use :card "Basic Action Card" :effect {:advance {:card "Offworld Office"}}}
+  (render-test {:username "Corp" :type :use :card "Basic Action Card" :effect [[:advance {:card "Offworld Office"}]]}
                "Corp uses Basic Action Card to advance Offworld Office.")
-  (render-test {:username "Corp" :type :use :card "Basic Action Card" :effect {:draw-cards 1}}
+  (render-test {:username "Corp" :type :use :card "Basic Action Card" :effect [[:draw-cards 1]]}
                "Corp uses Basic Action Card to draw 1 card.")
-  (render-test {:username "Corp" :type :use :card "Basic Action Card" :effect {:gain-credits 1}}
+  (render-test {:username "Corp" :type :use :card "Basic Action Card" :effect [[:gain-credits 1]]}
                "Corp uses Basic Action Card to gain 1 [Credits].")
-  (render-test {:username "Corp" :type :use :card "Luminal Transubstantation" :effect {:gain-click 3}}
+  (render-test {:username "Corp" :type :use :card "Luminal Transubstantation" :effect [[:gain-click 3]]}
                "Corp uses Luminal Transubstantation to gain [Click][Click][Click].")
-  (render-test {:username "Runner" :type :use :card "Eli 1.0" :effect {:lose-click 1}}
+  (render-test {:username "Runner" :type :use :card "Eli 1.0" :effect [[:lose-click 1]]}
                "Runner uses Eli 1.0 to lose [Click].")
-  (render-test {:username "Corp" :type :use :card "Reversed Accounts" :effect {:lose-credits 4}}
+  (render-test {:username "Corp" :type :use :card "Reversed Accounts" :effect [[:lose-credits-force 4]]}
                "Corp uses Reversed Accounts to force the Runner to lose 4 [Credits].")
-  (render-test {:username "Corp" :type :use :card "Public Trail" :effect {:give-tag 1}}
+  (render-test {:username "Corp" :type :use :card "Public Trail" :effect [[:give-tag 1]]}
                "Corp uses Public Trail to give the Runner 1 tag.")
-  (render-test {:username "Runner" :type :use :card "Privileged Access" :effect {:take-tag 1}}
+  (render-test {:username "Runner" :type :use :card "Privileged Access" :effect [[:take-tag 1]]}
                "Runner uses Privileged Access to take 1 tag.")
-  (render-test {:username "Runner" :type :use :card "Basic Action Card" :effect {:remove-tag 1}}
+  (render-test {:username "Runner" :type :use :card "Basic Action Card" :effect [[:remove-tag 1]]}
                "Runner uses Basic Action Card to remove 1 tag.")
-  (render-test {:username "Corp" :type :use :card "Hostile Takeover" :effect {:take-bp 1}}
+  (render-test {:username "Corp" :type :use :card "Hostile Takeover" :effect [[:take-bp 1]]}
                "Corp uses Hostile Takeover to take 1 bad publicity.")
 
-  (render-test {:username "Corp" :type :use :card "foo" :effect {:add-from-stack "bar"}}
+  (render-test {:username "Corp" :type :use :card "foo" :effect [[:add-from-stack "bar"]]}
                "Corp uses foo to add bar from the stack to the grip and shuffle the stack.")
-  (render-test {:username "Corp" :type :use :card "foo" :effect {:add-from-rnd "bar"}}
+  (render-test {:username "Corp" :type :use :card "foo" :effect [[:add-from-rnd "bar"]]}
                "Corp uses foo to reveal bar from R&D and add it to HQ.")
-  (render-test {:username "Corp" :type :use :card "foo" :effect {:add-to-hq {:card "bar"}}}
+  (render-test {:username "Corp" :type :use :card "foo" :effect [[:add-to-hq {:card "bar"}]]}
                "Corp uses foo to add bar to HQ.")
-  (render-test {:username "Corp" :type :use :card "foo" :effect {:add-to-grip {:card "bar"}}}
+  (render-test {:username "Corp" :type :use :card "foo" :effect [[:add-to-grip {:card "bar"}]]}
                "Corp uses foo to add bar to the Grip.")
-  (render-test {:username "Corp" :type :use :card "foo" :effect {:add-to-hq-unseen 2}}
+  (render-test {:username "Corp" :type :use :card "foo" :effect [[:add-to-hq-unseen 2]]}
                "Corp uses foo to add 2 cards to HQ.")
-  (render-test {:username "Corp" :type :use :card "foo" :effect {:move-to-top-stack "bar"}}
+  (render-test {:username "Corp" :type :use :card "foo" :effect [[:move-to-top-stack "bar"]]}
                "Corp uses foo to move bar to the top of the stack.")
-  (render-test {:username "Corp" :type :use :card "foo" :effect {:shuffle-rnd true}}
+  (render-test {:username "Corp" :type :use :card "foo" :effect [[:shuffle-rnd true]]}
                "Corp uses foo to shuffle R&D.")
-  (render-test {:username "Corp" :type :use :card "foo" :effect {:reveal-and-add ["bar" [:deck] [:hand]]}}
+  (render-test {:username "Corp" :type :use :card "foo" :effect [[:reveal-and-add "bar" [:deck] [:hand]]]}
                "Corp uses foo to add bar from R&D to HQ.")
-  (render-test {:username "Corp" :type :use :card "foo" :effect {:reveal-from-hq ["bar"]}}
+  (render-test {:username "Corp" :type :use :card "foo" :effect [[:reveal-from-hq ["bar"]]]}
                "Corp uses foo to reveal bar from HQ.")
-  (render-test {:username "Corp" :type :use :card "foo" :effect {:make-run [:servers :hq]}}
+  (render-test {:username "Corp" :type :use :card "foo" :effect [[:make-run [:servers :hq]]]}
                "Corp uses foo to make a run on HQ.")
-  (render-test {:username "Corp" :type :use :card "foo" :effect {:end-run true}}
+  (render-test {:username "Corp" :type :use :card "foo" :effect [[:end-run true]]}
                "Corp uses foo to end the run.")
-  (render-test {:username "Corp" :type :use :card "foo" :effect {:gain-type ["bar" "Code Gate"]}}
+  (render-test {:username "Corp" :type :use :card "foo" :effect [[:gain-type "bar" "Code Gate"]]}
                "Corp uses foo to make bar gain Code Gate until the end of the run.")
   ;; TODO place-counter and remove-counter
-  (render-test {:username "Corp" :type :use :card "foo" :effect {:move-counter [:adv 1 {:card "bar"} {:card "baz"}]}}
+  (render-test {:username "Corp" :type :use :card "foo" :effect [[:move-counter :adv 1 {:card "bar"} {:card "baz"}]]}
                "Corp uses foo to move 1 advancement counter from bar to baz.")
-  (render-test {:username "Runner" :type :use :card "foo" :effect {:add-str ["bar" 1]}}
+  (render-test {:username "Runner" :type :use :card "foo" :effect [[:add-str "bar" 1]]}
                "Runner uses foo to add 1 strength to bar.")
-  (render-test {:username "Runner" :type :use :card "foo" :effect {:reduce-str [{:card "bar"} 1]}}
+  (render-test {:username "Runner" :type :use :card "foo" :effect [[:reduce-str {:card "bar"} 1]]}
                "Runner uses foo to give -1 strength to bar for the remainder of the encounter.")
-  (render-test {:username "Runner" :type :use :card "foo" :effect {:access-additional-from-hq 1}}
+  (render-test {:username "Runner" :type :use :card "foo" :effect [[:access-additional-from-hq 1]]}
                "Runner uses foo to access 1 additional card from HQ.")
-  (render-test {:username "Runner" :type :use :card "foo" :effect {:access-additional-from-rnd 2}}
+  (render-test {:username "Runner" :type :use :card "foo" :effect [[:access-additional-from-rnd 2]]}
                "Runner uses foo to access 2 additional cards from R&D.")
-  (render-test {:username "Corp" :type :use :card "foo" :effect {:deal-net 1}}
+  (render-test {:username "Corp" :type :use :card "foo" :effect [[:deal-net 1]]}
                "Corp uses foo to deal 1 net damage.")
-  (render-test {:username "Corp" :type :use :card "foo" :effect {:deal-meat 2}}
+  (render-test {:username "Corp" :type :use :card "foo" :effect [[:deal-meat 2]]}
                "Corp uses foo to deal 2 meat damage.")
-  (render-test {:username "Corp" :type :use :card "foo" :effect {:deal-core 3}}
+  (render-test {:username "Corp" :type :use :card "foo" :effect [[:deal-core 3]]}
                "Corp uses foo to deal 3 core damage.")
-  (render-test {:username "Corp" :type :use :card "foo" :effect {:install "bar"}}
+  (render-test {:username "Corp" :type :use :card "foo" :effect [[:install "bar"]]}
                "Corp uses foo to install bar.")
-  (render-test {:username "Corp" :type :use :card "foo" :effect {:rez "bar"}}
+  (render-test {:username "Corp" :type :use :card "foo" :effect [[:rez "bar"]]}
                "Corp uses foo to rez bar.")
-  (render-test {:username "Corp" :type :use :card "foo" :effect {:install-and-rez-free "bar"}}
+  (render-test {:username "Corp" :type :use :card "foo" :effect [[:install-and-rez-free "bar"]]}
                "Corp uses foo to install and rez bar, ignoring all costs.")
-  (render-test {:username "Corp" :type :use :card "foo" :effect {:host {:card "bar"}}}
+  (render-test {:username "Corp" :type :use :card "foo" :effect [[:host {:card "bar"}]]}
                "Corp uses foo to host bar.")
-  (render-test {:username "Runner" :type :use :card "foo" :effect {:bypass {:card "bar"}}}
+  (render-test {:username "Runner" :type :use :card "foo" :effect [[:bypass {:card "bar"}]]}
                "Runner uses foo to bypass bar.")
-  (render-test {:username "Corp" :type :use :card "foo" :effect {:trash-free "bar"}}
+  (render-test {:username "Corp" :type :use :card "foo" :effect [[:trash-free "bar"]]}
                "Corp uses foo to trash bar at no cost.")
-  (render-test {:username "Corp" :type :use :card "foo" :effect {:str-pump [1 2]}}
+  (render-test {:username "Corp" :type :use :card "foo" :effect [[:str-pump 1 2]]}
                "Corp uses foo to increase its strength from 1 to 2.")
-  (render-test {:username "Corp" :type :use :card "foo" :effect {:lower-ice-str [1 "foo"]}}
+  (render-test {:username "Corp" :type :use :card "foo" :effect [[:lower-ice-str 1 "foo"]]}
                "Corp uses foo to lower the strength of foo by 1.")
-  (render-test {:username "Corp" :type :use :card "foo" :effect {:lower-ice-str [1]}}
+  (render-test {:username "Corp" :type :use :card "foo" :effect [[:lower-ice-str 1]]}
                "Corp uses foo to lower the strength of each installed icebreaker by 1.")
-  (render-test {:username "Corp" :type :use :card "foo" :effect {:shuffle-into-rnd ["bar"]}}
+  (render-test {:username "Corp" :type :use :card "foo" :effect [[:shuffle-into-rnd ["bar"]]]}
                "Corp uses foo to shuffle bar into R&D.")
-  (render-test {:username "Corp" :type :use :card "foo" :effect {:shuffle-into-rnd ["bar" "unseen"]}}
+  (render-test {:username "Corp" :type :use :card "foo" :effect [[:shuffle-into-rnd ["bar" "unseen"]]]}
                "Corp uses foo to shuffle 1 unseen card and bar into R&D.")
-  (render-test {:username "Corp" :type :use :card "foo" :effect {:shuffle-into-rnd ["bar" nil]}}
+  (render-test {:username "Corp" :type :use :card "foo" :effect [[:shuffle-into-rnd ["bar" nil]]]}
                "Corp uses foo to shuffle itself and bar into R&D.")
-  (render-test {:username "Corp" :type :use :card "foo" :effect {:rearrange-rnd 5}}
+  (render-test {:username "Corp" :type :use :card "foo" :effect [[:rearrange-rnd 5]]}
                "Corp uses foo to rearrange the top 5 cards of R&D.")
-  (render-test {:username "Corp" :type :use :card "foo" :effect {:reveal-from-rnd 4}}
+  (render-test {:username "Corp" :type :use :card "foo" :effect [[:reveal-from-rnd 4]]}
                ;; TODO confirm if this should be a card list
                "Corp uses foo to reveal 4 cards from the top of R&D.")
-  (render-test {:username "Corp" :type :use :card "foo" :effect {:look-top-rnd 3}}
+  (render-test {:username "Corp" :type :use :card "foo" :effect [[:look-top-rnd 3]]}
                "Corp uses foo to look at the top 3 cards of R&D.")
-  (render-test {:username "Corp" :type :use :card "foo" :effect {:move-hq-rnd 2}}
+  (render-test {:username "Corp" :type :use :card "foo" :effect [[:move-hq-rnd 2]]}
                "Corp uses foo to add 2 cards from HQ to to the top of R&D.")
-  (render-test {:username "Corp" :type :use :card "foo" :effect {:play "bar"}}
+  (render-test {:username "Corp" :type :use :card "foo" :effect [[:play "bar"]]}
                "Corp uses foo to play bar.")
-  (render-test {:username "Corp" :type :use :card "foo" :effect {:move-server [[:servers :hq]]}}
+  (render-test {:username "Corp" :type :use :card "foo" :effect [[:move-server [:servers :hq]]]}
                "Corp uses foo to move itself to HQ.")
-  (render-test {:username "Corp" :type :use :card "foo" :effect {:prevent-access [:target "bar"]}}
+  (render-test {:username "Corp" :type :use :card "foo" :effect [[:prevent-access :target "bar"]]}
                "Corp uses foo to prevent the runner from accessing bar.")
-  (render-test {:username "Corp" :type :use :card "foo" :effect {:prevent-access [:exclusive "bar"]}}
+  (render-test {:username "Corp" :type :use :card "foo" :effect [[:prevent-access :exclusive "bar"]]}
                "Corp uses foo to prevent the runner from accessing cards other than bar.")
-  (render-test {:username "Corp" :type :use :card "foo" :effect {:trash-stack ["bar"]}}
+  (render-test {:username "Corp" :type :use :card "foo" :effect [[:trash-stack ["bar"]]]}
                "Corp uses foo to trash bar from the top of the stack.")
-  (render-test {:username "Corp" :type :use :card "foo" :effect {:prevent-net 1}}
+  (render-test {:username "Corp" :type :use :card "foo" :effect [[:prevent-net 1]]}
                "Corp uses foo to prevent 1 net damage.")
-  (render-test {:username "Corp" :type :use :card "foo" :effect {:prevent-encounter-ability ["bar" "baz"]}}
+  (render-test {:username "Corp" :type :use :card "foo" :effect [[:prevent-encounter-ability "bar" "baz"]]}
                "Corp uses foo to prevent the encounter ability on bar (baz).")
-  (render-test {:username "Corp" :type :use :card "foo" :effect {:prevent-etr {:card "bar"}}}
+  (render-test {:username "Corp" :type :use :card "foo" :effect [[:prevent-etr {:card "bar"}]]}
                "Corp uses foo to prevent bar from ending the run this encounter.")
-  (render-test {:username "Corp" :type :use :card "foo" :effect {:gain-str 1}}
+  (render-test {:username "Corp" :type :use :card "foo" :effect [[:gain-str 1]]}
                "Corp uses foo to gain 1 strength for the remainder of the turn.")
-  (render-test {:username "Corp" :type :use :card "foo" :effect {:breach-server [:servers :hq]}}
+  (render-test {:username "Corp" :type :use :card "foo" :effect [[:breach-server [:servers :hq]]]}
                "Corp uses foo to breach HQ.")
-  (render-test {:username "Corp" :type :use :card "foo" :effect {:derez [{:card "foo"} {:card "bar"}]}}
+  (render-test {:username "Corp" :type :use :card "foo" :effect [[:derez [{:card "foo"} {:card "bar"}]]]}
                "Corp uses foo to derez foo and bar.")
-  (render-test {:username "Corp" :type :use :card "foo" :effect {:derez {:card "bar"}}}
+  (render-test {:username "Corp" :type :use :card "foo" :effect [[:derez {:card "bar"}]]}
                ;; TODO lame, a map is a collection too...
                "Corp uses foo to derez bar.")
-  (render-test {:username "Corp" :type :use :card "foo" :effect {:rez-free ["foo" "bar"]}}
+  (render-test {:username "Corp" :type :use :card "foo" :effect [[:rez-free ["foo" "bar"]]]}
                "Corp uses foo to rez foo and bar, ignoring all costs.")
-  (render-test {:username "Corp" :type :use :card "foo" :effect {:encounter-ice {:card "foo"}}}
+  (render-test {:username "Corp" :type :use :card "foo" :effect [[:encounter-ice {:card "foo"}]]}
                ;; TODO make? force?
                "Corp uses foo to make the Runner encounter foo.")
-  (render-test {:username "Corp" :type :use :card "foo" :effect {:reveal-self [:servers :rd]}}
+  (render-test {:username "Corp" :type :use :card "foo" :effect [[:reveal-self [:servers :rd]]]}
                "Corp uses foo to reveal itself from R&D.")
-  (render-test {:username "Corp" :type :use :card "foo" :effect {:add-from-hq-to-score "bar"}}
+  (render-test {:username "Corp" :type :use :card "foo" :effect [[:add-from-hq-to-score "bar"]]}
                "Corp uses foo to add bar from HQ to [their] score area.")
-  (render-test {:username "Corp" :type :use :card "foo" :effect {:turn-faceup "bar"}}
+  (render-test {:username "Corp" :type :use :card "foo" :effect [[:turn-faceup "bar"]]}
                "Corp uses foo to turn bar in Archives faceup.")
-  (render-test {:username "Corp" :type :use :card "foo" :effect {:add-self-to-hq true}}
+  (render-test {:username "Corp" :type :use :card "foo" :effect [[:add-self-to-hq true]]}
                "Corp uses foo to add itself to HQ.")
-  (render-test {:username "Corp" :type :use :card "foo" :effect {:trash "bar"}}
+  (render-test {:username "Corp" :type :use :card "foo" :effect [[:trash "bar"]]}
                "Corp uses foo to trash bar.")
-  (render-test {:username "Corp" :type :use :card "foo" :effect {:trash {:card "bar"}}}
+  (render-test {:username "Corp" :type :use :card "foo" :effect [[:trash {:card "bar"}]]}
                "Corp uses foo to trash bar.")
-  (render-test {:username "Corp" :type :use :card "foo" :effect {:add-str-new [{:card "bar"} 1]}}
+  (render-test {:username "Corp" :type :use :card "foo" :effect [[:add-str-new {:card "bar"} 1]]}
                "Corp uses foo to give bar +1 strength.")
-  (render-test {:username "Corp" :type :use :card "foo" :effect {:add-sub "bar"}}
+  (render-test {:username "Corp" :type :use :card "foo" :effect [[:add-sub "bar"]]}
                "Corp uses foo to add bar after its other subroutines.")
-  (render-test {:username "Corp" :type :use :card "foo" :effect {:trash-rnd 5}}
+  (render-test {:username "Corp" :type :use :card "foo" :effect [[:trash-rnd 5]]}
                "Corp uses foo to trash the top 5 cards of R&D.")
-  (render-test {:username "Corp" :type :use :card "foo" :effect {:remove-click-next-turn 1}}
+  (render-test {:username "Corp" :type :use :card "foo" :effect [[:remove-click-next-turn 1]]}
                "Corp uses foo to give the Runner -1 allotted [Click] for [their] next turn.")
-  (render-test {:username "Corp" :type :use :card "foo" :effect {:move-grip-to-stack ["foo" "bar"]}}
+  (render-test {:username "Corp" :type :use :card "foo" :effect [[:move-grip-to-stack ["foo" "bar"]]]}
                "Corp uses foo to add foo and bar from the Grip to the top of the Stack.")
-  (render-test {:username "Corp" :type :use :card "foo" :effect {:shuffle-into-stack "bar"}}
+  (render-test {:username "Corp" :type :use :card "foo" :effect [[:shuffle-into-stack "bar"]]}
                "Corp uses foo to shuffle bar into the stack.")
-  (render-test {:username "Corp" :type :use :card "foo" :effect {:remove-all-virus-counters {:card "bar"}}}
+  (render-test {:username "Corp" :type :use :card "foo" :effect [[:remove-all-virus-counters {:card "bar"}]]}
                "Corp uses foo to remove all virus counters from bar.")
-  (render-test {:username "Corp" :type :use :card "foo" :effect {:trash-from-hq "bar"}}
+  (render-test {:username "Corp" :type :use :card "foo" :effect [[:trash-from-hq "bar"]]}
                "Corp uses foo to trash bar from HQ.")
-  (render-test {:username "Corp" :type :use :card "foo" :effect {:reveal-from-grip ["foo" "bar"]}}
+  (render-test {:username "Corp" :type :use :card "foo" :effect [[:reveal-from-grip ["foo" "bar"]]]}
                "Corp uses foo to reveal foo and bar from the Grip.")
-  (render-test {:username "Corp" :type :use :card "foo" :effect {:add-to-top-rnd "bar"}}
+  (render-test {:username "Corp" :type :use :card "foo" :effect [[:add-to-top-rnd "bar"]]}
                "Corp uses foo to add bar to the top of R&D.")
-  (render-test {:username "Corp" :type :use :card "foo" :effect {:add-to-bottom-rnd "bar"}}
+  (render-test {:username "Corp" :type :use :card "foo" :effect [[:add-to-bottom-rnd "bar"]]}
                "Corp uses foo to add bar to the bottom of R&D.")
-  (render-test {:username "Corp" :type :use :card "foo" :effect {:add-to-bottom-rnd {:card-type :drawn-card :pos 1}}}
+  (render-test {:username "Corp" :type :use :card "foo" :effect [[:add-to-bottom-rnd {:card-type :drawn-card :pos 1}]]}
                "Corp uses foo to add the first card drawn to the bottom of R&D.")
-  (render-test {:username "Corp" :type :use :card "foo" :effect {:force-reveal 2}}
+  (render-test {:username "Corp" :type :use :card "foo" :effect [[:force-reveal 2]]}
                "Corp uses foo to reveal 2 random cards from HQ.")
-  (render-test {:username "Corp" :type :use :card "foo" :effect {:shuffle-zone-into [[:hand] [:discard]]}}
+  (render-test {:username "Corp" :type :use :card "foo" :effect [[:shuffle-zone-into [[:hand] [:discard]]]]}
                "Corp uses foo to shuffle HQ and Archives into R&D.")
-  (render-test {:username "Corp" :type :use :card "foo" :effect {:rfg ["foo" "bar"]}}
+  (render-test {:username "Corp" :type :use :card "foo" :effect [[:rfg ["foo" "bar"]]]}
                "Corp uses foo to remove foo and bar from the game.")
-  (render-test {:username "Corp" :type :use :card "foo" :effect {:reveal-from-stack ["foo" "bar"]}}
+  (render-test {:username "Corp" :type :use :card "foo" :effect [[:reveal-from-stack ["foo" "bar"]]]}
                "Corp uses foo to reveal foo and bar from the top of the stack.")
-  (render-test {:username "Corp" :type :use :card "foo" :effect {:host-on-self "bar"}}
+  (render-test {:username "Corp" :type :use :card "foo" :effect [[:host-on-self "bar"]]}
                "Corp uses foo to host bar on itself.")
-  (render-test {:username "Corp" :type :use :card "foo" :effect {:host-instead-of-access "bar"}}
+  (render-test {:username "Corp" :type :use :card "foo" :effect [[:host-instead-of-access "bar"]]}
                "Corp uses foo to host bar on itself instead of accessing it.")
-  (render-test {:username "Corp" :type :use :card "foo" :effect {:shuffle-stack true}}
+  (render-test {:username "Corp" :type :use :card "foo" :effect [[:shuffle-stack true]]}
                "Corp uses foo to shuffle the stack.")
-  (render-test {:username "Corp" :type :use :card "foo" :effect {:trash-self true}}
+  (render-test {:username "Corp" :type :use :card "foo" :effect [[:trash-self true]]}
                "Corp uses foo to trash itself.")
-  (render-test {:username "Corp" :type :use :card "foo" :effect {:credits 3}}
+  (render-test {:username "Corp" :type :use :card "foo" :effect [[:credits 3]]}
                ;; TODO eh?
                "Corp uses foo to pay 3 [Credits].")
-  (render-test {:username "Corp" :type :use :card "foo" :effect {:draw-additional 1}}
+  (render-test {:username "Corp" :type :use :card "foo" :effect [[:draw-additional 1]]}
                "Corp uses foo to draw 1 additional card.")
-  (render-test {:username "Corp" :type :use :card "foo" :effect {:swap-ice "TODO"}}
+  (render-test {:username "Corp" :type :use :card "foo" :effect [[:swap-ice "TODO"]]}
                "")
 
   ;; rearrange below
-  (render-test {:username "Runner" :type :use :card "Leech" :effect {:place-counter [:virus 1]}}
+  (render-test {:username "Runner" :type :use :card "Leech" :effect [[:place-counter :virus 1]]}
                "Runner uses Leech to place 1 virus counter on itself.")
-  (render-test {:username "Runner" :type :use :card "Smartware Distributor" :effect {:place-counter [:credit 3]}}
+  (render-test {:username "Runner" :type :use :card "Smartware Distributor" :effect [[:place-counter :credit 3]]}
                "Runner uses Smartware Distributor to place 3 [Credits] on itself.")
-  (render-test {:username "Runner" :type :use :card "Cookbook" :effect {:place-counter [:virus 1 {:card "Leech"}]}}
+  (render-test {:username "Runner" :type :use :card "Cookbook" :effect [[:place-counter :virus 1 {:card "Leech"}]]}
                "Runner uses Cookbook to place 1 virus counter on Leech.")
   (render-test {:username "Runner" :type :use :card "Leech"
-                :effect {:reduce-str [{:card "Ice Wall" :server [:servers :hq] :pos 1} 1]}}
+                :effect [[:reduce-str {:card "Ice Wall" :server [:servers :hq] :pos 1} 1]]}
                "Runner uses Leech to give -1 strength to Ice Wall protecting HQ at position 1 for the remainder of the encounter.")
-  (render-test {:username "Runner" :type :use :card "Mutual Favor" :effect {:add-from-stack "Carmen"}}
+  (render-test {:username "Runner" :type :use :card "Mutual Favor" :effect [[:add-from-stack "Carmen"]]}
                "Runner uses Mutual Favor to add Carmen from the stack to the grip and shuffle the stack.")
-  (render-test {:username "Corp" :type :use :card "Malapert Data Vault" :effect {:add-from-rnd "Ice Wall"}}
+  (render-test {:username "Corp" :type :use :card "Malapert Data Vault" :effect [[:add-from-rnd "Ice Wall"]]}
                "Corp uses Malapert Data Vault to reveal Ice Wall from R&D and add it to HQ.")
-  (render-test {:username "Runner" :type :use :card "Docklands Pass" :effect {:access-additional-from-hq 1}}
+  (render-test {:username "Runner" :type :use :card "Docklands Pass" :effect [[:access-additional-from-hq 1]]}
                "Runner uses Docklands Pass to access 1 additional card from HQ.")
-  (render-test {:username "Runner" :type :use :card "Jailbreak" :effect {:access-additional-from-rnd 1}}
+  (render-test {:username "Runner" :type :use :card "Jailbreak" :effect [[:access-additional-from-rnd 1]]}
                "Runner uses Jailbreak to access 1 additional card from R&D.")
   (render-test {:username "Runner"
                 :type :use :card "Cleaver"
-                :effect {:str-pump [3 4]}}
+                :effect [[:str-pump 3 4]]}
                "Runner uses Cleaver to increase its strength from 3 to 4.")
   (render-test {:username "Runner"
                 :type :use :card "Cleaver"
-                :effect {:str-pump [3 4 :end-of-run]}}
+                :effect [[:str-pump 3 4 :end-of-run]]}
                "Runner uses Cleaver to increase its strength from 3 to 4 for the remainder of the run.")
   (render-test {:username "Runner"
                 :type :use :card "Cleaver"
-                :effect {:str-pump [3 4 :end-of-turn]}}
+                :effect [[:str-pump 3 4 :end-of-turn]]}
                "Runner uses Cleaver to increase its strength from 3 to 4 for the remainder of the turn."))
 
 (deftest effect-force

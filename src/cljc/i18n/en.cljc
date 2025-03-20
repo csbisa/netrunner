@@ -216,11 +216,11 @@
   (when cost
     (if (vector? (first (first cost)))
       (str
-       (enumerate-str (for [[c v] (first cost)] (render-single-cost c v side)))
+       (enumerate-str (for [[c v] (first cost)] (render-single-cost (keyword c) v side)))
        ", and then "
-       (enumerate-str (for [[c v] (second cost)] (render-single-cost c v side)))
+       (enumerate-str (for [[c v] (second cost)] (render-single-cost (keyword c) v side)))
        ",")
-      (enumerate-str (for [[c v] cost] (render-single-cost c v side))))))
+      (enumerate-str (for [[c v] cost] (render-single-cost (keyword c) v side))))))
 
 (defn render-cost-str
   [{:keys [cost side]}]
@@ -392,6 +392,167 @@
       :swap-ice-from-hand (str "swap " (render-card value) " with a piece of ice from HQ")
       :swap-ice (throw "foo"))))
 
+(defmulti render-effect (fn [effect side & value] effect))
+(defmethod render-effect :advance [effect side value] (str "advance " (render-card value)))
+(defmethod render-effect :draw-cards [effect side [value]] (str "draw " (quantify value "card")))
+(defmethod render-effect :gain-credits [effect side [value]] (str "gain " value " [Credits]"))
+(defmethod render-effect :gain-click [effect side [value]] (str "gain " (apply str (repeat value "[Click]"))))
+(defmethod render-effect :lose-click [effect side [value]] (str "lose " (apply str (repeat value "[Click]"))))
+;; TODO ideally part of force logic, but the problem is that these are effects
+;; either bring back the silly keyword logic or just support the few cases that exist
+(defmethod render-effect :lose-click-force [effect side [value]] (str "force the " (if (= (keyword side) :corp) "Runner" "Corp")" to lose " (apply str (repeat value "[Click]"))))
+(defmethod render-effect :lose-credits-force [effect side [value]] (str "force the " (if (= (keyword side) :corp) "Runner" "Corp")" to lose " value " [Credits]"))
+(defmethod render-effect :give-tag [effect side [value]] (str "give the Runner " (quantify value "tag")))
+(defmethod render-effect :take-tag [effect side [value]] (str "take " (quantify value "tag")))
+(defmethod render-effect :remove-tag [effect side [value]] (str "remove " (quantify value "tag")))
+(defmethod render-effect :take-bp [effect side [value]] (str "take " value " bad publicity"))
+;; TODO this is a clusterfuck, figure out how to unify it later
+(defmethod render-effect :add-from-stack [effect side [value]] (str "add " value " from the stack to the grip and shuffle the stack"))
+(defmethod render-effect :add-from-rnd [effect side [value]] (str  "reveal " value " from R&D and add it to HQ"))
+;; TODO this is probably the best generic mechanism, need to squash it with several others here
+(defmethod render-effect :add-card [effect side [card from to]]
+            (str "add " (or card "itself")
+                 (when from) (str " from " (to-zone-name from))
+                 (when to) (str " to " (to-zone-name to))))
+(defmethod render-effect :add-to-hq [effect side [value]] (str "add " (render-card value) " to HQ"))
+;; TODO not sure if this should be string or rendered card
+(defmethod render-effect :add-to-grip [effect side [value]] (str "add " (render-card value) " to the Grip"))
+(defmethod render-effect :add-to-hq-unseen [effect side [value]] (str "add " (quantify value "card") " to HQ"))
+;; TODO making this add would be more consistent? Working Prototype uses "add", ??? uses "move"
+(defmethod render-effect :move-to-top-stack [effect side [value]] (str "move " (or value "them") " to the top of the Stack"))
+(defmethod render-effect :shuffle-rnd [effect side [value]] (str "shuffle R&D"))
+(defmethod render-effect :reveal-and-add [effect side [card from to]]
+                  (str "add " (or card "itself") " from " (to-zone-name from) " to " (to-zone-name to)))
+(defmethod render-effect :reveal-from-hq [effect side [value]] (str "reveal " (enumerate-str value) " from HQ"))
+(defmethod render-effect :make-run [effect side [value]] (str "make a run on " (to-zone-name value)))
+(defmethod render-effect :end-run [effect side [value]] "end the run")
+;; TODO probably need a duration here, others are encounter-only IIRC
+(defmethod render-effect :gain-type [effect side [card type]] (str "make " card " gain " (enumerate-str type) " until the end of the run"))
+(defmethod render-effect :place-counter [effect side [type count target]]
+                 (str "place "
+                      (if (or (= (keyword type) :credit) (= (keyword type) :credits))
+                        (str count " [Credits]")
+                        (quantify count (to-counter type)))
+                      " on "
+                      (if target (render-card target) "itself")))
+(defmethod render-effect :remove-counter [effect side [type count target]]
+  (str "remove "
+       (quantify count (to-counter type))
+       " from "
+       (if target (render-card target) "itself")))
+(defmethod render-effect :move-counter [effect side [type count source target]]
+  (str "move "
+       (quantify count (to-counter type))
+       " from "
+       (if source (render-card source) "itself")
+       " to "
+       (if target (render-card target) "itself")))
+;; TODO need to fix hq/blah
+(defmethod render-effect :trash-from-hand [effect side [value]] (if (int? value)
+                   (str "trashes " (quantify value "card") " from " "HQ")
+                   (render-card-list value "trashes" "card" "" (str " from " "HQ"))))
+(defmethod render-effect :add-str [effect side [card count]] (str "add " count " strength to " card))
+(defmethod render-effect :reduce-str [effect side [card count]] (str "give -" count " strength to " (render-card card) " for the remainder of the encounter"))
+;; TODO combine hq/rnd?
+(defmethod render-effect :access-additional-from-hq [effect side [value]] (str "access " (quantify value "additional card") " from HQ"))
+(defmethod render-effect :access-additional-from-rnd [effect side [value]] (str "access " (quantify value "additional card") " from R&D"))
+;; TODO similar, combine?
+(defmethod render-effect :deal-net [effect side [value]] (str "deal " value " net damage"))
+(defmethod render-effect :deal-meat [effect side [value]] (str "deal " value " meat damage"))
+(defmethod render-effect :deal-core [effect side [value]] (str "deal " value " core damage"))
+(defmethod render-effect :install [effect side [value]] (str "install " value))
+(defmethod render-effect :rez [effect side [value]] (str "rez " (render-card value)))
+(defmethod render-effect :install-and-rez-free [effect side [value]] (str "install and rez " value ", ignoring all costs"))
+(defmethod render-effect :host [effect side [value]] (str "host " (render-card value)))
+(defmethod render-effect :host-on [effect side [card host]] (str "host " (render-card card) " on " (render-card host)))
+(defmethod render-effect :bypass [effect side [value]] (str "bypass " (render-card value)))
+(defmethod render-effect :trash-free [effect side [value]] (str "trash " value " at no cost"))
+(defmethod render-effect :str-pump [effect side [base-str target-str duration]]
+            (str "increase its strength from " base-str " to " target-str (to-duration duration)))
+(defmethod render-effect :lower-ice-str [effect side [strength card]]
+                 (str "lower the strength of "
+                      (or card "each installed icebreaker")
+                      " by " strength))
+(defmethod render-effect :shuffle-into-rnd [effect side [value]] (str "shuffle " (render-card2 value) " into R&D"))
+(defmethod render-effect :shuffle-from-hq-into-rnd [effect side [value]] (str "shuffle " (quantify value "card") " from HQ into R&D"))
+(defmethod render-effect :rearrange-rnd [effect side [value]] (str "rearrange the top " (quantify value "card") " of R&D"))
+(defmethod render-effect :reveal-from-rnd [effect side [value]] (str "reveal " value " from the top of R&D"))
+(defmethod render-effect :look-top-rnd [effect side [value]] (str "look at the top " (quantify value "card") " of R&D"))
+(defmethod render-effect :move-hq-rnd [effect side [value]] (str "add " (quantify value "card") " from HQ to to the top of R&D"))
+(defmethod render-effect :play [effect side [value]] (str "play " value))
+#_(defmethod render-effect :move-server
+  ([effect side server] (render-effect effect side server nil))
+  ([effect side server card]
+   (str "move " (or card "itself") " to " (to-zone-name server))))
+(defmethod render-effect :move-server
+  [effect side [server card]]
+  (str "move " (or card "itself") " to " (to-zone-name server)))
+(defmethod render-effect :prevent-access [effect side [type card]]
+  (str "prevent the runner from accessing "
+       (case (keyword type)
+         :target card
+         :exclusive (str "cards other than " card))))
+(defmethod render-effect :trash-stack [effect side [value]] (str "trash " (enumerate-str value) " from the top of the stack"))
+(defmethod render-effect :prevent-net [effect side [value]] (str "prevent " value " net damage"))
+(defmethod render-effect :prevent-encounter-ability [effect side [card ability]]
+                             (str "prevent the encounter ability on " card (when ability (str " (" ability ")"))))
+(defmethod render-effect :prevent-etr [effect side [value]] (str "prevent " (render-card value) " from ending the run this encounter"))
+(defmethod render-effect :gain-str [effect side [strength duration]] (str "gain " strength " strength" (to-duration duration)))
+(defmethod render-effect :breach-server [effect side [value]] (str "breach " (to-zone-name value)))
+(defmethod render-effect :derez [effect side [value]] (str "derez "
+            (if (coll? value)
+              (enumerate-str (map render-card value))
+              (render-card value))))
+(defmethod render-effect :rez-free [effect side [value]] (str "rez " (enumerate-str value) ", ignoring all costs"))
+(defmethod render-effect :encounter-ice [effect side [value]] (str "make the Runner encounter " (render-card value)))
+(defmethod render-effect :reveal-self [effect side [value]] (str "reveal itself from " (to-zone-name value)))
+(defmethod render-effect :add-from-hq-to-score [effect side [value]] (str "add " value " from HQ to [their] score area"))
+(defmethod render-effect :turn-faceup [effect side [value]] (str "turn " value " in Archives faceup"))
+(defmethod render-effect :add-self-to-hq [effect side [value]] (str "add itself to HQ"))
+(defmethod render-effect :trash [effect side [value]] (str "trash " (render-card value)))
+;; TODO this needs a duration?
+(defmethod render-effect :add-str-new [effect side [card count]] (str "give " (render-card card) " +" count " strength"))
+;; TODO could spruce this up but it follows current thunderbolt format
+(defmethod render-effect :add-sub [effect side [value]] (str "add " value " after its other subroutines"))
+(defmethod render-effect :trash-rnd [effect side [value]] (str "trash the top " (quantify value "card") " of R&D"))
+(defmethod render-effect :remove-click-next-turn [effect side [value]] (str "give the Runner -" value " allotted [Click] for [their] next turn"))
+(defmethod render-effect :move-grip-to-stack [effect side [value]] (str "add " (enumerate-str value) " from the Grip to the top of the Stack"))
+(defmethod render-effect :shuffle-into-stack [effect side [value]] (str "shuffle " (or value "them") " into the stack"))
+(defmethod render-effect :remove-all-virus-counters [effect side [value]] (str "remove all virus counters from " (render-card value)))
+(defmethod render-effect :trash-from-hq [effect side [value]] (str "trash " value " from HQ"))
+(defmethod render-effect :reveal-from-grip [effect side [value]] (str "reveal " (enumerate-str value) " from the Grip"))
+(defmethod render-effect :add-to-top-rnd [effect side [value]] (str "add " value " to the top of R&D"))
+;; so extend this to render cards, and render cards using other sources too?
+(defmethod render-effect :add-to-bottom-rnd [effect side [value]] (str "add " (render-card value) " to the bottom of R&D"))
+(defmethod render-effect :force-reveal [effect side [value]] (str "reveal " (quantify value "random card") " from HQ"))
+(defmethod render-effect :shuffle-zone-into [effect side [value]] (str "shuffle " (enumerate-str (map to-zone-name value)) " into " (to-zone-name [:deck])))
+(defmethod render-effect :rfg [effect side [value]] (str "remove " (enumerate-str value) " from the game"))
+(defmethod render-effect :reveal-from-stack [effect side [value]] (str "reveal " (enumerate-str value) " from the top of the stack"))
+(defmethod render-effect :host-on-self [effect side [value]] (str "host " value " on itself"))
+(defmethod render-effect :host-instead-of-access [effect side [value]] (str "host " value " on itself instead of accessing it"))
+(defmethod render-effect :shuffle-stack [effect side [value]] (str "shuffle the stack"))
+(defmethod render-effect :trash-self [effect side [value]] (str "trash itself"))
+(defmethod render-effect :credits [effect side [value]] (str "pay " value " [Credits]"))
+(defmethod render-effect :draw-additional [effect side [value]] (str "draw " (quantify value "additional card")))
+(defmethod render-effect :purge [effect side [value]] "purge virus counters")
+(defmethod render-effect :reveal [effect side [value]] (let [groups (group-by :server value)]
+          (str "to reveal "
+               (enumerate-str (map #(str (enumerate-str (map :card (second %)))
+                                         " from " (to-zone-name (first %)))
+                                   groups)))))
+(defmethod render-effect :choose-server [effect side [value]] (str "target " (to-zone-name value)))
+(defmethod render-effect :choose-subtype [effect side [value]] (str "choose " value))
+(defmethod render-effect :choose-ice [effect side [value]] (str "choose " (render-card value)))
+(defmethod render-effect :add-to-score [effect side [card kind points]]
+                (str "add " (or card "itself") " to the score area"
+                     (when points
+                       (str " as an "
+                            (when (= (keyword kind) :assassination) "assassination ")
+                            "agenda worth " (quantify points "agenda point")))))
+;; TODO
+(defmethod render-effect :swap-ice-from-hand [effect side [value]] (str "swap " (render-card value) " with a piece of ice from HQ"))
+(defmethod render-effect :swap-ice [effect side [value]] (throw "foo"))
+
 (defn render-single-effect-force-check
   [effect value side forced]
   (str
@@ -400,18 +561,19 @@
           ;; This is inverted -- corp forcing effect means it's forcing runner to take the effect.
           (if (= (keyword side) :corp) "Runner" "Corp")
           " to "))
-   (render-single-effect (keyword effect) value side)))
+   #_(apply render-effect (keyword effect) side value)
+   (render-effect (keyword effect) side value)))
 
-(defn render-effect
-  [effects side]
+(defn render-effects
+  [effects side forced]
   (when effects
-    (enumerate-str (remove nil? (for [[c v] effects]
+    (enumerate-str (remove nil? (for [[c & v] effects]
                                   (render-single-effect-force-check c v side forced))))))
 
 (defn render-effect-str
   [{:keys [effect side]}]
   (when-not (empty? effect)
-    (str " to " (render-effect effect side))))
+    (str " to " (render-effects effect side forced))))
 
 (defmulti render-text (fn [input] (or (keyword (:type input)) :raw-text)))
 
