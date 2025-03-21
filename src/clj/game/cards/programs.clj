@@ -997,7 +997,7 @@
                                         " and " (card-str state target))
                               :async true
                               :effect (req (wait-for (pay state side (make-eid state eid) card [(->c :virus 1)])
-                                                     (system-msg state side (:msg async-result))
+                                                     (system-msg state side {:cost (:msg async-result)})
                                                      (swap-ice state side first-ice target)
                                                      (effect-completed state side eid)))})
                            card nil))}}}]})
@@ -1044,7 +1044,7 @@
                               :async true
                               :effect (req (wait-for (pay state :runner (make-eid state eid) card [(->c :virus 1)])
                                                      (if-let [payment-str (:msg async-result)]
-                                                       (do (system-msg state :runner payment-str)
+                                                       (do (system-msg state :runner {:cost payment-str})
                                                            (effect-completed state side eid))
                                                        (trash state side eid card {:cause-card card}))))}]}))
 

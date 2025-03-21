@@ -269,9 +269,10 @@
                                                       :source-type :runner-steal
                                                       :action :steal-cost))
                                      nil cost)
-                                (system-msg state side (str (:msg async-result) " to steal "
-                                                            (:title card) " from "
-                                                            (name-zone :corp (get-zone card))))
+                                (system-msg state side {:cost (:msg async-result)
+                                                        :raw-text (str "steal "
+                                                                       (:title card) " from "
+                                                                       (name-zone :corp (get-zone card)))})
                                 (steal-agenda state side eid card))
 
                       ;; Use access ability
@@ -320,7 +321,7 @@
   (let [cost-str (join-cost-strs cost-msg)]
     (when-not no-msg
       (system-msg state side
-                  (merge {:type :access
+                  (merge {:type :access :cost cost-msg
                           ;; TODO need to clean up how zones are referenced here
                           :server zone}
                          (when title {:card title})))))

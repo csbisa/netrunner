@@ -126,9 +126,9 @@
                                         (req (wait-for
                                                (pay state :corp (make-eid state eid) card [(->c :credit 1)])
                                                (system-msg state :corp
-                                                           (str (:msg async-result)
-                                                                " to prevent exposing "
-                                                                (card-str state (:card context))))
+                                                           {:cost (:msg async-result)
+                                                            :raw-text (str "prevent exposing "
+                                                                           (card-str state (:card context)))})
                                                (effect-completed state side eid)))}}}
                                      card targets)))}}}
                  card targets))}]
@@ -874,7 +874,7 @@
                                   (do (system-msg state :runner
                                                   (str "uses " (:title card) " to"
                                                        " trash " (:title accessed-card)
-                                                       " at no cost, spending " msg))
+                                                       " at no cost, spending " (render-cost msg)))
                                       (trash state side eid (assoc accessed-card :seen true) {:accessed true}))
                                   ;; Player cancelled ability
                                   (do (swap! state dissoc-in [:per-turn (:cid card)])
@@ -2660,7 +2660,7 @@
                                             "do 1 core damage"))
                                 :effect (req (if (= target "Pay [Click] and 2 [Credits]")
                                                (wait-for (pay state side (make-eid state eid) card [(->c :click 1) (->c :credit 2)])
-                                                         (system-msg state side (:msg async-result))
+                                                         (system-msg state side {:cost (:msg async-result)})
                                                          (effect-completed state :runner eid))
                                                (damage state side eid :brain 1 {:card card})))}
                                card nil))}]})
@@ -2683,7 +2683,7 @@
                         (end-run state :corp eid card)
                         (wait-for (pay state :runner (make-eid state eid) card (->c :trash-installed 1))
                                   (when-let [payment-str (:msg async-result)]
-                                    ;; TODO blah
+                                    ;; TODO
                                     (system-msg state :runner
                                                 (str payment-str
                                                      " due to " (:title card)

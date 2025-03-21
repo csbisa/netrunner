@@ -137,7 +137,7 @@
                                                                                                      :additional-costs additional-costs
                                                                                                      :source-type :trash-card))
                                                                          nil additional-costs)
-                                                                    (system-msg state side (str (:msg async-result) " as an additional cost to trash " (:title target)))
+                                                                    (system-msg state side (str (render-cost (:msg async-result)) " as an additional cost to trash " (:title target)))
                                                                     (complete-with-result state side eid target))))}
                                           card targets)
                                         (if async-result

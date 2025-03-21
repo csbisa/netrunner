@@ -85,7 +85,7 @@
    (let [username (get-in @state [side :user :username])]
      ;; TODO this is just a workaround to fix any cards that still use (:msg async-result)
      ;; directly. can be used to suss out any cards doing this that go through tests
-     (let [text (if (vector? text) {:cost text} text)
+     (let [text text
            ;; TODO now let's convert our map to a vector...
            ;; {:a 1 :b [2 3]} -> [[:a 1] [:b 2 3]]
            ;; however, it's not unconditional...

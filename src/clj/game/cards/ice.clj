@@ -181,7 +181,7 @@
                   (end-run state :corp eid card)
                   (wait-for (pay state :corp (make-eid state eid) card cost)
                             (when-let [payment-str (:msg async-result)]
-                              (system-msg state :corp payment-str))
+                              (system-msg state :corp {:cost payment-str}))
                             (effect-completed state side eid))))})
 
 (defn end-the-run-unless-runner
@@ -1517,7 +1517,7 @@
                   :async true
                   :effect (req (if (= target "Pay 3 [Credits]")
                                  (wait-for (pay state :runner (make-eid state eid) card (->c :credit 3))
-                                           (system-msg state :runner (:msg async-result))
+                                           (system-msg state :runner {:cost (:msg async-result)})
                                            (effect-completed state side eid))
                                  (gain-tags state :runner eid 1)))}
    :subroutines [end-the-run-if-tagged
@@ -1530,7 +1530,7 @@
                   :label "Runner must pay 2 [Credits]. If they cannot, end the run"
                   :effect (req (wait-for (pay state :runner (make-eid state eid) card (->c :credit 2))
                                          (if (:cost-paid async-result)
-                                           (do (system-msg state :runner (:msg async-result))
+                                           (do (system-msg state :runner {:cost (:msg async-result)})
                                                (effect-completed state side eid))
                                            (end-run state :corp eid card))))}
                  end-the-run]})
@@ -1646,7 +1646,7 @@
                :effect
                (req (if (seq unbroken-subs)
                       (wait-for (pay state :runner (make-eid state (assoc eid :source-type :subroutine)) card [(->c :credit 1)])
-                                (system-msg state :runner (:msg async-result))
+                                (system-msg state :runner {:cost (:msg async-result)})
                                 (continue-ability
                                   state side
                                   (break-fn (rest unbroken-subs) (inc total))
@@ -1811,7 +1811,7 @@
              :async true
              :effect (req (if (= target "Pay 1 [Credits]")
                             (wait-for (pay state side (make-eid state eid) card (->c :credit 1))
-                                      (system-msg state side (:msg async-result))
+                                      (system-msg state side {:cost (:msg async-result)})
                                       (effect-completed state side eid))
                             (continue-ability state :runner runner-trash-installed-sub card nil)))}]
     {:subroutines [sub
@@ -1834,7 +1834,7 @@
              :async true
              :effect (req (if (= target "Pay 2 [Credits]")
                             (wait-for (pay state side (make-eid state eid) card (->c :credit 2))
-                                      (system-msg state side (:msg async-result))
+                                      (system-msg state side {:cost (:msg async-result)})
                                       (effect-completed state side eid))
                             (continue-ability state :runner runner-trash-installed-sub card nil)))}]
     {:subroutines [sub
@@ -1859,7 +1859,7 @@
              :effect (req (cond
                             (= target "Pay 3 [Credits]")
                             (wait-for (pay state side (make-eid state eid) card (->c :credit 3))
-                                      (system-msg state side (:msg async-result))
+                                      (system-msg state side {:cost (:msg async-result)})
                                       (effect-completed state side eid))
                             (= target "Trash an installed card")
                             (continue-ability state :runner runner-trash-installed-sub card nil)
@@ -2270,7 +2270,7 @@
                                  (if (can-pay? state side (assoc eid :source card :source-type :subroutine) card (:title card) (->c :credit c))
                                    (let [new-eid (make-eid state {:source card :source-type :subroutine})]
                                      (wait-for (pay state :corp new-eid card (->c :credit c))
-                                               (system-msg state :corp (:msg async-result))
+                                               (system-msg state :corp {:cost (:msg async-result)})
                                                (continue-ability
                                                  state side
                                                  {:msg (msg "pay " c " [Credits] and place " (quantify c "advancement token")
@@ -2600,8 +2600,9 @@
                             (damage state side eid :brain 1 {:card card})
                             (wait-for (pay state :runner (make-eid state eid) card cost)
                                       (when-let [payment-str (:msg async-result)]
+                                        ;; TODO
                                         (system-msg state :runner
-                                                    (str payment-str " due to " (:title card))))
+                                                    (str (render-cost payment-str) " due to " (:title card))))
                                       (effect-completed state side eid))))})]
     {:subroutines [(brain-damage-unless-runner-pays [(->c :resource 1)] "resource")
                    (brain-damage-unless-runner-pays [(->c :hardware 1)] "piece of hardware")
@@ -3226,7 +3227,7 @@
                                                  net-dmg " net damage"))
                                 (damage state :runner eid :net net-dmg {:card card}))
                             (wait-for (pay state :runner (make-eid state eid) card [(->c :trash-from-deck mill-cnt)])
-                                      (system-msg state :runner (:msg async-result))
+                                      (system-msg state :runner {:cost (:msg async-result)})
                                       (effect-completed state side eid))))})]
     {:subroutines [(net-or-mill 1 2)
                    (net-or-mill 2 3)
@@ -3470,7 +3471,7 @@
                                       :msg (msg "force the Runner to " (decapitalize target))
                                       :effect (req (if (= target "Pay 3 [Credits]")
                                                      (wait-for (pay state :runner (make-eid state eid) card (->c :credit 3))
-                                                               (system-msg state :runner (:msg async-result))
+                                                               (system-msg state :runner {:cost (:msg async-result)})
                                                                (effect-completed state side eid))
                                                      (access-card state :runner eid c)))}
                                      card nil))))}]})
@@ -3610,7 +3611,7 @@
              :effect (req (if (= "Suffer 1 net damage" target)
                             (continue-ability state :corp (do-net-damage 1) card nil)
                             (wait-for (pay state :runner (make-eid state eid) card [(->c :credit 1)])
-                                      (system-msg state :runner (:msg async-result))
+                                      (system-msg state :runner {:cost (:msg async-result)})
                                       (effect-completed state side eid))))}]
     {:subroutines [sub
                    sub]}))
@@ -4116,7 +4117,7 @@
                               "Pay 3 [Credits]")])
              :effect (req (if (= "Pay 3 [Credits]" target)
                             (wait-for (pay state :runner (make-eid state eid) card [(->c :credit 3)])
-                                      (system-msg state :runner (:msg async-result))
+                                      (system-msg state :runner {:cost (:msg async-result)})
                                       (effect-completed state side eid))
                             (continue-ability state :corp trash-program-sub card nil)))}]
     (assoc (hero-to-hero sub)
@@ -4401,7 +4402,7 @@
                      :effect (req (if (and (= target "Spend [Click]")
                                            (can-pay? state :runner eid card nil [(->c :click 1)]))
                                     (wait-for (pay state side (make-eid state eid) card (->c :click 1))
-                                              (system-msg state side (:msg async-result))
+                                              (system-msg state side {:cost (:msg async-result)})
                                               (effect-completed state :runner eid))
                                     (end-run state :corp eid card)))})})
 
