@@ -243,7 +243,8 @@
       :move-server (let [[server card] value]
                      (str (to-zone-name server) "に" (or card "それ自体") "を動かす"))
       :prevent-access (let [[type card] value]
-                        (str (case (keyword type)
+                        (str "ランナーに"
+                             (case (keyword type)
                                :target card
                                :exclusive (str card "以外"))
                              "にアクセスすることを妨害する"))
@@ -303,8 +304,9 @@
                              (str points "価値を持つ"
                                   (when (= (keyword kind) :assassination) "暗殺の")
                                   "計画書として自身の得点エリア"))
-                       "に加える"))      ;; TODO
-      :prevent-steal-trash (str (to-duration duration) "prevent the Runner from stealing or trashing Corp cards")
+                           "に加える"))      ;; TODO
+      ;; TODO weird. also :prevent-access needs a revisit
+      :prevent-steal-trash (str (to-duration duration) "ランナーにコーポのカードを盗むかトラッシュすることを妨害する")
       :swap-ice-from-hand (str (render-card value) "とHQにあるアイスを交換する")
       :swap-ice (throw "foo"))))
 
