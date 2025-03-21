@@ -57,12 +57,8 @@
 ;   A vector of ->c costs to charge, for example [(->c :credit 1) (->c :click 1)].
 ;   If the costs cannot be paid, the ability will not be resolved.
 ; :msg -- string or 5-fn.
-;   Must return a string. (`msg` is expressly built for this.)
-;   Prints to the log when the ability is finished. Will be used as the :label if no :label is provided.
-;   The output is written as:
-;     (with cost) "{Player} pays {X} to use {card title} to {msg result}."
-;     (with no cost) "{Player} uses {card title} to {msg result}."
-;   so the returned string should always be written imperatively.
+;   Must return a map, but accepts a string as fallback. (`msg` is expressly built for this.)
+;   Sent to the client to render to the log when the ability is finished. Will be used as the :label if no :label is provided.
 ; :label -- string
 ;   If this ability is in an :abilities map on a card, the label will be prepended with a string
 ;   of the costs, and both will be displayed in the ability button. If this is not defined
@@ -305,7 +301,7 @@
   "Prints the ability message"
   [state side {:keys [eid] :as ability} card targets payment-str]
   (when-let [message (:msg ability)]
-    (let [desc (if (or (= :cost message) (string? message) (map? message))
+    (let [desc (if (or (= :cost message) (string? message) (vector? message))
                  message
                  (message state side eid card targets))
           cost-spend-msg (build-spend-msg-suffix payment-str "use")

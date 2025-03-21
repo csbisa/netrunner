@@ -143,3 +143,8 @@
                        (update :sfx #(take 3 %))
                        (update :sfx-current-id inc))
                    state))))
+
+;(require '[malli.instrument :as mi])
+;(mi/collect!)
+;(mi/instrument!)
+

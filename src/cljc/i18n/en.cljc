@@ -655,12 +655,14 @@
   (str "advance " (render-card input)))
 
 (defmethod render-text :score
-  [{:keys [card points]}]
-  (str "scores " card " and gains " points " agenda points"))
+  [{:keys [card cost points]}]
+  (str (if cost "score" "scores") card
+       (when points (str " and gains " points " agenda points"))))
 
 (defmethod render-text :steal
-  [{:keys [card points]}]
-  (str "steals " card " and gains " points " agenda points"))
+  [{:keys [card cost points]}]
+  (str (if cost "steal" "steals") card
+       (when points (str " and gains " points " agenda points"))))
 
 (defmethod render-text :start-run
   [{:keys [server ignore-costs cost]}]
@@ -673,9 +675,8 @@
   (str "will continue the run"))
 
 (defmethod render-text :jack-out
-  [input]
-  ;; TODO also jack/jacks here
-  (str (if (:cost input) "jack" "jacks") " out"))
+  [{:keys [cost]}]
+  (str (if cost "jack" "jacks") " out"))
 
 (defmethod render-text :approach-ice
   [{:keys [ice]}]
@@ -747,9 +748,9 @@
   [{:keys [server]}]
   (str "breaches " (to-zone-name server)))
 
-;; TODO need to support "everything else in archives"
 (defmethod render-text :access
   [{:keys [card server]}]
+  ;; TODO review this for any cleanup, it shouldn't be needed with card maps anymore
   (str "accesses " (or card
                        (if (or (= server [:deck]) (= server ["deck"]))
                          "an unseen card"

@@ -11,20 +11,23 @@
 (def strength number?)
 (def duration [:enum {:title "duration"} :end-of-encounter :end-of-run :end-of-turn])
 (def counter-type [:enum :adv :virus :power :credit :credits])
-(def server [:or :keyword [:vector :keyword]])
+(def server [:or [:enum :hand :deck :discard]
+             ;; TODO keyword should be restricted, but need to figure out how to
+             ;; sanely handle arbitrary :remoteX keys
+             [:tuple [:enum :servers] keyword?]
+             [:tuple [:enum :servers] keyword? keyword?]])
 (def side [:enum :corp :runner])
-(def card-map :map)
-;; TODO fix this
-#_(def card-map
-    [:schema
-     {:registry
-      {::card-map
-       [:map
-        [:card {:optional true} :string]
-        [:card-type {:optional true} [:enum :facedown :ice :card :drawn-card]]
-        [:hosted {:optional true} [:ref ::card-map]]
-        [:server {:optional true} server]
-        [:pos {:optional true} number?]]}}])
+(def card-map
+  [:schema
+   {:registry
+    {::card-map
+     [:map {:closed true}
+      [:card {:optional true} :string]
+      [:card-type {:optional true} [:enum :facedown :ice :card :drawn-card]]
+      [:hosted {:optional true} [:schema [:ref ::card-map]]]
+      [:server {:optional true} server]
+      [:pos {:optional true} number?]]}}
+   ::card-map])
 (def card
   [:or
    nil?
@@ -74,8 +77,6 @@
     [:add-installed-to-bottom-of-deck [:tuple keyword? card-list]]
     [:add-random-from-hand-to-bottom-of-deck [:tuple keyword? number?]]
     [:agenda-counter [:cat keyword? [:+ [:tuple card number?]]]]
-    ;; TODO i'm not sure why the hack isn't flattening the list
-    #_[:virus [:cat keyword? [:+ [:tuple card number?]]]]
     [:virus [:or [:cat keyword? [:+ [:tuple card number?]]]
              [:cat keyword? [:vector [:tuple card number?]]]]]
     [:advancement [:cat keyword? [:+ [:tuple card number?]]]]
@@ -86,7 +87,7 @@
   [:or [:vector MapCost] [:tuple [:vector MapCost] [:vector MapCost]]])
 
 (def MapEffect
-  [:multi {:dispatch first ;:error/message {:en "unknown value in :type"}
+  [:multi {:dispatch first
            :error/fn {:en (fn [{:keys [value]} _] (str (first value) " is not a valid effect"))}}
    [:advance [:tuple keyword? card]]
    [:draw-cards [:tuple keyword? number?]]
@@ -200,10 +201,8 @@
 (def costs [:cost {:optional true} [:or MapCosts string?]])
 (def effects [:effect {:optional true} MapEffects])
 
-#_(def cost-effect-map
-    [:map [:type keyword?]])
 (def MapMsg
-  [:multi {:dispatch :type ;:error/message {:en "unknown value in :type"}
+  [:multi {:dispatch :type
            :error/fn {:en (fn [{:keys [value]} _] (str (:type value) " is not a valid type"))}}
    [:create-game [:map [:type keyword?]]]
    [:keep-hand [:map [:type keyword?]]]
@@ -225,33 +224,40 @@
           [:rez-source {:optional true} string?] costs]]
    [:use [:map [:type keyword?] [:card card] costs effects]]
    [:advance [:map [:type keyword?] [:card card]]]
-   ;; azef protocol score has no points, need to check behavior there
    [:score [:map [:type keyword?] [:card string?] [:points {:optional true} number?]]]
-   [:steal [:map [:type keyword?] [:card string?] [:points number?]]]
-   [:start-run [:map [:type keyword?]]]
+   [:steal [:map [:type keyword?] [:card string?] [:points {:optional true} number?]]]
+   [:start-run [:map [:type keyword?] [:ignore-costs boolean?]]]
    [:continue-run [:map [:type keyword?]]]
    [:jack-out [:map [:type keyword?]]]
-   [:approach-ice [:map [:type keyword?]]]
-   [:bypass-ice [:map [:type keyword?]]]
-   [:encounter-ice [:map [:type keyword?]]]
-   [:encounter-effect [:map [:type keyword?]]]
-   [:pass-ice [:map [:type keyword?]]]
-   [:break-subs [:map [:type keyword?]]]
-   [:str-boost [:map [:type keyword?]]]
-   [:resolve-subs [:map [:type keyword?]]]
+   [:approach-ice [:map [:type keyword?] [:ice card-map]]]
+   ;; TODO need to update any offenders
+   [:bypass-ice [:map [:type keyword?] [:ice card-map]]]
+   [:encounter-ice [:map [:type keyword?] [:ice card-map]]]
+   [:encounter-effect [:map [:type keyword?] [:ice card]]]
+   [:pass-ice [:map [:type keyword?] [:ice card-map]]]
+   [:break-subs [:map [:type keyword?] [:ice card] [:subtype string?]
+                 [:subs {:optional true} [:vector string?]]
+                 [:break-type {:optional true} [:enum :all :remaining]]
+                 [:sub-count number?] [:str-boost {:optional true} number?]]]
+   [:str-boost [:map [:type keyword?] [:strength number?]]]
+   ;; TODO unify this with the rest
+   [:resolve-subs [:map [:type keyword?] [:resolved [:map [:ice card] [:resolved-subs [:vector string?]]]]]]
    [:approach-server [:map [:type keyword?] [:server server]]]
    [:breach-server [:map [:type keyword?] [:server server]]]
-   [:access [:map [:type keyword?]]]
+   [:access [:map [:type keyword?] [:card card] [:server server]]]
    [:access-all [:map [:type keyword?]]]
+   ;; TODO more weirdness here
    [:trash [:map [:type keyword?]]]
-   [:take-damage [:map [:type keyword?]]]
-   [:rfg [:map [:type keyword?]]]
+   [:take-damage [:map [:type keyword?] [:cards card-list] [:cause [:enum :net :meat :brain]]]]
+   [:rfg [:map [:type keyword?] [:card card]]]
+   ;; TODO some messed up conditional handling for this one
    [:discard [:map [:type keyword?]]]
-   [:increase-trace-link [:map [:type keyword?]]]
+   [:increase-trace-link [:map [:type keyword?] [:strength number?]]]
    [:win-game [:map [:type keyword?]]]
+   ;; TODO not really used today i think
    [:direct-effect [:map [:type keyword?]]]
-   [:fire-unbroken [:map [:type keyword?]]]
-   [:use-command [:map [:type keyword?]]]
+   [:fire-unbroken [:map [:type keyword?] [:card card]]]
+   [:use-command [:map [:type keyword?] [:command string?]]]
    ;; TODO this needs to be fixed/cleaned up
    [:force [:map [:type keyword?]]]
    ;; TODO default for testing for now
@@ -259,6 +265,10 @@
    #_[::m/default [:map [:type keyword?]]]
    [::m/default [:or [:map [:raw-text string?]]
                  [:map [:cost MapCosts]]]]])
+
+;; TODO need to recursively apply closed to maps above to reject unknown keys
+;; but probably also inject cost/effect to most/all of those, too ugly otherwise
+;; (since the optionals are bad enough already)
 
 (def MapMsgOrString
   [:or MapMsg :string])
@@ -310,6 +320,10 @@
 (and
  (m/validate MapCosts [[:credits 1]])
  (m/validate MapCosts [[:credits {:pool 1}]]))
+
+;; card defs
+(and
+ (m/validate MapMsg {:type :use :card "Basic Action Card" :effect [[:advance {:card "Offworld Office" :server [:servers :hq]}]]}))
 
 (require '[malli.instrument :as mi])
 (mi/collect!)
