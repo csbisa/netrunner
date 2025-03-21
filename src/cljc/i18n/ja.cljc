@@ -304,6 +304,7 @@
                                   (when (= (keyword kind) :assassination) "暗殺の")
                                   "計画書として自身の得点エリア"))
                        "に加える"))      ;; TODO
+      :prevent-steal-trash (str (to-duration duration) "prevent the Runner from stealing or trashing Corp cards")
       :swap-ice-from-hand (str (render-card value) "とHQにあるアイスを交換する")
       :swap-ice (throw "foo"))))
 
