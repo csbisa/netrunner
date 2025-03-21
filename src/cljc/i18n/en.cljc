@@ -388,6 +388,7 @@
                              (str " as an "
                                   (when (= (keyword kind) :assassination) "assassination ")
                                   "agenda worth " (quantify points "agenda point")))))
+      :prevent-steal-trash (str "prevent the Runner from stealing or trashing Corp cards" (to-duration value))
       ;; TODO
       :swap-ice-from-hand (str "swap " (render-card value) " with a piece of ice from HQ")
       :swap-ice (throw "foo"))))
