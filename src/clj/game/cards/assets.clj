@@ -618,7 +618,7 @@
              :async true
              :effect (req (if (= target "Pay 1 [Credits]")
                             (wait-for (pay state :runner (make-eid state eid) card (->c :credit 1))
-                                      (system-msg state :runner {:cost (:msg async-result)})
+                                      (system-msg state :runner (:msg async-result))
                                       (effect-completed state side eid))
                             (gain-tags state :corp eid 1)))}]})
 
@@ -674,7 +674,7 @@
                  :msg (msg "force the Runner to " (decapitalize target))
                  :effect (req (if (= target "Pay 1 [Credits]")
                                 (wait-for (pay state side (make-eid state eid) card (->c :credit 1))
-                                  (system-msg state side {:cost (:msg async-result)})
+                                  (system-msg state side (:msg async-result))
                                   (effect-completed state side eid))
                                 (mill state :runner eid :runner 1)))}]
     {:derezzed-events [corp-rez-toast]

@@ -2556,7 +2556,7 @@
     :async true
     :effect (req (if (= target "Pay 5 [Credits]")
                    (wait-for (pay state :corp (make-eid state eid) card (->c :credit 5))
-                             (system-msg state :corp {:cost (:msg async-result)})
+                             (system-msg state :corp (:msg async-result))
                              (effect-completed state side eid))
                    (do (gain-bad-publicity state :corp 1)
                        (effect-completed state side eid))))}})
@@ -4148,7 +4148,7 @@
                 :async true
                 :effect (req (let [n (str->int target)]
                                (wait-for (pay state :runner (make-eid state eid) card (->c :click n))
-                                         (system-msg state :runner {:cost (:msg async-result)})
+                                         (system-msg state :runner (:msg async-result))
                                          (trash-cards state :corp eid (take n (shuffle (:hand corp))) {:cause-card card}))))}})]})
 
 (defcard "Watch the World Burn"

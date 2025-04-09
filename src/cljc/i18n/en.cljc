@@ -388,6 +388,7 @@
                              (str " as an "
                                   (when (= (keyword kind) :assassination) "assassination ")
                                   "agenda worth " (quantify points "agenda point")))))
+      :prevent-steal-trash (str "prevent the Runner from stealing or trashing Corp cards" (to-duration value))
       ;; TODO
       :swap-ice-from-hand (str "swap " (render-card value) " with a piece of ice from HQ")
       :swap-ice (throw "foo"))))
@@ -549,7 +550,6 @@
                        (str " as an "
                             (when (= (keyword kind) :assassination) "assassination ")
                             "agenda worth " (quantify points "agenda point")))))
-(defmethod render-effect :prevent-steal-trash [effect side [value]] (str "prevent the Runner from stealing or trashing Corp cards" (to-duration value)))
 ;; TODO
 (defmethod render-effect :swap-ice-from-hand [effect side [value]] (str "swap " (render-card value) " with a piece of ice from HQ"))
 (defmethod render-effect :swap-ice [effect side [value]] (throw "foo"))

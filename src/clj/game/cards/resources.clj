@@ -3137,9 +3137,9 @@
                               (let [payment-str (:msg async-result)
                                     card (move state :corp target :rfg)]
                                 (system-msg state side
-                                            {:cost payment-str ;; TODO
-                                             :raw-text (str " and remove " (:title target)
-                                                        " from the game")})
+                                            (str payment-str
+                                                 " and remove " (:title target)
+                                                 " from the game"))
                                 (complete-with-result state side eid card)))))}}})
 
 (defcard "Salvaged Vanadis Armory"
@@ -3690,7 +3690,7 @@
                          :async true
                          :effect (req (wait-for (resolve-ability state side (pick-virus-counters-to-spend 2) card nil)
                                                 (if (:msg async-result)
-                                                  (do (system-msg state side (str "spends " (render-cost (:msg async-result))))
+                                                  (do (system-msg state side (str "spends " (:msg async-result)))
                                                       (continue-ability state side corp-choice card nil))
                                                   (effect-completed state side eid))))}}}]
     {:events [maybe-spend-2

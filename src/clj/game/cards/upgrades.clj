@@ -452,7 +452,7 @@
                       :effect (req (if (= target "End the run")
                                      (end-run state side eid card)
                                      (wait-for (pay state :runner (make-eid state eid) card (->c :credit cost))
-                                               (system-msg state :runner {:cost (:msg async-result)})
+                                               (system-msg state :runner (:msg async-result))
                                                (effect-completed state side eid))))})
                    card nil))}]
      :abilities [ability]}))
@@ -558,7 +558,7 @@
                 :msg "force the Runner to add 2 random cards from the grip to the bottom of the stack as additional cost to trash it"
                 :effect
                 (req (wait-for (pay state :runner (make-eid state eid) card [(->c :add-random-from-hand-to-bottom-of-deck 2)])
-                               (system-msg state :runner {:cost (:msg async-result)})
+                               (system-msg state :runner (:msg async-result))
                                (register-lingering-effect
                                  state side card
                                  (assoc steal-cost
@@ -809,7 +809,7 @@
                              :effect (req (if (= "End the run" target)
                                             (end-run state :corp eid card)
                                             (wait-for (pay state :runner (make-eid state eid) card (->c :credit credit-cost))
-                                                      (system-msg state :runner {:cost (:msg async-result)})
+                                                      (system-msg state :runner (:msg async-result))
                                                       (effect-completed state side eid))))})
                          card nil))}]})
 
@@ -1144,7 +1144,7 @@
                             [(and (= target "Pay 5 [Credits]")
                                   (can-pay? state :runner eid card nil [(->c :credit 5)]))
                              (wait-for (pay state side (make-eid state eid) card (->c :credit 5))
-                                       (system-msg state side {:cost (:msg async-result)})
+                                       (system-msg state side (:msg async-result))
                                        (effect-completed state :runner eid))]
                             [:else
                              (system-msg state :corp {:type :use :card (:title card) :effect {:end-run true}})
