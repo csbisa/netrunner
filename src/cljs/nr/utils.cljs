@@ -419,10 +419,10 @@
   [images lang res art]
   (or (get-in images [lang res art])
       (and (not= res :default)
-           (get-in images [lang :default art])) ;; check for default res version of art
+           (str "https://www.jinteki.net/" (get-in images [lang :default art]))) ;; check for default res version of art
       (and (not= art :stock)
-           (or (get-in images [lang res :stock]) ;; check for high res version of stock image
-               (get-in images [lang :default :stock]))) ;; check for default res version of stock image
+           (str "https://www.jinteki.net/" (or (get-in images [lang res :stock]) ;; check for high res version of stock image
+                                               (get-in images [lang :default :stock])))) ;; check for default res version of stock image
       (and (not= lang :en)
            (get-image-path images :en res art)) ;; repeat search for eng version of the art and resolution
       "/img/missing.png"))
