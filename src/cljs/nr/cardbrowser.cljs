@@ -25,6 +25,7 @@
 (declare insert-starter-info)
 (declare insert-starter-ids)
 (declare merge-localized-data)
+(declare update-card-titles)
 
 (defn- format-card-key->string
   [format]
@@ -34,7 +35,8 @@
                   {} (:cards format))))
 
 (go (let [server-version (get-in (<! (GET "/data/cards/version")) [:json :version])
-          lang (get-in @app-state [:options :card-language] "en")
+          lang (get-in @app-state [:options :language] "en")
+          card-lang (get-in @app-state [:options :card-language] "en")
           local-cards (js->clj (.parse js/JSON (.getItem js/localStorage "cards")) :keywordize-keys true)
           need-update? (or (not local-cards)
                            (not= server-version (:version local-cards))
@@ -44,9 +46,33 @@
                            (:cards local-cards))
           localized-data (when (not= lang "en")
                            (:json (<! (GET (str "/data/cards/lang/" lang)))))
+          ;; cases:
+          ;; en+en: do nothing. nil, nil
+          ;; en+ja: override titles to ja. nil, fetch
+          ;; ja+en: override localized data, then override titles. fetch, reuse
+          ;; ja+ja: override localized data. fetch, nil
+          ;; ja+fr: override localized data, override titles. fetch, fetch
+          ;; if en, don't fetch. if different, refetch.
+          ;;   if en card lang, reuse.
+          ;; current logic:
+          ;; if card-lang is en, return en data
+          ;; if card-lang is not en, return localized data if same as lang, else new data
+          ;; optimized (but broken):
+          ;; if card-lang is en, return en data
+          ;; returning nil breaks ja+ja. why?
+          ;; because assoc will be empty and it returns nil...
+          ;; okay, so why is en+ja broken now?
+          ;; localized data returns nil, so assocs nothing
+          ;; card-title-data returns fetch
+          card-title-data (if (not= card-lang "en")
+                            (if (= lang card-lang)
+                              localized-data
+                              (:json (<! (GET (str "/data/cards/lang/" card-lang)))))
+                            latest-cards)
           cards (->> latest-cards
                      (insert-starter-ids)
                      (merge-localized-data localized-data)
+                     (update-card-titles card-title-data)
                      (sort-by :code))
           sets (:json (<! (GET "/data/sets")))
           cycles (:json (<! (GET "/data/cycles")))
@@ -80,6 +106,12 @@
   [localized-data cards]
   (let [localized-data-indexed (into {} (map (juxt :code identity) localized-data))]
     (map #(assoc % :localized (dissoc (localized-data-indexed (:code %)) :code))
+         cards)))
+
+(defn- update-card-titles
+  [localized-data cards]
+  (let [localized-data-indexed (into {} (map (juxt :code identity) localized-data))]
+    (map #(assoc-in % [:localized :title] (:title (localized-data-indexed (:code %))))
          cards)))
 
 (defn- insert-starter-info
