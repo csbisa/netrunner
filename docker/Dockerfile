@@ -22,3 +22,6 @@ RUN npm ci
 # Install clojure dependencies
 COPY project.clj /usr/src/app/
 RUN lein deps
+
+# Copy data edn file
+COPY /home/test/netrunner-data/edn/raw_data.edn /usr/src/app/edn/
