@@ -12,6 +12,8 @@
 (def duration [:enum {:title "duration"} :end-of-encounter :end-of-run :end-of-turn])
 (def counter-type [:enum :adv :virus :power :credit :credits])
 (def server [:or [:enum :hand :deck :discard]
+             ;; TODO some inconsistency with :deck vs [:deck]
+             [:tuple [:enum :hand :deck :discard]]
              ;; TODO keyword should be restricted, but need to figure out how to
              ;; sanely handle arbitrary :remoteX keys
              [:tuple [:enum :servers] keyword?]
@@ -26,6 +28,7 @@
       [:card-type {:optional true} [:enum :facedown :ice :card :drawn-card]]
       [:hosted {:optional true} [:schema [:ref ::card-map]]]
       [:server {:optional true} server]
+      [:zone {:optional true} vector?]
       [:pos {:optional true} number?]]}}
    ::card-map])
 (def card
@@ -114,7 +117,7 @@
    [:reveal-from-hq [:tuple keyword? card-list]]
    [:make-run [:tuple keyword? server]]
    [:end-run [:tuple keyword? boolean?]]
-   [:gain-type [:tuple keyword? card [:vector string?]]]
+   [:gain-type [:tuple keyword? card [:vector string?] [:maybe duration]]]
    [:place-counter [:or [:tuple keyword? counter-type number?]
                     [:tuple keyword? counter-type number? card]]]
    [:remove-counter [:or [:tuple keyword? counter-type number? card]
