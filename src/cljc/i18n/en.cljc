@@ -394,7 +394,7 @@
       :swap-ice (throw "foo"))))
 
 (defmulti render-effect (fn [effect side & value] effect))
-(defmethod render-effect :advance [effect side value] (str "advance " (render-card value)))
+(defmethod render-effect :advance [effect side [value]] (str "advance " (render-card value)))
 (defmethod render-effect :draw-cards [effect side [value]] (str "draw " (quantify value "card")))
 (defmethod render-effect :gain-credits [effect side [value]] (str "gain " value " [Credits]"))
 (defmethod render-effect :gain-click [effect side [value]] (str "gain " (apply str (repeat value "[Click]"))))
@@ -603,7 +603,7 @@
 (defn- cost-discount-str
   [{:keys [ignore-all-costs ignore-install-costs cost-bonus alternative-cost]}]
   (cond
-    ignore-all-costs " (ignoring all costs))"
+    ignore-all-costs " (ignoring all costs)"
     ignore-install-costs " (ignoring its install cost)"
     alternative-cost " (by paying its alternative cost)"
     (and cost-bonus (pos? cost-bonus)) (str " (paying " cost-bonus " [Credits] more)")
@@ -612,7 +612,7 @@
 ;; TODO this should probably be squashed with render-card-internal somehow
 ;; TODO need to handle the "... as a facedown card" logic. i don't think 'unseen' here is ever used
 (defmethod render-text :install
-  [{:keys [card card-type server new-remote origin install-source cost host hosted side ignore-all-costs ignore-install-costs cost-bonus no-cost] :as input}]
+  [{:keys [card card-type server new-remote origin install-source cost host hosted side no-cost] :as input}]
   (let [card-type (keyword card-type)]
     (str (if install-source
            (str (build-spend-msg-suffix cost "use") install-source " to install ")
