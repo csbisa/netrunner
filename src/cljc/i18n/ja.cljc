@@ -736,4 +736,4 @@
                           raw-text))]
         (println output)
         output))
-    (catch e# ::exception (throw e#) #_(render-map "en" input))))
+    (catch e# ::exception #_(throw e#) (render-map "en" input))))

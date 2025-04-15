@@ -836,8 +836,8 @@
         (println output)
         output))
     (catch e# ::exception
-      (throw e#)
-      #_(str "BUG" (pprint-to-string input)))))
+      #_(throw e#)
+      (str "BUG" (pprint-to-string input)))))
 
 #_(defmethod render-map "en"
   [_ input]
