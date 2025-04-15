@@ -397,6 +397,7 @@
 (defmethod render-effect :advance [effect side [value]] (str "advance " (render-card value)))
 (defmethod render-effect :draw-cards [effect side [value]] (str "draw " (quantify value "card")))
 (defmethod render-effect :gain-credits [effect side [value]] (str "gain " value " [Credits]"))
+(defmethod render-effect :lose-credits [effect side [value]] (str "lose " value " [Credits]"))
 (defmethod render-effect :gain-click [effect side [value]] (str "gain " (apply str (repeat value "[Click]"))))
 (defmethod render-effect :lose-click [effect side [value]] (str "lose " (apply str (repeat value "[Click]"))))
 ;; TODO ideally part of force logic, but the problem is that these are effects

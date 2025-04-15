@@ -163,6 +163,7 @@
 (defmethod render-effect :advance [effect side [value]] (str (render-card value) "をアドバンスする"))
 (defmethod render-effect :draw-cards [effect side [value]] (str "カードを" value "枚引く"))
 (defmethod render-effect :gain-credits [effect side [value]] (str value " [Credits]を得る"))
+(defmethod render-effect :lose-credits [effect side [value]] (str value " [Credits]を失う"))
 (defmethod render-effect :gain-click [effect side [value]] (str (apply str (repeat value "[Click]")) "を得る"))
 (defmethod render-effect :lose-click [effect side [value]] (str (apply str (repeat value "[Click]")) "を失う"))
 (defmethod render-effect :lose-click-force [effect side [value]] (str (if (= (keyword side) :corp) "ランナー" "コーポ") "に" (apply str (repeat value "[Click]")) "を失うことをさせる"))
