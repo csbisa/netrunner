@@ -186,6 +186,8 @@ game_approach-ice = アイスにアプローチ
 
 game_archives = アーカイブ ({$faceup} ↑ {$facedown} ↓)
 
+game_attempt-reconnect = 再接続を試みる
+
 game_auto-pass = 自動通過処理
 
 game_bad-pub-count = {$base} 悪名
@@ -242,7 +244,7 @@ game_grip = グリップ
 
 game_heap = ヒープ ({$cnt})
 
-game_inactivity = 操作が行われていないルームを閉じました。
+game_inactivity = 操作が行われていないルームを閉じました
 
 game_indicate-action = アクションします！
 
@@ -252,6 +254,8 @@ game_jack-out = ジャックアウト
 
 game_keep = キープ
 
+game_last-revealed = 前回公開
+
 game_leave = ルームを退出
 
 game_leave-replay = リプレイから退出
@@ -260,9 +264,13 @@ game_let-subs-fire = 未ブレイクサブルーチン解決を許可
 
 game_link-strength = リンク強度
 
+game_lost-connection = サーバーへの接続が切れた。再接続中
+
 game_mandatory-draw = 強制ドロー
 
 game_max-hand = {$total} 手札上限
+
+game_minutes = 分
 
 game_movement = 移動
 
@@ -293,6 +301,8 @@ game_prompt = {$msg ->
 
 game_purge = ウィルスカウンター破棄
 
+game_reconnected-to-server = サーバーに再接続した
+
 game_remove-tag = タグを除去
 
 game_rez = レゾ
@@ -306,6 +316,10 @@ game_run-ends = ラン終了
 game_runner-view = ランナー視点
 
 game_scored-area = 得点エリア
+
+game_seconds = 秒
+
+game_seconds-remaining = 秒残り
 
 game_server = サーバー {$num}
 
@@ -353,11 +367,19 @@ game_win-conceded = {$winner} ({$side}) 降参による勝利 {$turn} ターン
 
 game_win-decked = {$winner} ({$side}) コーポのデッキ切れによる勝利 {$turn} ターン
 
-game_win-flatlined = {$winner} ({$side}) (fn [[turn]] (str "フラットラインによる勝利 {$turn} ターン
+game_win-flatlined = {$winner} ({$side}) フラットラインによる勝利 {$turn} ターン
 
-game_win-other = {$winner} ({$side}) wins by {$reason} on turn {$turn}
+game_win-other = {$winner} ({$side}) {$reason}による勝利 {$turn} ターン
 
 game_win-points = {$winner} ({$side}) 計画ポイントによる勝利 {$turn} ターン
+
+ingame-settings_card-image = カード画像
+
+ingame-settings_card-text = カードテキスト
+
+ingame-settings_preview-zoom = カードプレビュー拡大
+
+ingame-settings_save = 保存
 
 lobby_api-requires-key = (Requires an API Key in Settings)
 
@@ -477,6 +499,8 @@ nav_stats = 統計
 
 nav_tournaments = 大会
 
+nav_welcome = ようこそ
+
 side_name = {$side ->
     [all] 全部
     [any-side] Any Side
@@ -485,9 +509,35 @@ side_name = {$side ->
     *[unknown] Unknown side ({$side})
 }
 
+settings_avatar = アバター
+
+settings_card-iamge = カード画像
+
 settings_card-language = カード言語
 
+settings_card-preview-zoom = カードプレビュー拡大
+
+settings_card-text = カードテキスト
+
+settings_change-avatar = gravatar.comで更新する
+
+settings_change-email = メールアドレスを更新する
+
+settings_email = メールアドレス
+
+settings_enable-game-sounds = ゲーム音を有効にする
+
+settings_enable-lobby-sounds = ロビー音を有効にする
+
 settings_language = 言語
+
+settings_log-size = ゲームログサイズ
+
+settings_pin-zoom = 拡大したカードを画面に表示し続ける
+
+settings_sounds = 音
+
+settings_volume = 音量
 
 stats_all-games = 全てのログを表示
 
