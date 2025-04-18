@@ -24,4 +24,6 @@ COPY project.clj /usr/src/app/
 RUN lein deps
 
 # Copy data edn file
-COPY /home/test/netrunner-data/edn/raw_data.edn /usr/src/app/edn/
+RUN mkdir -p /usr/src/app/edn
+#COPY /home/test/netrunner-data/edn/raw_data.edn /usr/src/app/edn/
+COPY raw_data.edn /usr/src/app/edn/
