@@ -194,8 +194,7 @@
       :take-core (str "suffers " value " core damage")
       :shuffle-installed-to-stack (render-card-list value "shuffles" "card" "" (str " into " deck))
       :add-installed-to-bottom-of-deck (render-card-list value "adds" "installed card" "" (str " to the bottom of " deck))
-      ;; TODO not sure if this makes sense. should be number and never revealed?
-      :add-random-from-hand-to-bottom-of-deck (str "adds " (quantify (count value) "random card") (str " from " hand " to the bottom of " deck))
+      :add-random-from-hand-to-bottom-of-deck (str "adds " (quantify value "random card") (str " from " hand " to the bottom of " deck))
       :agenda-counter (str "spends " (quantify (second value) "hosted agenda counter") " from on " (first value))
       ;; TODO is this a list?
       ;; yes, there's a path where this is a list of title-counts...

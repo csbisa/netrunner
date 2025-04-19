@@ -140,8 +140,7 @@
       :add-installed-to-bottom-of-deck (str (count value) "枚のインストール状態のカードを" deck "の一番下に加えて (" (join "と" (map render-card value)) ")")
       ;; TODO card name
       :turn-hosted-matryoshka-facedown (str "搭載されたMatryoshkaの" value "枚を裏向きにする")
-      ;; TODO not sure if this makes sense. should be number and never revealed?
-      :add-random-from-hand-to-bottom-of-deck (str hand "の" (count value) "枚のランダムなカードを" deck "の一番下に加えて")
+      :add-random-from-hand-to-bottom-of-deck (str hand "の" value "枚のランダムなカードを" deck "の一番下に加えて")
       :agenda-counter (let [[host count] value]
                         (str host "の搭載計画カウンターを" count "つ消費して"))
       ;; TODO is this a list?
