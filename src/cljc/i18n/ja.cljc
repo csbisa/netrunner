@@ -702,6 +702,10 @@
   [_]
   "対戦を勝つ")
 
+;; This is basically a no-op, current effect behavior will just print it correctly.
+(defmethod render-text :direct-effect
+  [{:keys [effect]}])
+
 (defmethod render-text :fire-unbroken
   [{:keys [card]}]
   (str card "の未ブレイクのサブルーチンを解決することを許可する"))
