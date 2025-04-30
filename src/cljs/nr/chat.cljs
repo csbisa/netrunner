@@ -268,8 +268,7 @@
         [:h4 (tr [:chat_channels "Channels"])]
         (doall
           (for
-            [ch [:general :america :europe :asia-pacific :united-kingdom :français :español :italia :polska
-                 :português :sverige :русский]]
+            [ch [:general]]
             ^{:key ch}
             [channel-view {:channel ch :active-channel (:channel @s)} s]))]
        [:div.chat-container

@@ -84,8 +84,7 @@
              :decks [] :decks-loaded false
              :stats (:stats js-user)
              :visible-formats (load-visible-formats)
-             :channels {:general [] :america [] :europe [] :asia-pacific [] :united-kingdom [] :français []
-                        :español [] :italia [] :polska [] :português [] :sverige [] :stimhack-league [] :русский []}
+             :channels {:general []}
              :games [] :current-game nil})))
 
 (go (let [lang (get-in @app-state [:options :language] "en")
