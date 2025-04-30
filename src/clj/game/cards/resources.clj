@@ -1598,7 +1598,7 @@
              :optional {:req (req (<= 15 (:credit corp)))
                         :prompt (msg "Trash Fransofia Ward to bypass " (:title (:ice context)) "?")
                         :yes-ability {:cost [(->c :trash-can)]
-                                      :msg (msg "bypass " (:title (:ice context)))
+                                      :msg (req [[:bypass (card-str-map state (:ice context))]])
                                       :effect (req (bypass-ice state))}}}]})
 
 (defcard "Friend of a Friend"
@@ -2592,7 +2592,7 @@
                  :label "Take 1 [Credits] (start of turn)"
                  :req (req (and (:runner-phase-12 @state)
                                 (pos? (get-counters card :credit))))
-                 :msg (msg "gain " (min 1 (get-counters card :credit)) " [Credits]")
+                 :msg (req [[:gain-credits (min 1 (get-counters card :credit))]])
                  :async true
                  :effect (req (take-credits state side eid card :credit 1))}]
     {:data {:counter {:credit 6}}
@@ -3009,7 +3009,7 @@
                 :cost [(->c :click 3) (->c :trash-can)]
                 :keep-menu-open :while-clicks-left
                 :label "gain 9 [Credits]"
-                :msg (msg "gain 9 [Credits]")
+                :msg [[:gain-credits 9]]
                 :async true
                 :effect (req (gain-credits state side eid 9))}]})
 
@@ -3235,7 +3235,7 @@
              :interactive (req true)
              :req (req (<= 6 (get-counters (get-card state card) :credit)))
              :automatic :draw-cards
-             :msg (msg "gain " (get-counters (get-card state card) :credit) " [Credits], draw 1 card, and trash itself")
+             :msg (req [[:gain-credits (get-counters (get-card state card) :credit)] [:draw-cards 1] [:trash nil]])
              :effect (req
                        (wait-for
                          (take-credits state side card :credit :all {:suppress-checkpoint true})

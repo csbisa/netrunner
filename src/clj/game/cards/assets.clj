@@ -293,7 +293,7 @@
   (let [ability {:once :per-turn
                  :label "Take 4 [Credits] and draw a card (start of turn)"
                  :req (req (:corp-phase-12 @state))
-                 :msg (msg "gain " (min 4 (get-counters card :credit)) " [Credits] and draw a card")
+                 :msg (req [[:gain-credits (min 4 (get-counters card :credit))] [:draw-cards 1]])
                  :async true
                  :automatic :draw-cards
                  :interactive (req true)
@@ -486,7 +486,7 @@
                 :no-ability {:effect (effect (system-msg (str "declines to use " (:title card))))}
                 :yes-ability {:async true
                               :cost [(->c :credit 4)]
-                              :msg "give the Runner 1 tag and do 3 net damage"
+                              :msg [[:give-tag 1] [:deal-net 3]]
                               :effect (req (wait-for (gain-tags state :corp 1 {:suppress-checkpoint true})
                                                      (damage state side eid :net 3 {:card card})))}}}})
 
@@ -1419,7 +1419,7 @@
     {:abilities [{:cost [(->c :click 3)(->c :trash-can 1)]
                   :action true
                   :label "Gain 4 [Credits] and draw 3 cards"
-                  :msg "gain 4 [Credits] and draw 3 cards"
+                  :msg [[:gain-credits 4] [:draw-cards 3]]
                   :async true
                   :effect (req (wait-for
                                  (gain-credits state side 4 {:suppress-checkpoint true})
@@ -1475,7 +1475,7 @@
                :optional {:prompt "Trash Idiosyncresis?"
                           :req (req (:corp-phase-12 @state))
                           :yes-ability {:async true
-                                        :msg (msg "force the runner to lose " (lose card runner) " [Credits], and then gain " (gain card) " [Credits]")
+                                        :msg (req [[[:lose-credits-force (lose card runner)]] [[:gain-credits (gain card)]]])
                                         :cost [(->c :trash-can)]
                                         :effect (req (wait-for (lose-credits state :runner (lose card runner))
                                                                (gain-credits state side eid (gain card))))}}}]
@@ -2284,7 +2284,7 @@
                  :event :corp-turn-begins
                  :req (req (:corp-phase-12 @state))
                  :label (str "Gain 2 [Credits] (start of turn)")
-                 :msg (msg "gain " (min 2 (get-counters card :credit)) " [Credits]")
+                 :msg (req [[:gain-credits (min 2 (get-counters card :credit))]])
                  :async true
                  :automatic :gain-credits
                  :effect (req (wait-for
@@ -2292,7 +2292,7 @@
                                 (if (not (pos? (get-counters (get-card state card) :credit)))
                                   (continue-ability
                                     state side
-                                    {:msg "trash itself and gain [click][click]"
+                                    {:msg [[:trash nil] [:gain-clicks 2]]
                                      :async true
                                      :effect (req (wait-for
                                                     (trash state side card {:source-card card})
@@ -2381,7 +2381,7 @@
         opt (fn [x]
               (merge
                 {:option (str "Do " x " net damage")
-                 :ability {:msg (str "do " x " net damage")
+                 :ability {:msg [[:deal-net x]]
                            :async true
                            :effect (req (damage state :corp eid :net x))}}
                 (if (= x 1)
@@ -2430,7 +2430,7 @@
                                       (has-subtype? target "Transaction")
                                       (can-play-instant? state side eid target nil)))}
              :async true
-             :msg (msg "play " (:title target) " from Archives")
+             :msg (req [[:play (:title target) [:discard]]])
              :effect (req (play-instant
                             state side
                             (assoc eid :source target :source-type :play :source-info {:ability-targets [target]})
@@ -2540,7 +2540,7 @@
      :on-access ab}))
 
 (defcard "Public Access Plaza"
-  (let [ability {:msg "gain 1 [Credits]"
+  (let [ability {:msg [[:gain-credits 1]]
                  :label "Gain 1 [Credits] (start of turn)"
                  :once :per-turn
                  :async true
@@ -2551,7 +2551,7 @@
      :on-trash {:async true
                 :req (req (and (= :runner side)
                                (threat-level 2 state)))
-                :msg "give the Runner 1 tag"
+                :msg [[:give-tag 1]]
                 :effect (req (gain-tags state side eid 1))}}))
 
 (defcard "Public Health Portal"

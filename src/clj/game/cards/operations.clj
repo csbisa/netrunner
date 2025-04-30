@@ -440,7 +440,7 @@
   {:on-play (choose-one-helper
               {:req (req tagged)}
               [{:option "Give the runner 1 tag"
-                :ability {:msg "give the Runner 1 tag"
+                :ability {:msg [[:give-tag 1]]
                           :effect (req (gain-tags state side eid 1))
                           :async true}}
                {:option "Remove any number of tags"
@@ -1618,13 +1618,12 @@
                 :ability {:choices {:req (req (and (corp? target)
                                                    (installed? target)
                                                    (can-be-advanced? state target)))}
-                          ;; note - this is sokka's champ card, so I'm throwing this tiny easter egg in - nbk, 2025
-                          :msg (msg "place 1 " (when (= (get-in @state [side :user :username]) "Sokka234") "solid gold ") "advancement counter on " (card-str state target))
+                          :msg (req [[:place-counter :adv 1 (card-str-map state target)]])
                           :async true
                           :effect (req (add-prop state side eid target :advance-counter 1 {:placed true}))}}
                {:option "Draw 1 card. Shuffle 1 card from HQ into R&D"
                 :req (req (>= (count (:hand corp)) 1))
-                :ability {:msg "draw 1 card"
+                :ability {:msg [[:draw-cards 1]]
                           :async true
                           :effect (req (wait-for (draw state side 1)
                                                  (if (seq (:hand corp))
@@ -1633,7 +1632,7 @@
                                                      {:prompt "Shuffle 1 card into R&D"
                                                       :choices {:card (every-pred corp? in-hand?)
                                                                 :mandatory true}
-                                                      :msg "shuffle 1 card from HQ into R&D"
+                                                      :msg [[:shuffle-from-hq-into-rnd 1]]
                                                       :effect (req (move state side target :deck)
                                                                    (shuffle! state :corp :deck))}
                                                      card nil)
@@ -1766,7 +1765,7 @@
                :player :runner}
               [(cost-option [(->c :credit 8)] :runner)
                {:option "Corp does 4 meat damage"
-                :ability {:msg (msg "do 4 meat damage")
+                :ability {:msg [[:deal-meat 4]]
                           :display-side :corp
                           :async true
                           :effect (req (damage state :corp eid :meat 4))}}])})
@@ -1945,7 +1944,7 @@
 
 (defcard "Nanomanagement"
   {:on-play
-   {:msg "gain [Click][Click]"
+   {:msg [[:gain-click 2]]
     :effect (effect (gain-clicks 2))}})
 
 (defcard "NAPD Cordon"
@@ -2104,7 +2103,7 @@
                               0 (flatten (seq (:servers corp))))))}})
 
 (defcard "Peer Review"
-  (let [gain-abi {:msg (msg "gain 7 [credits]")
+  (let [gain-abi {:msg [[:gain-credits 7]]
                   :async true
                   :effect (req (wait-for
                                  (gain-credits state side 7)
@@ -2144,7 +2143,7 @@
 
 (defcard "Petty Cash"
   {:flashback [(->c :click 1)]
-   :on-play {:msg "gain 5 [credits]"
+   :on-play {:msg [[:gain-credits 5]]
              :async true
              :req (req (no-event? state side :action-resolved))
              :effect (req (wait-for
@@ -2152,7 +2151,7 @@
                             (continue-ability
                               state side
                               (when-not (some #{:hand} (:previous-zone card))
-                                {:msg "gain [Click]"
+                                {:msg [[:gain-click 1]]
                                  :effect (req (gain-clicks state side 1))})
                               card nil)))}})
 
@@ -3260,7 +3259,7 @@
 (defcard "Top-Down Solutions"
   {:on-play
    {:async true
-    :msg "draw 2 cards"
+    :msg [[:draw-cards 2]]
     :effect (req (wait-for
                    (draw state side 2)
                    (continue-ability state side (corp-install-up-to-n-cards 2) card nil)))}})
@@ -3379,7 +3378,7 @@
                   :waiting-prompt true
                   :choices ["Event" "Hardware" "Program" "Resource"]
                   :async true
-                  :msg (msg "choose " target)
+                  :msg (req [[:choose-card-type target]])
                   :effect (req (let [chosen-type target]
                                  (continue-ability
                                    state side
@@ -3392,12 +3391,12 @@
                                       :effect (req (doseq [t targets]
                                                      (move state :runner t :deck))
                                                    (shuffle! state :runner :deck))
-                                      :msg (msg "shuffle " (enumerate-str (map :title targets)) " into the Stack")})
+                                      :msg (req [[:shuffle-into-stack (map :title targets)]])})
                                      card nil)))}]
     {:on-play {:async true
                :change-in-game-state {:req (req (some #(or (not (rezzed? %)) (can-be-advanced? state %)) (all-installed state :corp)))}
                :choices {:req (req (can-be-advanced? state target))}
-               :msg (msg "place 2 advancement counters on " (card-str state target))
+               :msg (req [[:place-counter :adv 2 (card-str-map state target)]])
                :effect (req (wait-for (add-prop state side target :advance-counter 2 {:placed true})
                                       (continue-ability state side name-abi card nil)))}}))
 

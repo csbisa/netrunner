@@ -224,7 +224,7 @@
                                       :display-side :runner
                                       :msg :cost}
                         :no-ability {:display-side :corp
-                                     :msg (msg "gain [Click] during their next turn")
+                                     :msg [[:gain-click-next-turn 1]]
                                      :effect (req (register-events
                                                     state side card
                                                     [{:event :corp-turn-begins
@@ -814,8 +814,7 @@
                           :yes-ability {:choices (req (cancellable (filter operation? (:deck corp)) :sorted))
                                         :prompt "Move an operation to the top of R&D"
                                         :async true
-                                        :msg (msg "reveal " (:title target)
-                                                  " from R&D, shuffle R&D, and place it ontop")
+                                        :msg (req [[:add-from-rnd-to-rnd (:title target)]])
                                         :cost [(->c :agenda 1)]
                                         :effect (req (wait-for
                                                        (reveal state side target)
@@ -826,7 +825,7 @@
                                         :cancel-effect (req (continue-ability
                                                               state side
                                                               {:cost [(->c :agenda 1)]
-                                                               :msg "shuffle R&D"
+                                                               :msg [[:shuffle-rnd true]]
                                                                :effect (req (shuffle! state side :deck))}
                                                               card nil))}}}]}))
 
@@ -1522,7 +1521,7 @@
    :abilities [{:action true
                 :cost [(->c :click 1) (->c :agenda)]
                 :label "Draw 4 cards"
-                :msg "draw 4 cards"
+                :msg [[:draw-cards 4]]
                 :async true
                 :effect (req (wait-for
                                (draw state side 4)
@@ -1533,8 +1532,7 @@
                                     :waiting-prompt true
                                     :choices {:max c-hand
                                               :card (every-pred corp? in-hand?)}
-                                    :msg (msg "shuffle " (quantify (count targets) "card")
-                                              " from HQ into R&D")
+                                    :msg (req [[:shuffle-into-rnd (count targets)]])
                                     :effect (req (doseq [t targets]
                                                    (move state side t :deck))
                                                  (shuffle! state side :deck))}
@@ -1593,7 +1591,7 @@
                                         :choices (req (cancellable (:deck corp) :sorted))
                                         :prompt "Tutor a card"
                                         :async true
-                                        :msg (msg "reveal " (:title target) " from R&D")
+                                        :msg (req [[:reveal-from-rnd (:title target)]])
                                         :effect (req (shuffle! state side :deck)
                                                      (wait-for
                                                        (reveal state side target)
@@ -1605,7 +1603,7 @@
                                                                :ability {:async true
                                                                          :effect (req (corp-install state side eid target-card nil {:msg-args {:display-origin true :install-source card}}))}}
                                                               {:option (str "Add " (:title target-card) " to HQ")
-                                                               :ability {:msg (msg "add " (:title target-card) " to HQ")
+                                                               :ability {:msg (req [[:add-to-hq (:title target-card)]])
                                                                          :effect (req (move state side target-card :hand))}}])
                                                            card nil))))}}}]}))
 
@@ -1908,7 +1906,7 @@
                 ;; NOTE - this doesn't work during forced encounters, or outside of a run - address that later
                 :cost [(->c :agenda 1)]
                 :label "Redirect runner to archives"
-                :msg "make the Runner continue the run on Archives"
+                :msg [[:redirect-run [:servers :archives]]]
                 :effect (req (redirect-run state side "Archives" :approach-ice))}]})
 
 (defcard "Quantum Predictive Model"
@@ -2179,7 +2177,7 @@
                :player :corp
                :cost [(->c :agenda 1)]
                :choices {:card (every-pred corp? installed?)}
-               :msg (msg "place 2 advancement counters on " (card-str state target))
+               :msg (req [[:place-counters :adv 2 (card-str-map state target)]])
                :async true
                :effect (req (add-prop state :corp eid target :advance-counter 2 {:placed true}))}]}))
 

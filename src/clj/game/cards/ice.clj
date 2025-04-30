@@ -242,7 +242,7 @@
    :choices {:req (req (and (corp? target)
                             (installed? target)
                             (or (not advanceable-only) (can-be-advanced? state target))))}
-   :msg (msg "place 1 advancement counter on " (card-str state target))
+   :msg (msg [[:place-counter :adv 1 (card-str-map state target)]])
    :async true
    :effect (effect (add-prop eid target :advance-counter 1 {:placed true}))})
 
@@ -678,8 +678,7 @@
                          {:async true
                           :prompt "Choose the subroutine"
                           :choices (req (unbroken-subroutines-choice ice))
-                          :msg (msg "resolve the subroutine (\"[subroutine] "
-                                    target "\") from " (:title ice))
+                          :msg (req [[:resolve-subroutine (:title ice) target]])
                           :effect (req (let [sub (first (filter #(= target (make-label (:sub-effect %))) (:subroutines ice)))]
                                          (continue-ability state side (:sub-effect sub) ice nil)))})
                        card nil))}
@@ -1133,7 +1132,7 @@
                                   (has-subtype? % "Trojan"))}
             :req (req (and run this-server
                            (some #(has-subtype? % "Trojan") (all-installed state :runner))))
-            :msg (msg "trash " (:title target))
+            :msg (req [[:trash (:title target)]])
             :async true
             :effect (req (trash state side eid target {:cause-card card}))}})
 
@@ -1617,14 +1616,14 @@
 
 (defcard "Empiricist"
   {:subroutines [{:label "Draw 1 card. You may add 1 card from HQ to the top of R&D."
-                  :msg "draw 1 card"
+                  :msg [[:draw-cards 1]]
                   :async true
                   :effect (req (wait-for (draw state side 1)
                                          (continue-ability
                                            state side
                                            {:req (req (pos? (count (:hand corp))))
                                             :prompt "Place a card in HQ on the top of R&D?"
-                                            :msg "add 1 card in HQ to the top of R&D"
+                                            :msg [[:move-hq-rnd 1]]
                                             :choices {:card #(and (in-hand? %)
                                                                   (corp? %))}
                                             :async true
@@ -1632,7 +1631,7 @@
                                                             (effect-completed eid))}
                                            card nil)))}
                  {:label "Do 1 net damage and give the Runner 1 tag"
-                  :msg "do 1 net damage and give the Runner 1 tag"
+                  :msg [[:deal-net 1] [:give-tag 1]]
                   :async true
                   :effect (req (wait-for
                                  (damage state side :net 1 {:card card :suppress-checkpoint true})
@@ -1924,7 +1923,7 @@
   ;; I think it's a neat feature - nbkelly
   {:suppress-rez-sound (req (and run this-server (not (is-disabled-reg? state card))))
    :on-rez {:req (req (and run this-server))
-            :msg (msg "purge virus counters")
+            :msg [[:purge true]]
             :async true
             :effect (req
                       (play-sfx state side "virus-purge")
@@ -2720,7 +2719,7 @@
                                                (= target-zone :discard) :archives
                                                :else target-zone)]
                              (= target-zone (second (get-zone card)))))
-                    :msg (msg "trash itself")
+                    :msg [[:trash nil]]
                     :effect (effect (trash :corp eid card {:cause-card card :cause :effect}))}]
     {:subroutines [(tag-or-pay-credits 3)
                    end-the-run-if-tagged]

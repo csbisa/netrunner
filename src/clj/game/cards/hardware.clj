@@ -299,14 +299,14 @@
                           :req (req (and (is-no-creds? (:costs context))
                                          (seq (:deck runner))))
                           :prompt "Host the top card of your stack on Bling?"
-                          :yes-ability {:msg (msg "host " (:title (first (:deck runner))))
+                          :yes-ability {:msg (req [[:host (:title (first (:deck runner)))]])
                                         :effect (req (trigger-event state side :bling-hosted)
                                                      (let [times-hosted (min (event-count state nil :bling-hosted) 10)]
                                                        (play-sfx state side (str "bling-" times-hosted)))
                                                      (host state side card (first (:deck runner))))}}}
               {:event :runner-turn-ends
                :req (req (seq (:hosted card)))
-               :msg (msg "trash " (enumerate-str (map :title (:hosted card))))
+               :msg (req [[:trash (map :title (:hosted card))]])
                :async true
                :effect (req (trash-cards state :runner eid (:hosted card)))}]}))
 
@@ -767,7 +767,7 @@
                         {:optional
                          {:prompt "Access 1 card from HQ?"
                           :waiting-prompt true
-                          :yes-ability {:msg (msg "access 1 card from HQ")
+                          :yes-ability {:msg (req [[:access [:servers :hq] 1]])
                                         :async true
                                         :effect (effect (access-n-cards eid [:hq] 1))}}}
                         card nil))}]
@@ -783,10 +783,8 @@
                           :waiting-prompt true
                           :prompt "Reveal and host a card from HQ (at random)"
                           :yes-ability {:effect (req (let [target-card (first (shuffle (:hand corp)))]
-                                                       (system-msg state side
-                                                                   (str "uses Detente to reveal and host "
-                                                                        (:title target-card)
-                                                                        " from HQ"))
+                                                       (system-msg state side {:type :use :card (:title card)
+                                                                               :effect [[:reveal-and-host (:title target-card)]]})
                                                        (wait-for
                                                          (reveal state :runner target-card)
                                                          (host state side card
@@ -1193,7 +1191,7 @@
                                    (not (has-subtype? target "AI"))
                                    (has-subtype? target "Icebreaker")))}
              :effect (req (host state side target card))
-             :msg (msg "host itself on " (:title target))}]
+             :msg (req [[:host-on nil (:title target)]])}]
     {:on-install abi
      :events [abi
               {:event :pump-breaker

@@ -835,8 +835,7 @@
 
 (defcard "Chromatophores"
   (trojan
-    {:on-install {:msg (msg "make " (card-str state (:host card))
-                            " gain Barrier, Code Gate and Sentry subtypes")}
+   {:on-install {:msg (req [[:gain-type (card-str-map state (:host card)) ["Barrier" "Code Gate" "Sentry"]]])}
      :static-abilities [{:type :gain-subtype
                          :req (req (same-card? target (:host card)))
                          :value ["Barrier" "Code Gate" "Sentry"]}]}))
@@ -1268,7 +1267,7 @@
               :waiting-prompt true
               :prompt "Spend 1 hosted power counter to access 1 additional card?"
               :autoresolve (get-autoresolve :auto-fire)
-              :yes-ability {:msg "access 1 additional card from R&D"
+              :yes-ability {:msg [[:access-additional-from-rnd 1]]
                             :cost [(->c :power 1)]
                             :effect (effect (access-bonus :rd 1))}}}]
    :abilities [(set-autoresolve :auto-fire "Devadatta Drone")]})
@@ -1584,7 +1583,7 @@
                                   (not (in-discard? target))))
                    :cost [(->c :trash-can)]
                    :trash-icon true
-                   :msg (msg "trash " (:title target))
+                   :msg (req [[:trash (:title target)]])
                    :async true
                    :effect (req (wait-for
                                   (trash state side (assoc target :seen true)

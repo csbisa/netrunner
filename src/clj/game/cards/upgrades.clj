@@ -1229,12 +1229,11 @@
                             (update-hand-size state :corp)
                             (if-let [moved-card async-result]
                               (let [target-server (-> moved-card :zone second)
-                                    target-zone [:servers target-server :content]
-                                    target-name (zone->name target-server)]
+                                    target-zone [:servers target-server :content]]
                                 (if-not (same-server? moved-card card)
                                   (continue-ability
                                     state side
-                                    {:msg (msg "move itself to " target-name)
+                                    {:msg (req [[:move-server target-zone nil]])
                                      :effect (req (unregister-events state side card)
                                                   (let [c (move state side card target-zone)]
                                                     (register-default-events state side c)))}
@@ -1279,7 +1278,7 @@
                         :prompt "Trash Mitra Aman to gain 3 [Credits]?"
                         :waiting-prompt true
                         :yes-ability {:cost [(->c :trash-can 1)]
-                                      :msg "gain 3 [Credits]"
+                                      :msg [[:gain-credits 3]]
                                       :async true
                                       :effect (req (wait-for
                                                      (gain-credits state side 3)

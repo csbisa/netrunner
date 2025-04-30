@@ -183,7 +183,7 @@
                                          card nil)))}})
 
 (defcard "AU Co.: The Gold Standard in Clones"
-  (let [abi {:msg (msg "place 1 power counter on itself")
+  (let [abi {:msg [[:place-counter :power 1]]
              :label "Manually place 1 power counter"
              :once-per-instance true
              :async true
@@ -200,7 +200,7 @@
                     :waiting-prompt true
                     :yes-ability {:cost [(->c :power 2)]
                                   :async true
-                                  :msg "look at the top 3 cards of R&D"
+                                  :msg [[:look-top-rnd 3]]
                                   :effect (req (let [top-3 (take 3 (:deck corp))
                                                      to-draw (dec (count top-3))]
                                                  (continue-ability
@@ -209,16 +209,10 @@
                                                     :prompt (str "The top of R&D is (top->bottom): " (enumerate-str (map :title top-3)) ". Choose a card to trash")
                                                     :not-distinct true
                                                     :choices (req top-3)
-                                                    :msg (msg (let [target-position (first (positions #{target} (take 3 (:deck corp))))
-                                                                    position (case target-position
-                                                                               0 "top "
-                                                                               1 "second "
-                                                                               2 "third "
-                                                                               "this-should-not-happen ")]
-                                                                (str "trash the " position "card from R&D"))
-                                                              (when (pos? to-draw)
-                                                                (str " and draw " to-draw " cards")))
+                                                    :msg (req (let [target-position (first (positions #{target} (take 3 (:deck corp))))]
+                                                                [[:trash-rnd-and-add target-position]]))
                                                     :effect (req (wait-for (trash state :corp target {:cause-card card :suppress-checkpoint (pos? to-draw)})
+                                                                           ;; TODO the effect isn't actually a draw, so this might be an issue in the future
                                                                            (if (pos? to-draw)
                                                                              (draw state side eid to-draw)
                                                                              (effect-completed state side eid))))}
@@ -542,14 +536,14 @@
   {:abilities [{:label "Manually turn an agenda faceup"
 	        :choices {:req (req (and (agenda? target)
                                          (installed? target)))}
-		:msg (msg "turn " (card-str state target {:visible true}) " faceup")
+		:msg (req [[:turn-faceup (card-str-map state target {:visible true})]])
                 :effect (req (update! state side (assoc target
                                                         :seen true
                                                         :rezzed true)))}]
    :events [{:event :access
              :req (req ((every-pred faceup? installed? agenda? :was-seen) target))
              :interactive (req true)
-             :msg (msg "do 2 meat damage and give the Runner a tag")
+             :msg (req [[:deal-meat 2] [:give-tag 1]])
              :async true
              :effect (req (wait-for (damage state :corp :meat 2 {:card card :suppress-checkpoint true})
                                     (gain-tags state :corp eid 1)))}
@@ -577,7 +571,7 @@
                                 {:optional
                                  {:prompt (str "Turn " (:title tcard) " faceup?")
                                   :waiting-prompt true
-                                  :yes-ability {:msg (str "turn " (card-str state tcard {:visible true}) " faceup")
+                                  :yes-ability {:msg (req [[:turn-faceup (card-str-map state tcard {:visible true})]])
                                                 :effect (req (update! state side (assoc tcard :seen true :rezzed true)))}}}
                                 {:prompt "Nothing to see here"
                                  :waiting-prompt true
@@ -683,15 +677,16 @@
                                                            (wait-for
                                                              (draw state :runner 1)
                                                              (system-msg state side
-                                                                         "draws 1 card and flips [their] identity to Dewi Subrotoputri: Pedagogical Dhalang")
+                                                                         {:type :use :card (:title card)
+                                                                          :effect [[:draw-cards 1] [:flip-id "Dewi Subrotoputri: Pedagogical Dhalang"]]})
                                                              (continue-ability state side flip-effect card targets))
                                                            (effect-completed state side eid))
                                                          (if (zero? (available-mu state))
                                                            (wait-for
                                                              (gain-credits state :runner 1)
-                                                             (system-msg
-                                                               state side
-                                                               "gain 1 [Credits] and flips [their] identity to Dewi Subrotoputri: Shadow Guide")
+                                                             (system-msg state side
+                                                                         {:type :use :card (:title card)
+                                                                          :effect [[:gain-credits 1] [:flip-id "Dewi Subrotoputri: Shadow Guide"]]})
                                                              (continue-ability state :runner flip-effect card nil))
                                                            (effect-completed state side eid))))}}}]
     {:events [{:event :pre-first-turn
@@ -1423,7 +1418,7 @@
   {:abilities [{:cost [(->c :bioroid-run-server 1)]
                 :once :per-turn
                 :label "end the run"
-                :msg "end the run"
+                :msg [[:end-run true]]
                 :async true
                 :effect (req (end-run state side eid card))}]})
 
@@ -1609,7 +1604,7 @@
 (defcard "MuslihaT: Multifarious Marketeer"
   {:events [{:event :runner-turn-begins
              :req (req (seq (:deck runner)))
-             :msg (msg "look at the top card of the stack")
+             :msg [[:look-top-stack 1]]
              :async true
              :effect (req (let [top-card (first (:deck runner))]
                             (continue-ability
@@ -1762,14 +1757,14 @@
               {:event :corp-turn-ends
                :req (req (and (not (no-event? state side :play-operation))
                               (not (:flipped card))))
-               :msg (msg "flip [their] identity to Gemilang Arena: Burning Bright and gain 1 [Credits]")
+               :msg (req [[:flip-id "Gemilang Arena: Burning Bright"] [:gain-credits 1]])
                :async true
                :effect (req (wait-for (gain-credits state side 1)
                                       (continue-ability state side flip-effect card nil)))}
               {:event :successful-run
                :req (req (and (or (= :rd (target-server context)) (= :hq (target-server context)))
                               (:flipped card)))
-               :msg (msg "flip [their] identity to Nebula Talent Management: Making Stars")
+               :msg (req [[:flip-id "Nebula Talent Management: Making Stars"]])
                :async true
                :effect (req (continue-ability state side flip-effect card targets))}
               {:event :play-operation-resolved
@@ -1777,7 +1772,7 @@
                               (not (has-subtype? (:card context) "Terminal"))
                               (:flipped card)))
                :interactive (req true)
-               :msg (msg "gain [click]")
+               :msg [[:gain-click 1]]
                :effect (req (gain-clicks state :corp 1))}]}))
 
 (defcard "Nero Severn: Information Broker"
@@ -2077,7 +2072,7 @@
         ev {:prompt (msg "The top of R&D is (in order): "
                          (enumerate-str (map :title (take 3 (:deck corp)))))
             :async true
-            :msg (msg "look at the top 3 cards of R&D")
+            :msg [[:look-top-rnd 3]]
             :effect (req (let [top-3 (take 3 (:deck corp))]
                            (continue-ability
                              state side
@@ -2133,7 +2128,7 @@
                                       (can-be-advanced? state target)))}
              :cost [(->c :credit 1)]
              :async true
-             :msg (msg "place 1 advancement counter on " (card-str state target))
+             :msg (req [[:place-counter :adv 1 (card-str-map state target)]])
              :effect (req (add-prop state side eid target :advance-counter 1 {:placed true}))}]})
 
 (defcard "Quetzal: Free Spirit"
@@ -2184,7 +2179,7 @@
                               (first-event? state side :successful-run valid-ctx?))))
              :interactive (req true)
              :automatic :force-discard
-	     :msg "gain 1 [Credits]"
+	     :msg [[:gain-credits 1]]
              :async true
              :once :per-turn
              :effect (req (wait-for (gain-credits state side 1)
@@ -2735,7 +2730,7 @@
                                            :unregister-once-resolved true
                                            :async true
                                            :interactive (req true)
-                                           :msg "suffer 1 meat damage"
+                                           :msg [[:take-meat 1]]
                                            :effect (req (damage state side eid :meat 1))}])]
                                (wait-for
                                  (runner-install state side target {:cost-bonus -2

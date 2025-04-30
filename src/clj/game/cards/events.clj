@@ -595,7 +595,7 @@
                        :prompt (msg "Choose a rezzed copy of " t " to trash")
                        :choices {:card #(and (rezzed? %)
                                              (= t (:title %)))}
-                       :msg (msg "trash " (card-str state target))
+                       :msg (req [[:trash (card-str-map state target)]])
                        :cancel-effect (req (effect-completed state side eid))
                        :effect (effect (trash eid target {:cause-card card}))}})]
     {:makes-run true
@@ -629,7 +629,7 @@
                                    :prompt "Trash a rezzed copy of a card you accessed"
                                    :choices {:card #(and (rezzed? %)
                                                          (contains? isec (:title %)))}
-                                   :msg (msg "trash " (card-str state target))
+                                   :msg (req [[:trash (card-str-map state target)]])
                                    :cancel-effect (req (effect-completed state side eid))
                                    :effect (effect (trash eid target {:cause-card card}))}
                                   card nil)
@@ -674,7 +674,7 @@
    :on-play run-any-server-ability
    :events [{:event :successful-run
              :req (req this-card-run)
-             :msg "gain 6 [Credits]"
+             :msg [[:gain-credits 6]]
              :async true
              :effect (effect (gain-credits :runner eid 6))}]})
 
@@ -2381,13 +2381,13 @@
   (letfn [(remove-tag-opt [x]
             {:option (str "Remove " (quantify x "tag"))
              :req (req (>= (count-tags state) x))
-             :ability {:msg (str "remove " (quantify x "tag"))
+             :ability {:msg [[:remove-tag x]]
                        :async true
                        :effect (req (lose-tags state side eid x))}})]
     {:on-play (choose-one-helper
                 {:change-in-game-state {:req (req (or (seq (:deck runner)) tagged))}}
 		[{:option "Draw 4 cards"
-                  :ability {:msg "draw 4 cards"
+                  :ability {:msg [[:draw-cards 4]]
                             :async true
                             :effect (req (draw state side eid 4))}}
                  {:option "Remove up to 2 tags"
@@ -2419,7 +2419,7 @@
    :events [{:event :pre-approach-server
              :unregister-once-resolved true
              :interactive (req true)
-             :msg "change the attacked server to HQ"
+             :msg [[:change-server [:servers :hq]]]
              :req (req (= :archives (-> run :server first)))
              :effect (req (swap! state assoc-in [:run :server] [:hq]))}]
    :on-play (run-server-ability :archives)})
@@ -3353,7 +3353,7 @@
   {:on-play {:async true
              :change-in-game-state (req (and (seq (:deck runner))
                                              (pos? (get-in @state [:runner :click] 0))))
-             :msg (msg "draw " (quantify (get-in @state [:runner :click]) "card"))
+             :msg (req [[:draw-cards (get-in @state [:runner :click])]])
              :effect (req (draw state side eid (get-in @state [:runner :click] 0)))}})
 
 (defcard "Rumor Mill"
@@ -3487,7 +3487,7 @@
                             :choices {:req (req (and (program? target)
                                                      (in-discard? target)))}
                             :show-discard true
-                            :msg (msg "put " (:title target) " on the bottom of the stack")
+                            :msg (req [[:add-to-bottom-stack (:title target)]])
                             :effect (req (move state side target :deck))}]
     {:on-play {:prompt "Choose a program to install"
                :label "Install program from the heap"
@@ -3552,7 +3552,7 @@
                                                                {:option "The run does not end"
                                                                 :ability {:display-side :runner
                                                                           :async true
-                                                                          :msg "prevent the run from ending"
+                                                                          :msg [[:prevent-etr]]
                                                                           :effect (req (prevent-end-run state side eid))}}]))
                                                           card nil)))}}}]})
 
@@ -4035,7 +4035,7 @@
              :automatic :drain-credits
              :req (req (and this-card-run
                             (= :hq (target-server context))))
-             :msg "take 1 tag"
+             :msg [[:take-tag 1]]
              :async true
              :effect (req (wait-for (gain-tags state :runner 1)
                                     (continue-ability
