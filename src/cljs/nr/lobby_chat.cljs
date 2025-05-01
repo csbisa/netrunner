@@ -2,6 +2,7 @@
   (:require
    [nr.avatar :refer [avatar]]
    [nr.translations :refer [tr]]
+   [nr.utils :refer [render-message]]
    [nr.ws :as ws]
    [reagent.core :as r]
    [reagent.dom :as rdom]))
@@ -46,7 +47,7 @@
                 (map
                   (fn [{:keys [user text timestamp]}]
                     (if (= user "__system__")
-                      [:div.system {:key timestamp} text]
+                      [:div.system {:key timestamp} (render-message text)]
                       [:div.message {:key timestamp}
                        [avatar user {:opts {:size 38}}]
                        [:div.content
