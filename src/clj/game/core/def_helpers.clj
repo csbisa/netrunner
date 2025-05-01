@@ -174,7 +174,7 @@
   "shorthand ability to draw x cards (apply args to the draw fn)"
   ([x] (draw-abi x nil))
   ([x args]
-   {:msg (msg "draw " (quantify x "card"))
+   {:msg [[:draw-cards x]]
     :label (str "Draw " (quantify x "card"))
     :async true
     :effect (req (draw state side eid x args))}))
@@ -191,7 +191,7 @@
   {:async true
    :change-in-game-state {:req (req (can-run-server? state server))}
    :label (str "run " (zone->name server))
-   :msg {:make-run server}
+   :msg [[:make-run server]]
    :effect (req (make-run state side eid server card))})
 
 (def run-any-server-ability
@@ -199,7 +199,8 @@
    :prompt "Choose a server"
    :choices (req runnable-servers)
    :label "Run any server"
-   :msg (msg "make a run on " target)
+   ;; TODO target likely not correct format
+   :msg (req [[:make-run target]])
    :effect (effect (make-run eid target card))})
 
 (def run-remote-server-ability
@@ -208,7 +209,7 @@
    :change-in-game-state {:req (req (seq (filter #(can-run-server? state %) remotes)))}
    :choices (req (filter #(can-run-server? state %) remotes))
    :label "Run a remote server"
-   :msg (msg "make a run on " target)
+   :msg (req [[:make-run target]])
    :effect (effect (make-run eid target card))})
 
 (def run-central-server-ability
@@ -217,7 +218,7 @@
    :change-in-game-state {:req (req (seq (filter #{"HQ" "R&D" "Archives"} runnable-servers)))}
    :async true
    :label "Run a central server"
-   :msg (msg "make a run on " target)
+   :msg (req [[:make-run target]])
    :effect (effect (make-run eid target card))})
 
 (defn run-server-from-choices-ability
@@ -226,7 +227,7 @@
    :choices (req (filter #(can-run-server? state %) choices))
    :change-in-game-state {:req (req (seq (filter (set choices) runnable-servers)))}
    :async true
-   :msg (msg "make a run on " target)
+   :msg (req [[:make-run target]])
    :effect (effect (make-run eid target card))})
 
 (defn take-credits
@@ -362,7 +363,7 @@
                      (effect-completed state side eid))))}))
 
 (defn gain-credits-ability [x]
-  {:msg {:gain-credits x}
+  {:msg [[:gain-credits x]]
    :async true
    :effect (req (gain-credits state side eid x))})
 
@@ -412,7 +413,7 @@
 (def trash-on-purge
   {:event :purge
    :async true
-   :msg {:trash nil}
+   :msg [[:trash nil]]
    :effect (req (trash state :runner eid card {:cause :purge
                                                :cause-card card}))})
 

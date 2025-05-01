@@ -280,7 +280,7 @@
                       [{:option "Take 1 tag"
                         :ability (give-tags 1)}
                        (cost-option [(->c :credit x)] :runner)])
-                    {:msg {:give-tag 1}
+                    {:msg [[:give-tag 1]]
                      :effect (req (gain-tags state side eid 1))
                      :async true})
                   card nil))})
