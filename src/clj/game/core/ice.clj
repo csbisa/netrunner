@@ -18,6 +18,13 @@
     [clojure.math :refer [pow]]
     [medley.core :refer [find-first]]))
 
+(defn- tr-subtype [subtype]
+  (case subtype
+    "Barrier" "バリア"
+    "Code Gate" "コードゲート"
+    "Sentry" "セントリー"
+    subtype))
+
 ;; These should be in runs.clj, but `req` needs get-current-ice and
 ;; moving.clj needs set-current-ice
 (defn get-run-ices
@@ -538,7 +545,8 @@
                    (when-not (= #{"All"} subtypes)
                      (-> subtypes
                          (set/intersection (set (:subtypes ice)))
-                         (first))))]
+                         (first)
+                         (tr-subtype))))]
      {:type :break-subs :card (:title breaker) :ice (:title ice) :subtype subtype
       :subs (map :label (sort-by :index broken-subs))})))
 
@@ -657,7 +665,7 @@
         :additional-ability (:additional-ability args)
         :label (str (or (:label args)
                         (str (when-not (= #{"All"} subtypes)
-                               (str (string/join "か" (sort subtypes)) "の"))
+                               (str (string/join "か" (sort (map tr-subtype subtypes))) "の"))
                              "サブルーチンを"
                              (if (pos? n) (str n "つ") "任意の数だけ")
                              (when (< 1 n) "まで")
