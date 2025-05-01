@@ -306,6 +306,13 @@
 (defmethod render-effect :prevent-steal-trash [effect side [value]] (str (to-duration value) "ランナーにコーポのカードを盗むかトラッシュすることを妨害する"))
 (defmethod render-effect :swap-ice-from-hand [effect side [value]] (str (render-card value) "とHQにあるアイスを交換する"))
 (defmethod render-effect :swap-ice [effect side [value]] (throw "foo"))
+(defmethod render-effect :gain-click-next-turn [effect side [value]] (str "gain " (apply str (repeat value "[Click]")) " during their next turn"))
+(defmethod render-effect :redirect-run [effect side [value]] (str "make the Runner continue the run on " (to-zone-name value)))
+(defmethod render-effect :access [effect side [server cards]] (str (to-zone-name server) "から" cards "枚のカードにアクセスする"))
+(defmethod render-effect :resolve-subroutine [effect side [ice subroutine]] (str "resolve the subroutine (\"[subroutine]" subroutine "\") from " (render-card ice)))
+(defmethod render-effect :turn-faceup [effect side [value]] (str (render-card value) "を裏向きにする"))
+(defmethod render-effect :flip-id [effect side [value]] (str "IDを" value "にめくる"))
+(defmethod render-effect :change-server [effect side [value]] (str "change the attacked server to " (to-zone-name value)))
 
 (defn- render-single-effect
   [effect value side]
@@ -481,7 +488,8 @@
       (s/replace #"替える$" "替えて")
       (s/replace #"見る$" "見て")
       (s/replace #"動かす$" "動かして")
-      (s/replace #"させる$" "させて")))
+      (s/replace #"させる$" "させて")
+      (s/replace #"めくる$" "めくって")))
 
 (defn render-effects
   [effects side forced]

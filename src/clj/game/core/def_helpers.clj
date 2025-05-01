@@ -2,7 +2,7 @@
   (:require
     [clojure.string :as str]
     [game.core.access :refer [access-bonus]]
-    [game.core.board :refer [all-installed get-all-cards]]
+    [game.core.board :refer [all-installed get-all-cards server->zone]]
     [game.core.card :refer [active? can-be-advanced? corp? faceup? get-card get-counters has-subtype? in-discard? in-hand? operation? runner? ]]
     [game.core.card-defs :as card-defs]
     [game.core.damage :refer [damage]]
@@ -191,7 +191,7 @@
   {:async true
    :change-in-game-state {:req (req (can-run-server? state server))}
    :label (str "run " (zone->name server))
-   :msg [[:make-run server]]
+   :msg [[:make-run [:servers server]]]
    :effect (req (make-run state side eid server card))})
 
 (def run-any-server-ability
@@ -200,7 +200,7 @@
    :choices (req runnable-servers)
    :label "Run any server"
    ;; TODO target likely not correct format
-   :msg (req [[:make-run target]])
+   :msg (req [[:make-run (server->zone state target)]])
    :effect (effect (make-run eid target card))})
 
 (def run-remote-server-ability
@@ -209,7 +209,7 @@
    :change-in-game-state {:req (req (seq (filter #(can-run-server? state %) remotes)))}
    :choices (req (filter #(can-run-server? state %) remotes))
    :label "Run a remote server"
-   :msg (req [[:make-run target]])
+   :msg (req [[:make-run (server->zone state target)]])
    :effect (effect (make-run eid target card))})
 
 (def run-central-server-ability
@@ -218,7 +218,7 @@
    :change-in-game-state {:req (req (seq (filter #{"HQ" "R&D" "Archives"} runnable-servers)))}
    :async true
    :label "Run a central server"
-   :msg (req [[:make-run target]])
+   :msg (req [[:make-run (server->zone state target)]])
    :effect (effect (make-run eid target card))})
 
 (defn run-server-from-choices-ability
@@ -227,7 +227,7 @@
    :choices (req (filter #(can-run-server? state %) choices))
    :change-in-game-state {:req (req (seq (filter (set choices) runnable-servers)))}
    :async true
-   :msg (req [[:make-run target]])
+   :msg (req [[:make-run (server->zone state target)]])
    :effect (effect (make-run eid target card))})
 
 (defn take-credits

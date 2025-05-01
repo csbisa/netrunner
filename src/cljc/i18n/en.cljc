@@ -479,6 +479,8 @@
 (defmethod render-effect :rearrange-rnd [effect side [value]] (str "rearrange the top " (quantify value "card") " of R&D"))
 (defmethod render-effect :reveal-from-rnd [effect side [value]] (str "reveal " value " from the top of R&D"))
 (defmethod render-effect :look-top-rnd [effect side [value]] (str "look at the top " (quantify value "card") " of R&D"))
+;; TODO merge with above
+(defmethod render-effect :look-top-stack [effect side [value]] (str "look at the top " (quantify value "card") " of the Stack"))
 (defmethod render-effect :move-hq-rnd [effect side [value]] (str "add " (quantify value "card") " from HQ to to the top of R&D"))
 (defmethod render-effect :play [effect side [value]] (str "play " value))
 #_(defmethod render-effect :move-server
@@ -553,6 +555,13 @@
 ;; TODO
 (defmethod render-effect :swap-ice-from-hand [effect side [value]] (str "swap " (render-card value) " with a piece of ice from HQ"))
 (defmethod render-effect :swap-ice [effect side [value]] (throw "foo"))
+(defmethod render-effect :gain-click-next-turn [effect side [value]] (str "gain " (apply str (repeat value "[Click]")) " during their next turn"))
+(defmethod render-effect :redirect-run [effect side [value]] (str "make the Runner continue the run on " (to-zone-name value)))
+(defmethod render-effect :access [effect side [server cards]] (str "access " (quantify cards "card") " from " (to-zone-name server)))
+(defmethod render-effect :resolve-subroutine [effect side [ice subroutine]] (str "resolve the subroutine (\"[subroutine]" subroutine "\") from " (render-card ice)))
+(defmethod render-effect :turn-faceup [effect side [value]] (str "turn " (render-card value) " faceup"))
+(defmethod render-effect :flip-id [effect side [value]] (str "flips [their] identity to " value))
+(defmethod render-effect :change-server [effect side [value]] (str "change the attacked server to " (to-zone-name value)))
 
 (defn render-single-effect-force-check
   [effect value side forced]
