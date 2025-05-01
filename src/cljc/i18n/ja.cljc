@@ -493,7 +493,11 @@
 
 (defmulti render-text (fn [input] (or (keyword (:type input)) :raw-text)))
 
-(defmethod render-text :create-game [_] "ゲームを作りました")
+(defmethod render-text :create-game [_] "ゲームを作成した")
+(defmethod render-text :join-game [_] "ゲームを参加した")
+(defmethod render-text :leave-game [_] "ゲームを退出した")
+;; TODO :side
+(defmethod render-text :watch-game [_] "観戦としてゲームを参加した")
 (defmethod render-text :keep-hand [_] "手札をキープする")
 (defmethod render-text :mulligan-hand [_] "手札をマリガンする")
 (defmethod render-text :mandatory-draw [_] "強制ドローする")
