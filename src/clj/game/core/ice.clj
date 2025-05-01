@@ -538,8 +538,7 @@
                    (when-not (= #{"All"} subtypes)
                      (-> subtypes
                          (set/intersection (set (:subtypes ice)))
-                         (first)
-                         (str " "))))]
+                         (first))))]
      {:type :break-subs :card (:title breaker) :ice (:title ice) :subtype subtype
       :subs (map :label (sort-by :index broken-subs))})))
 
