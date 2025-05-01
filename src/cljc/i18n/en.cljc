@@ -572,7 +572,7 @@
                                   (render-single-effect-force-check c v side forced))))))
 
 (defn render-effect-str
-  [{:keys [effect side]}]
+  [{:keys [effect side forced]}]
   (when-not (empty? effect)
     (str " to " (render-effects effect side forced))))
 
@@ -818,6 +818,11 @@
 (defmethod render-text :raw-text
   [input]
   (:raw-text input))
+
+;; TODO still experimental
+(defmethod render-text :force
+  [{:keys [card side]}]
+  (str "satisfy " card))
 
 (defmethod render-text :default
   [input]
