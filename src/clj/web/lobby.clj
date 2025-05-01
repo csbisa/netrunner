@@ -407,7 +407,7 @@
      (on-close lobby))))
 
 (defn leave-lobby! [db user uid ?reply-fn lobby]
-  (let [leave-message (core/make-system-message (str (:username user) " left the game."))
+  (let [leave-message (core/make-system-message {:type :leave-game :username (:username user)})
         new-app-state (swap! app-state/app-state
                                update :lobbies #(-> %
                                                     (handle-leave-lobby uid leave-message)
@@ -582,7 +582,7 @@
 
 (defn join-lobby! [user uid ?data ?reply-fn lobby]
   (let [correct-password? (check-password lobby user (:password ?data))
-        join-message (core/make-system-message (str (:username user) " joined the game."))
+        join-message (core/make-system-message {:type :join-game :username (:username user)})
         new-app-state (swap! app-state/app-state
                              update :lobbies #(-> %
                                                   (handle-join-lobby ?data uid user correct-password? join-message)
@@ -785,7 +785,8 @@
     (let [lobby (app-state/get-lobby gameid)]
       (when (and lobby (allowed-in-lobby user lobby))
         (let [correct-password? (check-password lobby user password)
-              watch-message (core/make-system-message (str (:username user) " joined the game as a spectator" (when request-side (str " (" request-side " perspective)")) "."))
+              watch-message (core/make-system-message (merge {:type :watch-game :username (:username user)}
+                                                             (when request-side {:side request-side})))
               new-app-state (swap! app-state/app-state
                                    update :lobbies #(-> %
                                                         (handle-watch-lobby gameid uid user correct-password? watch-message request-side)
