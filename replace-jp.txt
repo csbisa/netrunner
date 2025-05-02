@@ -41,13 +41,37 @@ prompts
 "HQかアーカイブからインストールするアイスを選ぶ"
 "クレジット元を選ぶ ("
 (str " (残り" count "つ)")
+(str "グリップに" (:title top-card) "を加えるか？")
+(str "スタックの一番上のカードは" (:title top-card))
+(str (:title tcard) "を表向きにするか？")
+"捨てたプログラムかハードウェアを１つインストールするか？"
+"破壊工作3?"
+"R&Dの一番上からカードを３枚見るか？"
+"HQからカードを１枚R&Dの一番上に加えるか？"
+"R&Dから任務を１枚探すか？"
+"R&Dからカードを１枚探すか？"
+"アーカイブから取引をプレイするか？"
+"スタックの一番下にプログラムを１つ加えるか？"
+"追加で１枚のカードにアクセスするため、搭載パワーカウンターを１つ消費するか？"
+"HQからカードを公開しインストールするか？"
+"Pay 1 [Credits]: place 1 advancement counter on an unrezzed advanceable card?"
+"計画書でないカードをインストールするか？"
+(msg "IDをめくって" (if (:flipped card) "カードを１枚引くか？" "1 [Credits]を得るか"))
+"レゾコストの10 [Credits]を支払うため、計画書を１つ放棄するか？"
+"カードをデレゾするか？"
+"Spend [click] to prevent the corporation having +1 allotted [click] during their next turn?"
+(msg "Pay 4 [Credits] to use " (:title card) " ability?")
+"スタックの一番上のカードをBlingに表向きで搭載するか？"
+"HQからカードの１枚にアクセスするか？"
 === CHOICES ===
 "ランナーは6 [Credits]を得る"
 "ランナーはカードを4枚引く"
+"2 [Credit]を得る"
 "2 [Credits]を得る"
 "カードを2枚引く"
 "3 [Credits]を得る"
 "カードを3枚引く"
+"カードを4枚引く"
 "3 [Credits]を得てカードを3枚引く"
 "タグを1つ受ける"
 "[Click][Click]を消費する"

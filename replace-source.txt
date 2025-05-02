@@ -1,4 +1,4 @@
-dlfuchnksdjafeuiyskad PROMPTS
+================================= PROMPTS
 "Add 1 card from Archives to HQ?"
 "Choose a card to install from Archives or HQ"
 "Choose a resource to trash"
@@ -41,13 +41,37 @@ dlfuchnksdjafeuiyskad PROMPTS
 "Choose an ice to install from Archives or HQ"
 "Choose a credit providing card ("
 (str " (" count " remaining)")
+(str "Add " (:title top-card) " to the grip?")
+(str "The top card of the stack is " (:title top-card))
+(str "Turn " (:title tcard) " faceup?")
+"Install a discarded program or piece of hardware?"
+"Sabotage 3?"
+"Look at the top 3 cards of R&D?"
+"Place a card in HQ on the top of R&D?"
+"Search R&D for an Operation?"
+"Search R&D for a card?"
+"Play a transaction from Archives?"
+"Put a program on the bottom of the stack?"
+"Spend 1 hosted power counter to access 1 additional card?"
+"Reveal and install a card from HQ?"
+"Pay 1 [Credits]: place 1 advancement counter on an unrezzed advanceable card?"
+"Install a non-agenda from HQ?"
+(msg "Flip your ID (" (if (:flipped card) "draw 1 card)?" "gain 1 [Credits])?"))
+"Forfiet an agenda to pay for 10 [Credits] of the rez cost?"
+"Derez a card?"
+"Spend [click] to prevent the corporation having +1 allotted [click] during their next turn?"
+(msg "Pay 4 [Credits] to use " (:title card) " ability?")
+"Host the top card of your stack on Bling?"
+"Access 1 card from HQ?"
 ===================== CHOICES
 "Runner gains 6 [Credits]"
 "Runner draws 4 cards"
+"Gain 2 [Credit]"
 "Gain 2 [Credits]"
 "Draw 2 cards"
 "Gain 3 [Credits]"
 "Draw 3 cards"
+"Draw 4 cards"
 "Gain 3 [Credits] and draw 3 cards"
 "Take 1 tag"
 "Spend [Click][Click]"
