@@ -238,7 +238,7 @@
 (deftest break-subs
   (render-test {:username "Runner"
                 :type :break-subs :card "Quetzal: Free Spirit"
-                :ice "Ice Wall" :subtype "Barrier " :subs '("End the run")}
+                :ice "Ice Wall" :subtype "Barrier" :subs '("End the run")}
                "Runner uses Quetzal: Free Spirit to break 1 Barrier subroutine on Ice Wall (\"[subroutine] End the run\").")
   (render-test {:username "Runner"
                 :type :break-subs :card "Cleaver" :ice "Palisade" :subtype "Barrier"
