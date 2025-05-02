@@ -359,9 +359,7 @@
                                                      {:unpreventable true :cause :ability-cost :suppress-checkpoint true})
                                         (complete-with-result
                                           state side eid
-                                          {:paid/msg (str "reveals and trashes " (quantify (count async-result) "card")
-                                                          " (" (enumerate-str (map :title targets)) ")"
-                                                          " from " hand)
+                                          {:paid/msg {:reveal-and-trash (map :title targets)}
                                            :paid/type :trash-from-hand
                                            :paid/value (count async-result)
                                            :paid/targets async-result}))))}
@@ -375,7 +373,7 @@
                                                                                                    :suppress-checkpoint true}))
                                                 (complete-with-result
                                                   state side eid
-                                                  {:paid/msg (str "forfeits an agenda (" (enumerate-str (map :title targets)) ")")
+                                                  {:paid/msg {:forfeit (map :title targets)}
                                                    :paid/type :forfeit
                                                    :paid/value 1
                                                    :paid/targets targets}))}]
@@ -438,7 +436,7 @@
   (if (<= (get-in @state [:runner :tag :base] 0) 0)
     (complete-with-result
       state side eid
-      {:paid/msg "removes 0 tags"
+      {:paid/msg {:tag 0}
        :paid/type :x-tags
        :paid/value 0})
     (continue-ability
@@ -450,13 +448,13 @@
                       (if (zero? target)
                         (complete-with-result
                           state side eid
-                          {:paid/msg "removes 0 tags"
+                          {:paid/msg {:tag 0}
                            :paid/type :x-tags
                            :paid/value 0})
                         (wait-for (lose-tags state side eid target {:suppress-checkpoint true})
                                   (complete-with-result
                                     state side eid
-                                    {:paid/msg (str "removes " (quantify cost "tag"))
+                                    {:paid/msg {:tag (value cost)}
                                      :paid/type :x-tags
                                      :paid/value cost})))))}
       card nil)))
@@ -808,8 +806,7 @@
                                                              :unpreventable true})
                             (complete-with-result
                               state side eid
-                              {:paid/msg (str "trashes " (quantify (count async-result) " rezzed Bioroid" "")
-                                              " (" (enumerate-str (map #(card-str state %) targets)) ")")
+                              {:paid/msg {:trash-bioroid (map #(card-str-map state %) targets)}
                                :paid/type :bioroid-run-server
                                :paid/value (count async-result)
                                :paid/targets targets})))}
@@ -896,9 +893,7 @@
                                      {:unpreventable true :cause :ability-cost})
                         (complete-with-result
                           state side eid
-                          {:paid/msg (str "reveals and trashes " (quantify (count async-result) "card")
-                                          " (" (enumerate-str (map :title to-trash)) ")"
-                                          " from " hand)
+                          {:paid/msg {:reveal-and-trash-from-hand (map :title to-trash)}
                            :paid/type :reveal-and-randomly-trash-from-hand
                            :paid/value (count async-result)
                            :paid/targets async-result})))))
@@ -1163,8 +1158,7 @@
      :effect (req (let [cards (keep #(move state :corp % :hand) targets)]
                     (complete-with-result
                       state side eid
-                      {:paid/msg (str "adds " (quantify (count cards) "hosted card")
-                                      " to HQ (" (enumerate-str (map :title cards)) ")")
+                      {:paid/msg {:hosted-to-hq (map :title cards)}
                        :paid/type :hosted-to-hq
                        :paid/value (count cards)
                        :paid/targets cards})))}
