@@ -88,9 +88,9 @@ prompts
 "その他すべてのカード"
 "HQ"
 "R&D"
-"アーカイブ"
-(str "サーバー " num)
-"新しい遠隔サーバー"
+"Archives"
+(str "Server " num)
+"New remote"
 "グリップ"
 "スタック"
 "ヒープ"
