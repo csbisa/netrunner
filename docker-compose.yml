@@ -18,6 +18,7 @@ services:
       - "./src:/usr/src/app/src"
       - "./test:/usr/src/app/test"
       - "./docker/docker-prod.edn:/usr/src/app/resources/prod.edn" # Override server configs
+      - "./tests.edn:/usr/src/app/tests.edn"
     depends_on:
       - database
     links:
