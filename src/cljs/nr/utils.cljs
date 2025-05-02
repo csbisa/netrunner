@@ -5,6 +5,9 @@
    [cljc.java-time.zoned-date-time :as zdt]
    [cljc.java-time.zone-id :as zone]
    [clojure.string :refer [join] :as s]
+   ;; TODO this is a sad hack due to circular dependencies with defmulti.
+   ;; must be included before i18n.defs
+   [i18n.core]
    [i18n.defs :refer [render-map]]
    [goog.object :as gobject]
    [goog.string :as gstring]
