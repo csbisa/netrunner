@@ -90,7 +90,8 @@
            ;; {:a 1 :b [2 3]} -> [[:a 1] [:b 2 3]]
            ;; however, it's not unconditional...
            ;; some lists should stay lists. well, we can just let tests take care of those?
-           text (if (:effect text)
+           ;; but also if it's already a vector, leave it alone.
+           text (if (and (:effect text) (not (vector? (:effect text))))
                   (assoc text :effect (mapv #(apply conj (vector (first %))
                                                     (cond
                                                       (and (vector? (second %))
