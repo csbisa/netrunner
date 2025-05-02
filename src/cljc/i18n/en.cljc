@@ -164,6 +164,8 @@
                  (str "forfeits " value)
                  (str "forfeits " (quantify (count value) "agenda")
                       " (" (enumerate-str value) ")"))
+      :reveal-and-trash (str "reveals and trashes " (quantify (count value) "card")
+                             " (" (enumerate-str value) ") from " hand)
       :gain-tag (str "takes " (quantify value "tag"))
       :tag (str "removes " (quantify value "tag"))
       :bad-pub (str "gains " value " bad publicity")
@@ -178,6 +180,7 @@
       :connection (render-card-list value "trashes" "installed connection")
       ;; TODO this renders it as 'ices'
       :ice (render-card-list value "trashes" "installed rezzed ice")
+      :trash-bioroid (render-card-list value "trashes" "rezed Bioroid")
       :trash-from-deck (str "trashes " (quantify value "card") " from the top of " deck)
       :trash-from-hand (if (int? value)
                          (str "trashes " (quantify value "card") " from " hand)
@@ -195,6 +198,7 @@
       :shuffle-installed-to-stack (render-card-list value "shuffles" "card" "" (str " into " deck))
       :add-installed-to-bottom-of-deck (render-card-list value "adds" "installed card" "" (str " to the bottom of " deck))
       :add-random-from-hand-to-bottom-of-deck (str "adds " (quantify value "random card") (str " from " hand " to the bottom of " deck))
+      :hosted-to-hq (str "adds " (quantify (count value) "hosted card") " to HQ (" (enumerate-str value) ")")
       :agenda-counter (str "spends " (quantify (second value) "hosted agenda counter") " from on " (first value))
       ;; TODO is this a list?
       ;; yes, there's a path where this is a list of title-counts...
@@ -266,7 +270,7 @@
 (defmethod render-effect :make-run [effect side [value]] (str "make a run on " (to-zone-name value)))
 (defmethod render-effect :end-run [effect side [value]] "end the run")
 ;; TODO probably need a duration here, others are encounter-only IIRC
-(defmethod render-effect :gain-type [effect side [card type]] (str "make " card " gain " (enumerate-str type) " until the end of the run"))
+(defmethod render-effect :gain-type [effect side [card type duration]] (str "make " (render-card card) " gain " (enumerate-str type) (to-duration duration)))
 (defmethod render-effect :place-counter [effect side [type count target]]
                  (str "place "
                       (if (or (= (keyword type) :credit) (= (keyword type) :credits))
@@ -298,6 +302,7 @@
 ;; TODO similar, combine?
 (defmethod render-effect :deal-net [effect side [value]] (str "deal " value " net damage"))
 (defmethod render-effect :deal-meat [effect side [value]] (str "deal " value " meat damage"))
+(defmethod render-effect :take-meat [effect side [value]] (str "suffer " value " meat damage"))
 (defmethod render-effect :deal-core [effect side [value]] (str "deal " value " core damage"))
 (defmethod render-effect :install [effect side [value]] (str "install " value))
 (defmethod render-effect :rez [effect side [value]] (str "rez " (render-card value)))
@@ -320,7 +325,7 @@
 ;; TODO merge with above
 (defmethod render-effect :look-top-stack [effect side [value]] (str "look at the top " (quantify value "card") " of the Stack"))
 (defmethod render-effect :move-hq-rnd [effect side [value]] (str "add " (quantify value "card") " from HQ to to the top of R&D"))
-(defmethod render-effect :play [effect side [value]] (str "play " value))
+(defmethod render-effect :play [effect side [card zone]] (str "play " card (when zone (str " from " (to-zone-name zone)))))
 #_(defmethod render-effect :move-server
   ([effect side server] (render-effect effect side server nil))
   ([effect side server card]
@@ -337,7 +342,8 @@
 (defmethod render-effect :prevent-net [effect side [value]] (str "prevent " value " net damage"))
 (defmethod render-effect :prevent-encounter-ability [effect side [card ability]]
                              (str "prevent the encounter ability on " card (when ability (str " (" ability ")"))))
-(defmethod render-effect :prevent-etr [effect side [value]] (str "prevent " (render-card value) " from ending the run this encounter"))
+(defmethod render-effect :prevent-etr [effect side [value]] (str "prevent the run from ending"))
+(defmethod render-effect :prevent-etr-effect [effect side [value]] (str "prevent " (render-card value) " from ending the run this encounter"))
 (defmethod render-effect :gain-str [effect side [strength duration]] (str "gain " strength " strength" (to-duration duration)))
 (defmethod render-effect :breach-server [effect side [value]] (str "breach " (to-zone-name value)))
 (defmethod render-effect :derez [effect side [value]] (str "derez "
@@ -350,7 +356,7 @@
 (defmethod render-effect :add-from-hq-to-score [effect side [value]] (str "add " value " from HQ to [their] score area"))
 (defmethod render-effect :turn-faceup [effect side [value]] (str "turn " value " in Archives faceup"))
 (defmethod render-effect :add-self-to-hq [effect side [value]] (str "add itself to HQ"))
-(defmethod render-effect :trash [effect side [value]] (str "trash " (render-card value)))
+(defmethod render-effect :trash [effect side [value]] (str "trash " (if (coll? value) (enumerate-str (map render-card value)) (render-card value))))
 ;; TODO this needs a duration?
 (defmethod render-effect :add-str-new [effect side [card count]] (str "give " (render-card card) " +" count " strength"))
 ;; TODO could spruce this up but it follows current thunderbolt format
@@ -389,9 +395,10 @@
                      (when points
                        (str " as an "
                             (when (= (keyword kind) :assassination) "assassination ")
-                            "agenda worth " (quantify points "agenda point")))))
-;; TODO
+))))
+(defmethod render-effect :prevent-steal-trash [effect side [value]] (str "prevent the Runner from stealing or trashing Corp cards" (to-duration value)))
 (defmethod render-effect :swap-ice-from-hand [effect side [value]] (str "swap " (render-card value) " with a piece of ice from HQ"))
+;; TODO
 (defmethod render-effect :swap-ice [effect side [value]] (throw "foo"))
 (defmethod render-effect :gain-click-next-turn [effect side [value]] (str "gain " (apply str (repeat value "[Click]")) " during their next turn"))
 (defmethod render-effect :redirect-run [effect side [value]] (str "make the Runner continue the run on " (to-zone-name value)))
@@ -400,6 +407,8 @@
 (defmethod render-effect :turn-faceup [effect side [value]] (str "turn " (render-card value) " faceup"))
 (defmethod render-effect :flip-id [effect side [value]] (str "flips [their] identity to " value))
 (defmethod render-effect :change-server [effect side [value]] (str "change the attacked server to " (to-zone-name value)))
+(defmethod render-effect :reveal-and-host [effect side [value]] (str "reveal and host " value " from HQ"))
+(defmethod render-effect :sabotage [effect side [value]] (str "sabotage " value))
 
 (defn render-single-effect-force-check
   [effect value side forced]
@@ -415,8 +424,16 @@
 (defn render-effects
   [effects side forced]
   (when effects
-    (enumerate-str (remove nil? (for [[c & v] effects]
-                                  (render-single-effect-force-check c v side forced))))))
+    (if (vector? (first (first effects)))
+      (str
+       (enumerate-str (remove nil? (for [[c & v] (first effects)]
+                                     (render-single-effect-force-check c v side forced))))
+       ", and then "
+       (enumerate-str (remove nil? (for [[c & v] (second effects)]
+                                     (render-single-effect-force-check c v side forced))))
+       ",")
+      (enumerate-str (remove nil? (for [[c & v] effects]
+                                    (render-single-effect-force-check c v side forced)))))))
 
 (defn render-effect-str
   [{:keys [effect side forced]}]
@@ -443,13 +460,15 @@
     (str pre " [their] turn " turn " with " credits " [Credit] and " (quantify cards "card") " in " hand)))
 
 (defmethod render-text :play
-  [{:keys [card cost]}]
+  [{:keys [card cost zone]}]
   (let [cost-spend-msg (build-spend-msg-suffix cost "play")]
-    (str cost-spend-msg card)))
+    (str cost-spend-msg card
+         (when zone (str "from " (to-zone-name zone))))))
 
 (defn- cost-discount-str
-  [{:keys [ignore-all-costs ignore-install-costs cost-bonus alternative-cost]}]
+  [{:keys [ignore-all-costs ignore-cost ignore-install-costs cost-bonus alternative-cost]}]
   (cond
+    ignore-cost " at no cost" ;; TODO this is redundant but currently wording isn't consistent
     ignore-all-costs " (ignoring all costs)"
     ignore-install-costs " (ignoring its install cost)"
     alternative-cost " (by paying its alternative cost)"
@@ -563,8 +582,7 @@
          (case (keyword break-type)
            :all (str "all " sub-count " subroutines")
            :remaining (str "the remaining " sub-count " subroutines")
-           ;; N.B. a space is included in the passed down subtype currently...
-           (quantify sub-count (str subtype "subroutine")))
+           (quantify sub-count (str (when subtype (str subtype " ")) "subroutine")))
          " on " ice
          (when-not break-type
            (str " (\"[subroutine] "
