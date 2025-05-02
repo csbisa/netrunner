@@ -331,7 +331,7 @@
                                                            :suppress-checkpoint true})
             (complete-with-result
               state side eid
-              {:paid/msg {:forfeit (:title card)}
+              {:paid/msg {:forfeit [(:title card)]}
                :paid/type :forfeit-self
                :paid/value 1
                :paid/targets [card]})))
