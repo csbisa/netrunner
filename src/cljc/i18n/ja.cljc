@@ -108,6 +108,7 @@
       :forfeit (if (string? value)
                  (str value "を放棄して")
                  (str (count value) "枚の計画書を破棄して (" (join "と" value) ")"))
+      :reveal-and-trash (str hand "からカードの" (count value) "枚を公開しトラッシュして (" (join "と" (map render-card value)) ")")
       :gain-tag (str "タグを" value "つ受けて")
       :tag (str "タグを" value "つ取り除いて")
       :bad-pub (str "悪名を" value "つ受けて")
@@ -122,6 +123,7 @@
       :resource (str (count value) "つインストール状態のリソースをトラッシュして (" (join "と" (map render-card value)) ")")
       :connection (str (count value) "つインストール状態のコネをトラッシュして (" (join "と" (map render-card value)) ")")
       :ice (str (count value) "つインストールとレゾ状態のアイスをトラッシュして (" (join "と" (map render-card value)) ")")
+      :trash-bioroid (str (count value) "つレゾ状態のバイオロイドをトラッシュして (" (join "と" (map render-card value)) ")")
       :trash-from-deck (str deck "の一番上から" value "枚のカードからをトラッシュして")
       :trash-from-hand (if (int? value)
                          (str hand "から" value "枚のカードをトラッシュして")
@@ -141,6 +143,7 @@
       ;; TODO card name
       :turn-hosted-matryoshka-facedown (str "搭載されたMatryoshkaの" value "枚を裏向きにする")
       :add-random-from-hand-to-bottom-of-deck (str hand "の" value "枚のランダムなカードを" deck "の一番下に加えて")
+      :hosted-to-hq (str "搭載されたカードの" (count value) "枚をHQに加えて (" (join "と" value) ")")
       :agenda-counter (let [[host count] value]
                         (str host "の搭載計画カウンターを" count "つ消費して"))
       ;; TODO is this a list?
@@ -188,7 +191,7 @@
 (defmethod render-effect :make-run [effect side [value]] (str (to-zone-name value) "にランする"))
 (defmethod render-effect :end-run [effect side [value]] "ランを終了する")
 ;; TODO probably need a duration here, others are encounter-only IIRC
-(defmethod render-effect :gain-type [effect side [value]] (let [[card type] value] (str "ランの終了時まで" card "が" (join "と" type) "を得る")))
+(defmethod render-effect :gain-type [effect side [card type duration]] (str (to-duration duration) (render-card card) "が" (join "と" type) "を得る"))
 (defmethod render-effect :place-counter [effect side [type count target]]
                  (str (if target (render-card target) "それ自体")
                       "に"
@@ -217,6 +220,7 @@
 (defmethod render-effect :access-additional-from-rnd [effect side [value]] (str "R&Dからの追加で" value "枚のカードにアクセスする"))
 (defmethod render-effect :deal-net [effect side [value]] (str value "ネットダメージを与える"))
 (defmethod render-effect :deal-meat [effect side [value]] (str value "ミートダメージを与える"))
+(defmethod render-effect :take-meat [effect side [value]] (str value "ミートダメージを受ける"))
 (defmethod render-effect :deal-core [effect side [value]] (str value "コアダメージを与える"))
 (defmethod render-effect :install [effect side [value]] (str value "をインストールする"))
 (defmethod render-effect :rez [effect side [value]] (str (render-card value) "をレゾする"))
@@ -236,7 +240,7 @@
 (defmethod render-effect :reveal-from-rnd [effect side [value]] (str "Ｒ＆Ｄの一番上から" value "を公開する"))
 (defmethod render-effect :look-top-rnd [effect side [value]] (str "Ｒ＆Ｄの一番上のカード" value "枚を見る"))
 (defmethod render-effect :move-hq-rnd [effect side [value]] (str"Ｒ＆Ｄの一番上にＨＱのカード" value "枚を加える"))
-(defmethod render-effect :play [effect side [value]] (str value "をプレイする"))
+(defmethod render-effect :play [effect side [card zone]] (str (when zone (str (to-zone-name zone) "から")) card "をプレイする"))
 (defmethod render-effect :move-server [effect side [server card]]
                (str (to-zone-name server) "に" (or card "それ自体") "を動かす"))
 (defmethod render-effect :prevent-access [effect side [type card]]
@@ -250,7 +254,9 @@
 (defmethod render-effect :prevent-encounter-ability [effect side [card ability]]
                              (str card "のエンカウントした時能力を妨害する"
                                   (when ability (str " (" ability ")"))))
-(defmethod render-effect :prevent-etr [effect side [value]] (str (render-card value) "でランを終了することを妨害する"))
+(defmethod render-effect :prevent-etr [effect side [value]] (str "ランを終了することを妨害する"))
+;; TODO missing encounter... kind of redundant here
+(defmethod render-effect :prevent-etr-effect [effect side [value]] (str (render-card value) "でランを終了することを妨害する"))
 (defmethod render-effect :gain-str [effect side [value]] (let [[strength duration] value] (str (to-duration duration) "強度+" strength "する")))
 (defmethod render-effect :breach-server [effect side [value]] (str (to-zone-name value) "に侵入する"))
 (defmethod render-effect :derez [effect side [value]] (str (if (list? value)
@@ -263,7 +269,8 @@
 (defmethod render-effect :add-from-hq-to-score [effect side [value]] (str "得点エリアにＨＱから" value "を加える"))
 (defmethod render-effect :turn-faceup [effect side [value]] (str "アーカイブに" value "を表向きにする"))
 (defmethod render-effect :add-self-to-hq [effect side [value]] (str "ＨＱにそれ自体を加える"))
-(defmethod render-effect :trash [effect side [value]] (str (if (string? value) value (render-card value)) "をトラッシュする"))
+(defmethod render-effect :trash [effect side [value]]
+  (str (if (coll? value) (join "と" (map render-card value)) (render-card value)) "をトラッシュする"))
 ;; TODO this needs a duration?
 (defmethod render-effect :add-str-new [effect side [value]] (let [[card count] value] (str (render-card card) "居度＋" count "与える")))
 (defmethod render-effect :add-sub [effect side [value]] (str "「[subroutine] " value "」を他のサブルーチンの後に与える"))
@@ -301,10 +308,11 @@
                        (str points "価値を持つ"
                             (when (= (keyword kind) :assassination) "暗殺の")
                             "計画書として自身の得点エリア"))
-                     "に加える")) ;; TODO
+                     "に加える"))
 ;; TODO weird. also :prevent-access needs a revisit
 (defmethod render-effect :prevent-steal-trash [effect side [value]] (str (to-duration value) "ランナーにコーポのカードを盗むかトラッシュすることを妨害する"))
 (defmethod render-effect :swap-ice-from-hand [effect side [value]] (str (render-card value) "とHQにあるアイスを交換する"))
+;; TODO
 (defmethod render-effect :swap-ice [effect side [value]] (throw "foo"))
 (defmethod render-effect :gain-click-next-turn [effect side [value]] (str "gain " (apply str (repeat value "[Click]")) " during their next turn"))
 (defmethod render-effect :redirect-run [effect side [value]] (str "make the Runner continue the run on " (to-zone-name value)))
@@ -312,7 +320,9 @@
 (defmethod render-effect :resolve-subroutine [effect side [ice subroutine]] (str "resolve the subroutine (\"[subroutine]" subroutine "\") from " (render-card ice)))
 (defmethod render-effect :turn-faceup [effect side [value]] (str (render-card value) "を裏向きにする"))
 (defmethod render-effect :flip-id [effect side [value]] (str "IDを" value "にめくる"))
-(defmethod render-effect :change-server [effect side [value]] (str "change the attacked server to " (to-zone-name value)))
+(defmethod render-effect :change-server [effect side [value]] (str "攻撃されているサーバーを" (to-zone-name value) "に変更する"))
+(defmethod render-effect :reveal-and-host [effect side [value]] (str "HQから" value "を公開し搭載する"))
+(defmethod render-effect :sabotage [effect side [value]] (str "破壊工作" value "を行う"))
 
 (defn render-single-effect-force-check
   [effect value side forced]
@@ -343,10 +353,18 @@
 (defn render-effects
   [effects side forced]
   (when effects
-    (let [effect-strs (remove nil? (for [[c & v] effects]
-                                     (render-single-effect-force-check c v side forced)
-                                     #_(render-single-effect c v)))]
-      (str (apply str (map do-conj (butlast effect-strs))) (last effect-strs)))))
+    (if (vector? (first (first effects)))
+      (let [effect-strs1 (remove nil? (for [[c & v] (first effects)]
+                                        (render-single-effect-force-check c v side forced)))
+            effect-strs2 (remove nil? (for [[c & v] (second effects)]
+                                        (render-single-effect-force-check c v side forced)))]
+        (str
+         (str (apply str (map do-conj effect-strs1)))
+         "、"
+        (str (apply str (map do-conj (butlast effect-strs2))) (last effect-strs2))))
+      (let [effect-strs (remove nil? (for [[c & v] effects]
+                                       (render-single-effect-force-check c v side forced)))]
+        (str (apply str (map do-conj (butlast effect-strs))) (last effect-strs))))))
 
 (defmulti render-text (fn [input] (or (keyword (:type input)) :raw-text)))
 
@@ -374,8 +392,9 @@
      cards "枚のカードと" credits " [Credits]で" "ターン" turn "目が" phase "する")))
 
 (defmethod render-text :play
-  [{:keys [card]}]
-  (str card "をプレイする"))
+  [{:keys [card zone]}]
+  (str (when zone (str (to-zone-name zone) "から"))
+       card "をプレイする"))
 
 (defn- cost-discount-str
   [{:keys [ignore-all-costs ignore-install-costs cost-bonus alternative-cost]}]
