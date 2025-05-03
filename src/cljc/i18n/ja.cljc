@@ -127,7 +127,7 @@
       :trash-from-deck (str deck "の一番上から" value "枚のカードからをトラッシュして")
       :trash-from-hand (if (int? value)
                          (str hand "から" value "枚のカードをトラッシュして")
-                         (str hand "から" (count value) "枚のカードをトラッシュして (" (join "と" value) ")"))
+                         (str hand "から" (count value) "枚のカードをトラッシュして (" (join "と" (map render-card value)) ")"))
       :randomly-trash-from-hand (str hand "から" value "枚ンダムにトラッシュして")
       :trash-entire-hand (if (int? value)
                            (str hand "の" value "枚のカードをすべてトラッシュして")
@@ -270,7 +270,7 @@
 (defmethod render-effect :turn-faceup [effect side [value]] (str "アーカイブに" value "を表向きにする"))
 (defmethod render-effect :add-self-to-hq [effect side [value]] (str "ＨＱにそれ自体を加える"))
 (defmethod render-effect :trash [effect side [value]]
-  (str (if (coll? value) (join "と" (map render-card value)) (render-card value)) "をトラッシュする"))
+  (str (if (or (vector? value) (list? value)) (join "と" (map render-card value)) (render-card value)) "をトラッシュする"))
 ;; TODO this needs a duration?
 (defmethod render-effect :add-str-new [effect side [value]] (let [[card count] value] (str (render-card card) "居度＋" count "与える")))
 (defmethod render-effect :add-sub [effect side [value]] (str "「[subroutine] " value "」を他のサブルーチンの後に与える"))
