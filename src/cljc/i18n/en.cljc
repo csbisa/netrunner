@@ -523,12 +523,12 @@
 
 (defmethod render-text :score
   [{:keys [card cost points]}]
-  (str (if cost "score" "scores") card
+  (str (if cost "score " "scores ") card
        (when points (str " and gains " points " agenda points"))))
 
 (defmethod render-text :steal
   [{:keys [card cost points]}]
-  (str (if cost "steal" "steals") card
+  (str (if cost "steal " "steals ") card
        (when points (str " and gains " points " agenda points"))))
 
 (defmethod render-text :start-run
