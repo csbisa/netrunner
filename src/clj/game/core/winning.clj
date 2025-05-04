@@ -52,7 +52,7 @@
 (defn win-decked
   "Records a win via decking the corp."
   [state]
-  (system-msg state :corp "is decked")
+  (system-msg state :corp {:type :win-reason :cause :decked})
   (win state :runner "Decked"))
 
 (defn flatline
@@ -60,14 +60,14 @@
   [state]
   (when-not (:winner state)
     (swap! state assoc :winner-declared true)
-    (system-msg state :runner "is flatlined")
+    (system-msg state :runner {:type :win-reason :cause :flatline})
     (win state :corp "Flatline")))
 
 (defn concede
   "Trigger game concede by specified side. Takes a third argument for use with user commands."
   ([state side _] (concede state side))
   ([state side]
-   (system-msg state side "concedes")
+   (system-msg state side {:type :win-reason :cause :concession})
    (win state (if (= side :corp) :runner :corp) "Concede")))
 
 (defn clear-win
