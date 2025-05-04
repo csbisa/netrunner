@@ -184,6 +184,8 @@ game_agenda-count = {$agenda-point} 計画点
 
 game_approach-ice = アイスにアプローチ
 
+game_approach-server = サーバーにアプローチ
+
 game_archives = アーカイブ ({$faceup} ↑ {$facedown} ↓)
 
 game_attempt-reconnect = 再接続を試みる
@@ -212,7 +214,7 @@ game_concede = 降参する
 
 game_continue = 次へ進む
 
-game_continue-to = 次へ {$phase}
+game_continue-to = {$phase}へ進む
 
 game_corp-view = コーポ視点
 
@@ -536,6 +538,8 @@ settings_log-size = ゲームログサイズ
 settings_pin-zoom = 拡大したカードを画面に表示し続ける
 
 settings_sounds = 音
+
+settings_update-profile = プロフィールを更新する
 
 settings_volume = 音量
 
