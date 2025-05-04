@@ -198,3 +198,4 @@ SIMPLE STRINGS
 "Keep"
 "Mulligan"
 (#(str %2 %1) "を待っている"
+"キャンセル"
