@@ -117,7 +117,7 @@
   ([cards action qualifier trailer] (render-card-list cards action qualifier trailer ""))
   ([cards action qualifier trailer suffix]
    (str action " " (quantify (count cards) qualifier) trailer
-        " (" (enumerate-str (map #(if (string? %) % (render-card %)) cards)) ")" suffix)))
+        " (" (enumerate-str (map render-card cards)) ")" suffix)))
 
 (defn- to-duration
   [duration]
@@ -400,7 +400,7 @@
 (defmethod render-effect :swap-ice-from-hand [effect side [value]] (str "swap " (render-card value) " with a piece of ice from HQ"))
 ;; TODO
 (defmethod render-effect :swap-ice [effect side [value]] (throw "foo"))
-(defmethod render-effect :gain-click-next-turn [effect side [value]] (str "gain " (apply str (repeat value "[Click]")) " during their next turn"))
+(defmethod render-effect :gain-click-next-turn [effect side [value]] (str "get +" value " allotted [Click] for [their] next turn"))
 (defmethod render-effect :redirect-run [effect side [value]] (str "make the Runner continue the run on " (to-zone-name value)))
 (defmethod render-effect :access [effect side [server cards]] (str "access " (quantify cards "card") " from " (to-zone-name server)))
 (defmethod render-effect :resolve-subroutine [effect side [ice subroutine]] (str "resolve the subroutine (\"[subroutine]" subroutine "\") from " (render-card ice)))
@@ -661,6 +661,13 @@
 (defmethod render-text :increase-trace-link
   [{:keys [strength side]}]
   (str "increase " (if (= (keyword side) :corp) "trace" "link") " strength to " strength))
+
+(defmethod render-text :win-reason
+  [{:keys [cause]}]
+  (case (keyword cause)
+    :concession "concedes"
+    :decked "is decked"
+    :flatline "is flatlined"))
 
 (defmethod render-text :win-game
   [_]
