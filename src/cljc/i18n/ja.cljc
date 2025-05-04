@@ -314,10 +314,10 @@
 (defmethod render-effect :swap-ice-from-hand [effect side [value]] (str (render-card value) "とHQにあるアイスを交換する"))
 ;; TODO
 (defmethod render-effect :swap-ice [effect side [value]] (throw "foo"))
-(defmethod render-effect :gain-click-next-turn [effect side [value]] (str "gain " (apply str (repeat value "[Click]")) " during their next turn"))
-(defmethod render-effect :redirect-run [effect side [value]] (str "make the Runner continue the run on " (to-zone-name value)))
+(defmethod render-effect :gain-click-next-turn [effect side [value]] (str "自身の次のターンに割当[Click]を＋" value "する"))
+(defmethod render-effect :redirect-run [effect side [value]] (str "ランナーに" (to-zone-name value) "の最外の位置に移動することをさせる"))
 (defmethod render-effect :access [effect side [server cards]] (str (to-zone-name server) "から" cards "枚のカードにアクセスする"))
-(defmethod render-effect :resolve-subroutine [effect side [ice subroutine]] (str "resolve the subroutine (\"[subroutine]" subroutine "\") from " (render-card ice)))
+(defmethod render-effect :resolve-subroutine [effect side [ice subroutine]] (str (render-card ice) "のサブルーチン（[subroutine]" subroutine "）を解決する"))
 (defmethod render-effect :turn-faceup [effect side [value]] (str (render-card value) "を裏向きにする"))
 (defmethod render-effect :flip-id [effect side [value]] (str "IDを" value "にめくる"))
 (defmethod render-effect :change-server [effect side [value]] (str "攻撃されているサーバーを" (to-zone-name value) "に変更する"))
@@ -577,6 +577,13 @@
 (defmethod render-text :increase-trace-link
   [{:keys [strength side]}]
   (str (if (= (keyword side) :corp) "トレース" "リンク") "強度を" strength "に上げる"))
+
+(defmethod render-text :win-reason
+  [{:keys [cause]}]
+  (case (keyword cause)
+    :concession "降参する"
+    :decked "デッキが切れた"
+    :flatline "フラットラインされた"))
 
 (defmethod render-text :win-game
   [_]
