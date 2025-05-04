@@ -806,8 +806,8 @@
    :leave-play (req (swap! state update-in [:corp :bad-publicity :additional] dec))})
 
 (defcard "Creative Commission"
-  {:on-play {:msg (map-msg :gain-credits 5
-                           :lose-click (if (pos? (:click runner)) 1 0))
+  {:on-play {:msg (req (merge {:gain-credits 5}
+                              (when (pos? (:click runner)) {:lose-click 1})))
              :async true
              :effect (req (when (pos? (:click runner))
                             (lose-clicks state :runner 1))
