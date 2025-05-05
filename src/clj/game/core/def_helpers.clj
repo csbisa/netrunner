@@ -376,14 +376,12 @@
                                          (qty state draining-side (make-eid state) nil nil))]
                                (min (get-in @state [victim-side :credit] 0) qty)))
            (to-gain [state] (* (to-drain state) multiplier))]
-     {:msg (msg "force the " (str/capitalize (name victim-side)) " to lose "
-                (to-drain state) " [Credits], " (when (zero? tags-to-gain) " and ")
-                "gain " (to-gain state) " [Credits]"
-                (when (pos? tags-to-gain)
-                  (str (if (= :corp draining-side)
-                         ", and give Runner "
-                         ", and take ")
-                       (quantify tags-to-gain "tag"))))
+     {:msg (req (remove nil? [[:lose-credits-force (to-drain state)]
+                              [:gain-credits (to-gain state)]
+                              (when (pos? tags-to-gain)
+                                (if (= :corp draining-side)
+                                  [:give-tag tags-to-gain]
+                                  [:take-tag tags-to-gain]))]))
       :async true
       :effect (req (let [c-drain (to-drain state)
                          c-gain (to-gain state)]
