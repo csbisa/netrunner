@@ -11,9 +11,9 @@
 (def strength number?)
 (def duration [:enum {:title "duration"} :end-of-encounter :end-of-run :end-of-turn])
 (def counter-type [:enum :adv :virus :power :credit :credits])
-(def server [:or [:enum :hand :deck :discard]
+(def server [:or [:enum :hand :deck :discard :scored]
              ;; TODO some inconsistency with :deck vs [:deck]
-             [:tuple [:enum :hand :deck :discard]]
+             [:tuple [:enum :hand :deck :discard :scored]]
              ;; TODO keyword should be restricted, but need to figure out how to
              ;; sanely handle arbitrary :remoteX keys
              [:tuple [:enum :servers] keyword?]
@@ -107,6 +107,7 @@
    [:take-bp [:tuple keyword? number?]]
    [:add-from-stack [:tuple keyword? string?]]
    [:add-from-rnd [:tuple keyword? string?]]
+   [:add-from-rnd-to-rnd [:tuple keyword? string?]]
    [:add-card [:tuple keyword? card server server]] ;; TODO optional + nils?
    [:add-to-hq [:tuple keyword? card]]
    [:add-to-grip [:tuple keyword? card]]
@@ -162,12 +163,12 @@
    [:encounter-ice [:tuple keyword? card]]
    [:reveal-self [:tuple keyword? server]]
    [:add-from-hq-to-score [:tuple keyword? string?]]
-   [:turn-faceup [:tuple keyword? string?]]
    [:add-self-to-hq [:tuple keyword? boolean?]]
    [:trash [:tuple keyword? card]]
    [:add-str-new [:tuple keyword? card number?]]
    [:add-sub [:tuple keyword? string?]]
    [:trash-rnd [:tuple keyword? number?]]
+   [:trash-rnd-and-add [:tuple keyword? number?]]
    [:remove-click-next-turn [:tuple keyword? number?]]
    [:move-grip-to-stack [:tuple keyword? card-list]]
    [:shuffle-into-stack [:tuple keyword? [:or nil? card-list]]]
@@ -176,6 +177,7 @@
    [:reveal-from-grip [:tuple keyword? card-list]]
    [:add-to-top-rnd [:tuple keyword? string?]]
    [:add-to-bottom-rnd [:tuple keyword? card]]
+   [:add-to-bottom-stack [:tuple keyword? card]]
    [:force-reveal [:tuple keyword? number?]]
    [:shuffle-zone-into [:tuple keyword? server server]]
    [:rfg [:tuple keyword? card-list]]
@@ -191,9 +193,19 @@
    [:choose-server [:tuple keyword? server]]
    [:choose-subtype [:tuple keyword? string?]]
    [:choose-ice [:tuple keyword? card]]
+   [:choose-card-type [:tuple keyword? string?]]
    [:add-to-score [:tuple keyword? card [:enum :assassination nil] number?]]
    [:swap-ice-from-hand [:tuple keyword? card]]
    [:swap-ice [:tuple keyword? card card]]
+   [:gain-click-next-turn [:tuple keyword? number?]]
+   [:redirect-run [:tuple keyword? server]]
+   [:access [:tuple keyword? server card-list]]
+   [:resolve-subroutine [:tuple keyword? card string?]]
+   [:turn-faceup [:tuple keyword? card]]
+   [:flip-id [:tuple keyword? string?]]
+   [:change-server [:tuple keyword? server]]
+   [:reveal-and-host [:tuple keyword? card]]
+   [:sabotage [:tuple keyword? number?]]
    ])
 
 (def MapEffects
