@@ -73,13 +73,16 @@
        :hand (if (= side :corp) "HQ" "the Grip")
        :deck (if (= side :corp) "R&D" "the Stack")
        :discard (if (= side :corp) "Archives" "the Heap")
+       ;; TODO this is wrong, but messages don't carry enough context
+       ;; e.g. IP enforcmenet is corp msg, but score area is runner side
+       :scored "the Runner's score area"
        :servers
        (case server
-         :hq (if (= side :corp) "HQ" "the Grip")
-         :rd (if (= side :corp) "R&D" "the Stack")
-         :archives (if (= side :corp) "Archives" "the Heap")
+         :hq "HQ"
+         :rd "R&D"
+         :archives "Archives"
          (str "Server " (last (split (str server) #":remote"))))
-       (str "unhandled server " location)))))
+       (str "unhandled zone " location)))))
 
 ;; TODO fix it, jp is more comprehensive
 ;; TODO need 'root' wording here
@@ -252,6 +255,7 @@
 ;; TODO this is a clusterfuck, figure out how to unify it later
 (defmethod render-effect :add-from-stack [effect side [value]] (str "add " value " from the stack to the grip and shuffle the stack"))
 (defmethod render-effect :add-from-rnd [effect side [value]] (str  "reveal " value " from R&D and add it to HQ"))
+(defmethod render-effect :add-from-rnd-to-rnd [effect side [value]] (str  "reveal " value " from R&D, shuffle R&D, and place it on top of R&D"))
 ;; TODO this is probably the best generic mechanism, need to squash it with several others here
 (defmethod render-effect :add-card [effect side [card from to]]
             (str "add " (or card "itself")
@@ -362,6 +366,7 @@
 ;; TODO could spruce this up but it follows current thunderbolt format
 (defmethod render-effect :add-sub [effect side [value]] (str "add " value " after its other subroutines"))
 (defmethod render-effect :trash-rnd [effect side [value]] (str "trash the top " (quantify value "card") " of R&D"))
+(defmethod render-effect :trash-rnd-and-add [effect side [value]] (pprint/cl-format nil "trash the ~:R from R&D and add the rest to HQ" value))
 (defmethod render-effect :remove-click-next-turn [effect side [value]] (str "give the Runner -" value " allotted [Click] for [their] next turn"))
 (defmethod render-effect :move-grip-to-stack [effect side [value]] (str "add " (enumerate-str value) " from the Grip to the top of the Stack"))
 (defmethod render-effect :shuffle-into-stack [effect side [value]] (str "shuffle " (or value "them") " into the stack"))
@@ -371,6 +376,7 @@
 (defmethod render-effect :add-to-top-rnd [effect side [value]] (str "add " value " to the top of R&D"))
 ;; so extend this to render cards, and render cards using other sources too?
 (defmethod render-effect :add-to-bottom-rnd [effect side [value]] (str "add " (render-card value) " to the bottom of R&D"))
+(defmethod render-effect :add-to-bottom-stack [effect side [value]] (str "add " (render-card value) " to the bottom of the Stack"))
 (defmethod render-effect :force-reveal [effect side [value]] (str "reveal " (quantify value "random card") " from HQ"))
 (defmethod render-effect :shuffle-zone-into [effect side [value]] (str "shuffle " (enumerate-str (map to-zone-name value)) " into " (to-zone-name [:deck])))
 (defmethod render-effect :rfg [effect side [value]] (str "remove " (enumerate-str value) " from the game"))
@@ -390,6 +396,7 @@
 (defmethod render-effect :choose-server [effect side [value]] (str "target " (to-zone-name value)))
 (defmethod render-effect :choose-subtype [effect side [value]] (str "choose " value))
 (defmethod render-effect :choose-ice [effect side [value]] (str "choose " (render-card value)))
+(defmethod render-effect :choose-card-type [effect side [value]] (str "choose " value))
 (defmethod render-effect :add-to-score [effect side [card kind points]]
                 (str "add " (or card "itself") " to the score area"
                      (when points
@@ -443,6 +450,9 @@
 (defmulti render-text (fn [input] (or (keyword (:type input)) :raw-text)))
 
 (defmethod render-text :create-game [_] "has created the game")
+(defmethod render-text :join-game [_] "has joined the game")
+(defmethod render-text :leave-game [_] "has left the game")
+(defmethod render-text :watch-game [_] "has joined the game as a spectator")
 (defmethod render-text :keep-hand [_] "keeps [their] hand")
 (defmethod render-text :mulligan-hand [_] "takes a mulligan")
 (defmethod render-text :mandatory-draw [_] "makes [their] mandatory start of turn draw")
