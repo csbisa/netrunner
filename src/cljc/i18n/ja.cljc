@@ -34,13 +34,16 @@
        :hand (if (= side :corp) "ＨＱ" "グリップ")
        :deck (if (= side :corp) "Ｒ＆Ｄ" "スタック")
        :discard (if (= side :corp) "アーカイブ" "ヒープ")
+       ;; TODO this is wrong, but messages don't carry enough context
+       ;; e.g. IP enforcmenet is corp msg, but score area is runner side
+       :scored "ランナーの得点エリア"
        :servers
        (case server
          :hq "HQ"
          :rd "R&D"
          :archives "アーカイブ"
          (str "サーバー" (last (split (str server) #":remote"))))
-       (str "unhandled server " location)))))
+       (str "unhandled zone " location)))))
 
 (defn- to-duration
   [duration]
@@ -176,10 +179,11 @@
 (defmethod render-effect :take-bp [effect side [value]] (str "悪名を" value "つ受ける"))
 (defmethod render-effect :add-from-stack [effect side [value]] (str "スタックから" value "をグリップに加えてスタックをシャッフルする"))
 (defmethod render-effect :add-from-rnd [effect side [value]] (str  "R&Dから " value "を公開してHQに加える"))
+(defmethod render-effect :add-from-rnd-to-rnd [effect side [value]] (str  "R&Dから " value "を公開してR&DをシャフルしてR&Dの一番上に加える"))
 (defmethod render-effect :add-card [effect side [card from to]]
-            (str (when from (str (to-zone-name from) "から"))
-                 (when to (str (to-zone-name to) "に"))
-                 (or  card "それ自体") "を加える"))
+  (str (when from (str (to-zone-name from) "から"))
+       (when to (str (to-zone-name to) "に"))
+       (or  card "それ自体") "を加える"))
 (defmethod render-effect :add-to-hq [effect side [value]] (str "HQに" (render-card value) "を加える"))
 (defmethod render-effect :add-to-grip [effect side [value]] (str "グリップに" (render-card value) "を加える"))
 (defmethod render-effect :add-to-hq-unseen [effect side [value]] (str "HQにカードを" value "枚加える"))
@@ -239,6 +243,7 @@
 (defmethod render-effect :rearrange-rnd [effect side [value]] (str "Ｒ＆Ｄの一番上のカード" value "枚を並べ替える"))
 (defmethod render-effect :reveal-from-rnd [effect side [value]] (str "Ｒ＆Ｄの一番上から" value "を公開する"))
 (defmethod render-effect :look-top-rnd [effect side [value]] (str "Ｒ＆Ｄの一番上のカード" value "枚を見る"))
+(defmethod render-effect :look-top-stack [effect side [value]] (str "スタックの一番上のカード" value "枚を見る"))
 (defmethod render-effect :move-hq-rnd [effect side [value]] (str"Ｒ＆Ｄの一番上にＨＱのカード" value "枚を加える"))
 (defmethod render-effect :play [effect side [card zone]] (str (when zone (str (to-zone-name zone) "から")) card "をプレイする"))
 (defmethod render-effect :move-server [effect side [server card]]
@@ -275,6 +280,7 @@
 (defmethod render-effect :add-str-new [effect side [value]] (let [[card count] value] (str (render-card card) "居度＋" count "与える")))
 (defmethod render-effect :add-sub [effect side [value]] (str "「[subroutine] " value "」を他のサブルーチンの後に与える"))
 (defmethod render-effect :trash-rnd [effect side [value]] (str "Ｒ＆Ｄの一番上のカード" value "枚をトラッシュする"))
+(defmethod render-effect :trash-rnd-and-add [effect side [value]] (str "Ｒ＆Ｄの一番上から" value "枚目のカードをトラッシュし残りをHQに加える"))
 (defmethod render-effect :remove-click-next-turn [effect side [value]] (str "ランナーの次のターンの割当[Click]をー" value "する"))
 (defmethod render-effect :move-grip-to-stack [effect side [value]] (str "グリップから" (join "と" value) "をスタックに加える"))
 (defmethod render-effect :shuffle-into-stack [effect side [value]] (str value "をスタックに加えシャフルする"))
@@ -283,6 +289,7 @@
 (defmethod render-effect :reveal-from-grip [effect side [value]] (str "グリップから" (join "と" value) "を公開する"))
 (defmethod render-effect :add-to-top-rnd [effect side [value]] (str "Ｒ＆Ｄの一番上に" value "を加える"))
 (defmethod render-effect :add-to-bottom-rnd [effect side [value]] (str "Ｒ＆Ｄの一番下に" (render-card value) "を加える"))
+(defmethod render-effect :add-to-bottom-stack [effect side [value]] (str "スタックの一番下に" (render-card value) "を加える"))
 (defmethod render-effect :force-reveal [effect side [value]] (str "ＨＱのランダムなカード" value "枚を公開する"))
 (defmethod render-effect :shuffle-zone-into [effect side [value]] (str "スタックに" (join "と" (map to-zone-name value)) "に加えシャフルする"))
 (defmethod render-effect :rfg [effect side [value]] (str (join "と" value) "を取り除く"))
@@ -302,6 +309,7 @@
 (defmethod render-effect :target-server [effect side [value]] (str (to-zone-name value) "を選ぶ"))
 (defmethod render-effect :choose-subtype [effect side [value]] (str value "を選ぶ"))
 (defmethod render-effect :choose-ice [effect side [value]] (str (render-card value) "を選ぶ"))
+(defmethod render-effect :choose-card-type [effect side [value]] (str value "を選ぶ"))
 (defmethod render-effect :add-to-score [effect side [card kind points]]
                 (str (or card "それ自体") "を"
                      (when points
