@@ -99,7 +99,7 @@
                                                       true (vector (second %))))
                                             (vec (:effect text))))
                   text)]
-       #_(when-not (m/validate MapMsgOrString text)
+       (when-not (m/validate MapMsgOrString text)
          (throw (Exception. (ex-info "malli validation failed"
                                      {:explain (me/humanize (m/explain MapMsgOrString text)
                                                             #_{:wrap #(select-keys % [:value :message])})
