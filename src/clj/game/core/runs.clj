@@ -172,7 +172,7 @@
   (if-not (get-in @state [:run :no-action])
     (do (swap! state assoc-in [:run :no-action] side)
         (when (= :corp side)
-          (system-msg state side "has no further action")))
+          (system-msg state side {:type :no-action})))
     (if (pos? (get-in @state [:run :position] 0))
       (do (set-next-phase state :approach-ice)
           (start-next-phase state side nil))
