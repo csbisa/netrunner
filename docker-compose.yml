@@ -37,7 +37,7 @@ services:
       - ./data:/data/db
 
   cljs:
-    entrypoint: npm run cljs:release
+    entrypoint: npm run cljs:watch
     volumes:
       - "./data:/usr/src/app/data"
       - "./docs:/usr/src/app/docs"
@@ -52,7 +52,7 @@ services:
       context: .
 
   css:
-    entrypoint: npm run css:release
+    entrypoint: npm run css:watch
     volumes:
       - "./src:/usr/src/app/src"
       - "./resources:/usr/src/app/resources"
