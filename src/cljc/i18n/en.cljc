@@ -361,8 +361,7 @@
 (defmethod render-effect :turn-faceup [effect side [value]] (str "turn " value " in Archives faceup"))
 (defmethod render-effect :add-self-to-hq [effect side [value]] (str "add itself to HQ"))
 (defmethod render-effect :trash [effect side [value]] (str "trash " (if (coll? value) (enumerate-str (map render-card value)) (render-card value))))
-;; TODO this needs a duration?
-(defmethod render-effect :add-str-new [effect side [card count]] (str "give " (render-card card) " +" count " strength"))
+(defmethod render-effect :add-str-new [effect side [card count duration]] (str "give " (render-card card) " +" count " strength" (to-duration duration)))
 ;; TODO could spruce this up but it follows current thunderbolt format
 (defmethod render-effect :add-sub [effect side [value]] (str "add " value " after its other subroutines"))
 (defmethod render-effect :trash-rnd [effect side [value]] (str "trash the top " (quantify value "card") " of R&D"))
@@ -402,7 +401,7 @@
                      (when points
                        (str " as an "
                             (when (= (keyword kind) :assassination) "assassination ")
-))))
+                            "agenda worth " (quantify points "agenda point")))))
 (defmethod render-effect :prevent-steal-trash [effect side [value]] (str "prevent the Runner from stealing or trashing Corp cards" (to-duration value)))
 (defmethod render-effect :swap-ice-from-hand [effect side [value]] (str "swap " (render-card value) " with a piece of ice from HQ"))
 ;; TODO
@@ -416,6 +415,7 @@
 (defmethod render-effect :change-server [effect side [value]] (str "change the attacked server to " (to-zone-name value)))
 (defmethod render-effect :reveal-and-host [effect side [value]] (str "reveal and host " value " from HQ"))
 (defmethod render-effect :sabotage [effect side [value]] (str "sabotage " value))
+(defmethod render-effect :prevent-rez [effect side [card duration]] (str "prevent the Corp from rezzing " (render-card card) (to-duration duration)))
 
 (defn render-single-effect-force-check
   [effect value side forced]
