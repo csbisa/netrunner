@@ -290,7 +290,7 @@ fldfjalsdjfoweiclajdf LABELS
 "Keep hand?"
 "Keep"
 "Mulligan"
-(str "Waiting for " 
+(str "Waiting for "
 "Cancel"
 =========== temp subsitutions for msgs
 :msg (msg "forfeit " (:title target) " to pay for 10 [Credits] its rez cost")
