@@ -477,7 +477,7 @@
                             (:all-subs-broken context)))
              :effect (req (wait-for
                             (derez state side (:ice context)
-                                   {:msg-keys {:and-then " and trash itself"}
+                                   {:msg-keys {:and-then [[:trash nil]]}
                                     :suppress-checkpoint true})
                             (trash state :corp eid card {:cause-card card})))}]})
 
@@ -512,7 +512,7 @@
            :async true
            :effect (req (let [target-card (first (shuffle (:hand runner)))]
                           (wait-for
-                            (reveal-loud state side card {:and-then {:shuffle-into-stack nil}} target-card)
+                            (reveal-loud state side card {:and-then [[:shuffle-into-stack nil]]} target-card)
                             (move state :runner target-card :deck)
                             (shuffle! state :runner :deck)
                             (effect-completed state side eid))))}}}]
@@ -523,7 +523,7 @@
       :effect (req
                 (let [chosen-cards (take 2 (shuffle (:hand runner)))]
                   (wait-for
-                    (reveal-loud state side card {:and-then {:move-to-top-stack nil}} chosen-cards)
+                    (reveal-loud state side card {:and-then [[:move-to-top-stack nil]]} chosen-cards)
                     (doseq [c (shuffle chosen-cards)]
                       (move state :runner c :deck {:front true}))
                     (continue-ability

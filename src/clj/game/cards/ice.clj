@@ -1986,7 +1986,7 @@
                                       :max (req 3)}
                             :async true
                             :effect (req (wait-for
-                                           (reveal-loud state side card {:and-then ", and shuffle [them] into R&D"} targets)
+                                           (reveal-loud state side card {:and-then [[:shuffle-into-rnd nil]]} targets)
                                            (doseq [c targets]
                                              (move state :corp c :deck))
                                            (shuffle! state :corp :deck)
@@ -2386,7 +2386,7 @@
                                   :duration :end-of-run
                                   :async true
                                   :effect (req (wait-for (derez state side new-ice {:suppress-checkpoint true
-                                                                                    :msg-keys {:and-then " and trash itself"}})
+                                                                                    :msg-keys {:and-then [[:trash nil]]}})
                                                          (trash state side eid card {:cause :subroutine})))}])
                               (effect-completed state side eid))))}]})
 

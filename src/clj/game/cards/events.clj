@@ -3604,7 +3604,7 @@
             {:async true
              :effect (req (wait-for
                             (reveal-loud state side card
-                                         {:and-then "shuffle the Stack"} revealed-cards)
+                                         {:and-then [[:shuffle-stack true]]} revealed-cards)
                             (shuffle! state side :deck)
                             (effect-completed state side eid)))})
           (install-program [state side eid card revealed-card revealed-cards]

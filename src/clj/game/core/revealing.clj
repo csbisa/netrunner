@@ -39,23 +39,10 @@
         cards-by-zone (group-by #(select-keys % [:side :zone]) cards)
         strs (map #(str (enumerate-str (map :title (get cards-by-zone %)))
                         " from " (name-zone (:side %) (:zone %)))
-                  (keys cards-by-zone))
-        ;; it's awkward to template a string that could refer to one or many
-        ;; like "add it to the top of the stack" vs "add them to the top of the stack"
-        ;; so I'm choosing to match the tokens [it] and [them] for this purpose
-        plural-repr (if (< 1 (count cards)) "them" "it")
-        follow-up (when (string? and-then) (string/replace and-then #"(\[it\])|(\[them\])" plural-repr))]
+                  (keys cards-by-zone))]
     (system-msg state (if forced (other-side side) side)
-                (if follow-up
-                  (str "uses " (:title card)
-                       (if forced
-                         (str " to force the " (string/capitalize (name side)))
-                         "")
-                       " to reveal " (enumerate-str strs) follow-up)
-                  {:type :use :card (:title card) :force (boolean forced)
-                   ;; TODO if this isn't a sign that effects need to be ordered then i don't know what is
-                   :effect (merge {:reveal (mapv #(card-str-map state % {:visible true}) cards)}
-                                  and-then)}))
+                {:type :use :card (:title card) :force (boolean forced)
+                 :effect (apply conj [[:reveal (mapv #(card-str-map state % {:visible true}) cards)]] and-then)})
     (if-not no-event
       (reveal state side eid targets)
       (effect-completed state side eid))))

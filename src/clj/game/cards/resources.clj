@@ -931,7 +931,7 @@
                    {:cost [(->c :credit (rez-cost state :corp (:card context))) (->c :trash-can)]
                     :async true
                     :effect (req (wait-for
-                                   (derez state :runner (:card context) {:msg-keys {:source-card card :and-then " and prevent the Corp from rezzing it for the remainder of this turn."}})
+                                   (derez state :runner (:card context) {:msg-keys {:source-card card :and-then [[:prevent-rez nil :end-of-turn]]}})
                                    (register-turn-flag!
                                      state side card :can-rez
                                      (fn [state _ card]

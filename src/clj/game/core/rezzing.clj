@@ -195,11 +195,10 @@
         prepend-cost-str (get-in msg-keys [:include-cost-from-eid :latest-payment-str])
         source-card (:source eid)
         title (or (:title source-card) (:printed-title source-card))]
-    ;; TODO and-then handling
     (system-msg state side (merge (if source-card
                                     {:type :use :card (:title source-card)}
                                     {:type :direct-effect})
-                                  {:effect {:derez (card-str-map state cards)}}))))
+                                  {:effect (apply conj [[:derez (map #(card-str-map state % {:visible true}) cards)]] and-then)}))))
 
 (defn derez
   "Derez a number of corp cards."

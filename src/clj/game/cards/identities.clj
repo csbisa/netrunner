@@ -1616,7 +1616,7 @@
                                   :waiting-prompt true
                                   :yes-ability {:async true
                                                 :effect (req (wait-for
-                                                               (reveal-loud state side card {:and-then " and add it to the grip"} top-card)
+                                                               (reveal-loud state side card {:and-then [[:add-to-grip nil]]} top-card)
                                                                (move state side top-card :hand)
                                                                (effect-completed state side eid)))}}}
                                 {:prompt (str "The top card of the stack is " (:title top-card))

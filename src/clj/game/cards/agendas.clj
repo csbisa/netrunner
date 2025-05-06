@@ -2290,8 +2290,7 @@
                          :once :per-turn
                          :async true
                          :effect (req (wait-for
-                                        ;; TODO fix this shit
-                                        (derez state side target {:msg-keys {:and-then " and gain 1 [Credits]"}})
+                                        (derez state side target {:msg-keys {:and-then [[:gain-credits 1]]}})
                                         (gain-credits state side eid 1)))})
                       card nil)))}
             {:event :derez
