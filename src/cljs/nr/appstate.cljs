@@ -36,10 +36,15 @@
     "the-root-bg" "traffic-jam-bg"
     "worlds2020"})
 
+(def valid-langs
+  #{"en" "zh-simp" "zh-trad" "fr" "de" "it" "ja" "ko" "pl" "pt" "ru" "la-pig"})
+
 (defn validate-options
   [opts]
   (-> opts
       (update :background #(or (valid-background-slugs %) "worlds2020"))
+      (update :language #(or (valid-langs %) "ja"))
+      (update :card-language #(or (valid-langs %) "en"))
       (update :runner-board-order #(case %
                                      "true" "jnet"
                                      "false" "irl"
