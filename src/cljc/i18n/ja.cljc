@@ -173,7 +173,7 @@
 (defmethod render-effect :lose-click [effect side [value]] (str (apply str (repeat value "[Click]")) "を失う"))
 (defmethod render-effect :lose-click-force [effect side [value]] (str (if (= (keyword side) :corp) "ランナー" "コーポ") "に" (apply str (repeat value "[Click]")) "を失うことをさせる"))
 (defmethod render-effect :lose-credits-force [effect side [value]] (str (if (= (keyword side) :corp) "ランナー" "コーポ") "に" value " [Credits]を失うことをさせる"))
-(defmethod render-effect :give-tag [effect side [value]] (str "ランナーに" value "つタグを与える"))
+(defmethod render-effect :give-tag [effect side [value]] (str "ランナーにタグを" value "つ与える"))
 (defmethod render-effect :take-tag [effect side [value]] (str value "つタグを受ける"))
 (defmethod render-effect :remove-tag [effect side [value]] (str value "つタグを取り除く"))
 (defmethod render-effect :take-bp [effect side [value]] (str "悪名を" value "つ受ける"))
@@ -282,7 +282,7 @@
 (defmethod render-effect :trash-rnd-and-add [effect side [value]] (str "Ｒ＆Ｄの一番上から" value "枚目のカードをトラッシュし残りをHQに加える"))
 (defmethod render-effect :remove-click-next-turn [effect side [value]] (str "ランナーの次のターンの割当[Click]をー" value "する"))
 (defmethod render-effect :move-grip-to-stack [effect side [value]] (str "グリップから" (join "と" value) "をスタックに加える"))
-(defmethod render-effect :shuffle-into-stack [effect side [value]] (str value "をスタックに加えシャフルする"))
+(defmethod render-effect :shuffle-into-stack [effect side [value]] (str (when value (str (join "と" value) "を")) "スタックに加えシャフルする"))
 (defmethod render-effect :remove-all-virus-counters [effect side [value]] (str (render-card value) "からウィルスカウンターを取り除く"))
 (defmethod render-effect :trash-from-hq [effect side [value]] (str "ＨＱから" value "をトラッシュする"))
 (defmethod render-effect :reveal-from-grip [effect side [value]] (str "グリップから" (join "と" value) "を公開する"))
@@ -291,7 +291,7 @@
 (defmethod render-effect :add-to-bottom-stack [effect side [value]] (str "スタックの一番下に" (render-card value) "を加える"))
 (defmethod render-effect :force-reveal [effect side [value]] (str "ＨＱのランダムなカード" value "枚を公開する"))
 (defmethod render-effect :shuffle-zone-into [effect side [value]] (str "スタックに" (join "と" (map to-zone-name value)) "に加えシャフルする"))
-(defmethod render-effect :rfg [effect side [value]] (str (join "と" value) "を取り除く"))
+(defmethod render-effect :rfg [effect side [value]] (str (join "と" value) "をゲームから取り除く"))
 (defmethod render-effect :reveal-from-stack [effect side [value]] (str "スタックの一番上から" (join "と" value) "を公開する"))
 (defmethod render-effect :host-on-self [effect side [value]] (str "それ自体に" value "を搭載する"))
 (defmethod render-effect :host-instead-of-access [effect side [value]] (str "アクセスの代わりに" value "をそれ自体に搭載する"))
@@ -565,7 +565,7 @@
 
 (defmethod render-text :rfg
   [{:keys [card]}]
-  (str  card "を取り除く"))
+  (str  card "をゲームから取り除く"))
 
 (defmethod render-text :discard
   [{:keys [card side reason]}]
