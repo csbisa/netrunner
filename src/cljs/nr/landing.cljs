@@ -4,8 +4,7 @@
   [:div.landing.panel.content-page.blue-shade
    [:h2 "ネットランナーへようこそ"]
    [:p "このウェブサイトはオンラインでネットランナーの対戦ができます。ゲームのルールを完全に実装するものではありませんのでご注意ください。"]
-   [:p "日本語対応は開発中です。"]
-   [:p "どのようなフィードバックをDiscordサーバーAlways Be Runningで#フィードバックに歓迎します。"]
+   [:p "日本語対応は開発中です。フォーマットはスタートアップのみ対応しています。報告や意見は、Discordサーバー「Always Be Running」の #フィードバック チャンネルまでお寄せください。"]
    [:p "Currently, many things are hardcoded in Japanese and switching to English will not update these to English."]])
 
 (defn landing []
