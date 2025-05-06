@@ -236,8 +236,8 @@
 (defmethod render-effect :str-pump [effect side [base-str target-str duration]]
             (str (to-duration duration) "強度" base-str "から強度" target-str "にする"))
 (defmethod render-effect :lower-ice-str [effect side [strength card]]
-                 (or card "各インストール状態のアイスブレイカー")
-                 "を強度ー" strength "する")
+  (str (or card "各インストール状態のアイスブレイカー")
+       "を強度ー" strength "する"))
 (defmethod render-effect :shuffle-into-rnd [effect side [value]] (str "Ｒ＆Ｄに" (render-card2 value) "を加えシャフルする"))
 (defmethod render-effect :shuffle-from-hq-into-rnd [effect side [value]] (str "Ｒ＆ＤにＨＱのカードを" value "枚加えシャフルする"))
 (defmethod render-effect :rearrange-rnd [effect side [value]] (str "Ｒ＆Ｄの一番上のカード" value "枚を並べ替える"))
@@ -264,7 +264,7 @@
 (defmethod render-effect :prevent-etr-effect [effect side [value]] (str (render-card value) "でランを終了することを妨害する"))
 (defmethod render-effect :gain-str [effect side [value]] (let [[strength duration] value] (str (to-duration duration) "強度+" strength "する")))
 (defmethod render-effect :breach-server [effect side [value]] (str (to-zone-name value) "に侵入する"))
-(defmethod render-effect :derez [effect side [value]] (str (if (list? value)
+(defmethod render-effect :derez [effect side [value]] (str (if (vector? value)
               (join "と" (map render-card value))
               (render-card value))
             "をデレゾする"))
@@ -276,8 +276,7 @@
 (defmethod render-effect :add-self-to-hq [effect side [value]] (str "ＨＱにそれ自体を加える"))
 (defmethod render-effect :trash [effect side [value]]
   (str (if (or (vector? value) (list? value)) (join "と" (map render-card value)) (render-card value)) "をトラッシュする"))
-;; TODO this needs a duration?
-(defmethod render-effect :add-str-new [effect side [value]] (let [[card count] value] (str (render-card card) "居度＋" count "与える")))
+(defmethod render-effect :add-str-new [effect side [card count duration]] (str (to-duration duration) (render-card card) "居度＋" count "与える"))
 (defmethod render-effect :add-sub [effect side [value]] (str "「[subroutine] " value "」を他のサブルーチンの後に与える"))
 (defmethod render-effect :trash-rnd [effect side [value]] (str "Ｒ＆Ｄの一番上のカード" value "枚をトラッシュする"))
 (defmethod render-effect :trash-rnd-and-add [effect side [value]] (str "Ｒ＆Ｄの一番上から" value "枚目のカードをトラッシュし残りをHQに加える"))
