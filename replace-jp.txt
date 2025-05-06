@@ -1,4 +1,4 @@
-prompts
+=== PROMPTS ===
 "アーカイブのカード１枚をＨＱに加えるか？"
 "インストールするＨＱかアーカイブのカードを1枚選ぶ"
 "トラッシュするリソースを1つ選ぶ"
@@ -54,15 +54,39 @@ prompts
 "スタックの一番下にプログラムを１つ加えるか？"
 "追加で１枚のカードにアクセスするため、搭載パワーカウンターを１つ消費するか？"
 "HQからカードを公開しインストールするか？"
-"Pay 1 [Credits]: place 1 advancement counter on an unrezzed advanceable card?"
+"1 [Credits]を支払う: 非レぞ状態のアドバンスできるカードにアドバンスカウンターを1つ置くか？"
 "計画書でないカードをインストールするか？"
 (msg "IDをめくって" (if (:flipped card) "カードを１枚引くか？" "1 [Credits]を得るか"))
 "レゾコストの10 [Credits]を支払うため、計画書を１つ放棄するか？"
 "カードをデレゾするか？"
-"Spend [click] to prevent the corporation having +1 allotted [click] during their next turn?"
+"[Click]を消費し、コーポの次のターンの割当[Click]+1されることを妨害するか？"
 (msg "Pay 4 [Credits] to use " (:title card) " ability?")
 "スタックの一番上のカードをBlingに表向きで搭載するか？"
 "HQからカードの１枚にアクセスするか？"
+(str "HQからカードをインストールする" (when (> n 1) (str " (残り" n")")))
+(str "カードを" x "枚引く")
+"Mitra Amanをトラッシュし、3 [Credits]を得るか？"
+"現在アプローチされているアイスを他のアイスと交換するか？"
+"Install an ice, paying 1 [Credits] less"
+(msg "Fransofia Wardをトラッシュし、" (:title (:ice context)) "を迂回する？")
+(str chosen-type "のカードを2枚までスタックに加えシャフルする")
+"カードのタイプを選ぶ"
+"HQからカード1枚を遠隔サーバーのルートにインストールする"
+(str x "表記計画ポイントの計画書を1つ選ぶ")
+"Remove how many tags?"
+"R&Dの一番上からカードは："
+(str "R&Dの一番上からカードは：" (join "と" (map :title top-3)) "。トラッシュするカードを選ぶ")
+"他のアイスのサブルーチンを解決する"
+"HQからインストールするカードを選ぶ"
+"アーカイブからインストールするカードを選ぶ"
+"HQかアーカイブからインストールするカードを選ぶ"
+"任意の数のプログラムを選ぶ"
+"インストールする搭載されたカードを選ぶ"
+"GAMEDRAGON™ Proをホストするアイスブレイカーを選ぶ"
+"アドバンスカウンターを２つ置くカードを１枚選ぶ"
+"任務を1つ選ぶ"
+"Idiosyncresisをトラッシュするか？"
+"アクセスしたカードと同名の、レゾ状態のカードを１枚トラッシュする"
 === CHOICES ===
 "ランナーは6 [Credits]を得る"
 "ランナーはカードを4枚引く"
@@ -199,3 +223,11 @@ SIMPLE STRINGS
 "Mulligan"
 (#(str %2 %1) "を待っている"
 "キャンセル"
+=========== temp subsitutions for msgs
+:msg (msg "レゾコストの10[Credit]を支払うため" (:title target) "放棄する")
+                          :msg (msg
+                                 (let [drained (min (:credit runner) (* 5 target))]
+                                   (str target "つタグを取り除き、ランナーに" drained
+                                        " [Credits]を失うことをさせる")))
+             :msg (msg (:title target) "をトラッシュし、" (:cost target)
+                       " [Credits]を得てカードを1枚引く")

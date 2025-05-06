@@ -63,6 +63,30 @@
 (msg "Pay 4 [Credits] to use " (:title card) " ability?")
 "Host the top card of your stack on Bling?"
 "Access 1 card from HQ?"
+(str "install a card from HQ" (when (> n 1) (str " (" n " remaining)")))
+(str "Draw " (quantify x "card"))
+"Trash Mitra Aman to gain 3 [Credits]?"
+"Swap the approached ice with another ice?"
+"Install an ice, paying 1 [Credits] less"
+(msg "Trash Fransofia Ward to bypass " (:title (:ice context)) "?")
+(str "Shuffle up to two " chosen-type " cards into the stack")
+"Choose a card type"
+"Install a card from HQ in the root of a remote server"
+(str "Choose an agenda with " x " printed agenda points")
+"Remove how many tags?"
+"The top of R&D is (in order): "
+(str "The top of R&D is (top->bottom): " (enumerate-str (map :title top-3)) ". Choose a card to trash")
+"Resolve a subroutine on another ice"
+"Choose a card to install from HQ"
+"Choose a card to install from Archives"
+"Choose a card to install from HQ or Archives" <-- TODO reordered in ice helper
+"Choose any number of program"
+"Choose a hosted program to install"
+"Choose an icebreaker to host GAMEDRAGON™ Pro"
+"Choose a card to place 2 advancement counters on"
+"Choose an operation"
+"Trash Idiosyncresis?"
+"Trash a rezzed copy of a card you accessed"
 ===================== CHOICES
 "Runner gains 6 [Credits]"
 "Runner draws 4 cards"
@@ -199,3 +223,11 @@ fldfjalsdjfoweiclajdf COSTS
 "Mulligan"
 (str "Waiting for " 
 "Cancel"
+=========== temp subsitutions for msgs
+:msg (msg "forfeit " (:title target) " to pay for 10 [Credits] its rez cost")
+                          :msg (msg
+                                 (let [drained (min (:credit runner) (* 5 target))]
+                                   (str "remove " (quantify target "tag") " to force the runner to lose " drained
+                                        " [Credits]")))
+             :msg (msg "trash " (:title target) " to gain " (:cost target)
+                       " [Credits] and draw a card")
