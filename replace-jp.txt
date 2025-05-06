@@ -75,7 +75,7 @@
 (str x "表記計画ポイントの計画書を1つ選ぶ")
 "Remove how many tags?"
 "R&Dの一番上からカードは："
-(str "R&Dの一番上からカードは：" (join "と" (map :title top-3)) "。トラッシュするカードを選ぶ")
+(str "R&Dの一番上からカードは：" (join "、" (map :title top-3)) "。トラッシュするカードを選ぶ")
 "他のアイスのサブルーチンを解決する"
 "HQからインストールするカードを選ぶ"
 "アーカイブからインストールするカードを選ぶ"
@@ -161,8 +161,77 @@
 (str "ランナーが" (build-cost-label cost) "を支払わないかぎりランの終了")
 "インストール状態のアイスブレイカー1つにつき強度＋１"
 "HQかアーカイブのアイスをインストールする"
+"9[Credits]を得る"
+["Event" "Hardware" "Program" "Resource"] ;; replacing those won't work, it filters against internal card types
+"公開しないHQのカードを選ぶ"
+"コーポが4ミートダメージを与える"
+"R&Dにカードを1枚加えシャフルする"
+"アドバンスカウンターを1つ置く"
+"カードを1枚引く。HQからカードを1枚R&Dに加えシャフルする"
+"HQからアイス1枚を、すべてのコストを無視してインストールする"
+"ランナーに1つタグを与える"
+"任意の数のタグを取り除く"
+"カードを1枚、支払いを2[Credits]減らしてインストールする"
+"グリップからカードを１枚、支払いを２[Credits]減らしてインストールする。そのカードをインストールした時、１ミートダメージを受ける。"
+(str (:title %) "を、インストールのコストを無視してインストールする")
+"ランの終了"
+"Manually flip identity"
+"ここは何もない"
+"Manually turn an agenda faceup"
+"リソースかハードウェアを1つインストールする"
+"R&Dの一番上からカードを3枚見る"
+"インストール状態のカードにアドバンスカウンターを1つ置く"
+"Manually place 1 power counter"
+(str "脅威レベルが" x "以上である場合、ランの終了")
+"アーカイブからアイスを、すべてコスト無視してインストールする"
+"レゾ状態のセントリーのサブルーチンを解決する"
+"他のレゾ状態のコードゲートのサブルーチンを解決する"
+"1ネットダメージを与えてランナーにタグを1つ与える"
+"カードを１枚引く。ＨＱからカード１枚をＲ＆Ｄの一番上に加えてよい。"
+"ランナーが2タグ以上を所有している場合、2ネットダメージを与える"
+"トロイのプログラムをトラッシュする"
+"アイスを1つ選ぶ"
+"サブルーチンを1つ選ぶ"
+(str type-name "をトラッシュするかかランの終了")
+(str "ランナーが" x "[Credits]を支払わないかぎり、ランナーにタグを1つ与える")
+"何もしない"
+(str type-name "を1つトラッシュする")
+"HQからカードを1枚インストールする"
+"アーカイブからカードを1枚インストールする"
+"カードにアドバンスカウンターを1つ置く"
+"アドバンスできるいずれかのカードにアドバンスカウンターを1つ置く"
+   (let [tag-str (str "Rez an ice" (cond
+                                     (or (not cost-bonus) (zero? cost-bonus))  nil
+                                     (pos? cost-bonus) (str ", paying " cost-bonus " more")
+                                     (neg? cost-bonus) (str ", paying " (- cost-bonus) " less")))]
+"任意の数のプログラムを搭載する"
+"搭載プログラムを1つインストールする"
+"ＨＱからランダムなカード１枚を搭載する"
+"任意の数のカードをR&Dに加えシャフルする"
+"カードを探す"
+"ランナーはアーカイブに移動する"
+"4[Credits]を得てカードを3枚引く"
+"Idiosyncresisをトラッシュする"
+"2[Credits]を得る(ターン開始)"
+(str x "ネットダメージを与える")
+"1[Credits]を得る(ターン開始)"
+(str "Trash a rezzed copy of " t)
+(msg "Choose a rezzed copy of " t " to trash")
+(str "グリップからカード、支払いを1[Credits]減らしてインストールする ("
+                          "残り" remaining ")")
+(str "タグを" x "取り除く")
+"タグを2つまで取り除く"
+"インストールするプログラムを選ぶ"
+"ヒープからプログラムをインストールする"
+"ランの終了がない"
+"インストールするプログラムかハードウェアを1つ選ぶ"
+"Runner may access 1 card from HQ"
+"4[Credits]を取ってカードを1枚引く (ターン開始)"
+"R&Dの一番上に任務を加える"
+(str (:title target-card) "をインストールする")
+(str "HQに" (:title target-card) "を加える")
 === COSTS (but also labels, really)
-"reveal from HQ and trash itself"
+"HQから公開しトラッシュする"
 (value cost) "枚の計画書を破棄する"
 "この計画書を放棄する"
 "悪名を" (value cost) "つ受けるかタグを" (value cost) "つ取り除く"
@@ -190,11 +259,11 @@
 "add " (quantify (value cost) "installed card") " to the bottom of your deck"
 "turn " (quantify (value cost) "hosted cop" "y" "ies") " of Matryoshka facedown"
 "add " (quantify (value cost) "random card") " to the bottom of your deck"
-"any agenda counter"
-"any " (quantify (value cost) "virus counter")
+"いずれかの計画カウンター"
+"いずれかの" (value cost) "ウィルスカウンター"
 (str (value cost) "搭載アドバンスカウンター")
 "搭載アドバンスカウンター"
-(str (value cost) "搭載計画書カウンター")
+(str (value cost) "搭載計画カウンター")
 "搭載計画書カウンター"
 (str (value cost) "搭載パワーカウンター")
 "搭載パワーカウンター"
@@ -203,7 +272,7 @@
 "搭載ウィルスカウンター"
 (str (lose-click-label cost) "を失う")
 (str (:title current-ice) "の強度まで引き上げる")
-SIMPLE STRINGS
+====== SIMPLE STRINGS =====
 "インストール状態のプログラム"
 "ランナーの基本アクションカード"
 "コーポの基本アクションカード"
