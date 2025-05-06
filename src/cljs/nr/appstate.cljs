@@ -61,7 +61,7 @@
                            :card-zoom (get-local-value "card-zoom" "image")
                            :pin-zoom (= (get-local-value "pin-zoom" "false") "true")
                            :pronouns "none"
-                           :language (get-local-value "language" js/navigator.language)
+                           :language (get-local-value "language" "ja")
                            :card-language (get-local-value "card-language" "en")
                            :default-format (get-local-value "default-format" "standard")
                            :show-alt-art true
