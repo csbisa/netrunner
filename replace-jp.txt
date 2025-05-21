@@ -87,6 +87,9 @@
 "任務を1つ選ぶ"
 "Idiosyncresisをトラッシュするか？"
 "アクセスしたカードと同名の、レゾ状態のカードを１枚トラッシュする"
+(str "カードを" n "枚引くか？")
+(str "カードを何枚引く？" (when-not allow-zero-draws "（１枚以上）"))
+"1 [Credits]: このプログラムをトラッシュし、追加で２枚のカードにアクセスするか？"
 === CHOICES ===
 "ランナーは6 [Credits]を得る"
 "ランナーはカードを4枚引く"
@@ -230,6 +233,7 @@
 "R&Dの一番上に任務を加える"
 (str (:title target-card) "をインストールする")
 (str "HQに" (:title target-card) "を加える")
+"カードを搭載する"
 === COSTS (but also labels, really)
 "HQから公開しトラッシュする"
 (value cost) "枚の計画書を破棄する"

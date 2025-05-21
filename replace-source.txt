@@ -87,6 +87,9 @@
 "Choose an operation"
 "Trash Idiosyncresis?"
 "Trash a rezzed copy of a card you accessed"
+(str "Draw " (quantify n "card") "?")
+(str "Draw how many cards?" (when-not allow-zero-draws " (minimum 1)"))
+"1 [Credits]: Trash this program to access 2 additional cards from HQ?"
 ===================== CHOICES
 "Runner gains 6 [Credits]"
 "Runner draws 4 cards"
@@ -230,6 +233,7 @@ fldfjalsdjfoweiclajdf LABELS
 "Move an operation to the top of R&D"
 (str "Install " (:title target-card))
 (str "Add " (:title target-card) " to HQ")
+"Host card"
 ================= COSTS =======================
 "reveal from HQ and trash itself"
 "forfeit " (quantify (value cost) "Agenda")
