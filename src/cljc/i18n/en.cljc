@@ -87,7 +87,7 @@
 ;; TODO fix it, jp is more comprehensive
 ;; TODO need 'root' wording here
 (defn- render-card-internal
-  [{:keys [card card-type server pos hosted]}]
+  [{:keys [side card card-type zone pos hosted]}]
   (str (if-not (empty? card)
          card
          (case (keyword card-type)
@@ -98,13 +98,13 @@
            ""))
        (if hosted
          (str " hosted on " (render-card-internal hosted))
-         (when server
+         (when (and (= side :corp) zone)
            (if (not (nil? pos))
-             (str " protecting "(to-zone-name server) " at position " pos)
+             (str " protecting "(to-zone-name zone) " at position " pos)
              ;; so for better wording this is probably "from" for a non-root?
              ;; TODO need to confirm actual behavior today...
-             (str (if (= (first server) :servers) " in the root of " " from ")
-                  (to-zone-name server)))))))
+             (str (if (= (first zone) :servers) " in the root of " " from ")
+                  (to-zone-name zone)))))))
 
 (defn- render-card
   [card]
