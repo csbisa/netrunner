@@ -24,11 +24,11 @@
    {:registry
     {::card-map
      [:map {:closed true}
+      [:side {:optional true} side]
       [:card {:optional true} :string]
       [:card-type {:optional true} [:enum :facedown :ice :card :drawn-card]]
       [:hosted {:optional true} [:schema [:ref ::card-map]]]
-      [:server {:optional true} server]
-      [:zone {:optional true} vector?]
+      [:zone {:optional true} vector?] ;; TODO make this server too
       [:pos {:optional true} number?]]}}
    ::card-map])
 (def card

@@ -38,14 +38,16 @@
    (merge (if (corp? card)
             (let [installed-ice (and (ice? card) (installed? card))]
               ;; Corp card messages
-              (merge (when (or (rezzed? card) visible)
+              (merge {:side :corp}
+                     (when (or (rezzed? card) visible)
                        {:card (get-title card)})
                      {:card-type (if installed-ice :ice :card)}
                      (when-not host
-                       (merge {:server zone}
+                       (merge {:zone zone}
                               (when installed-ice
                                 {:pos (card-index state card)})))))
             ;; Runner card messages
-            (merge (when-not facedown {:card (get-title card)})
+            (merge {:side :runner}
+                   (when-not facedown {:card (get-title card)})
                    (when facedown {:card-type :facedown})
                    (when (:zone card) {:zone (:zone card)}))))))
