@@ -120,7 +120,7 @@
        state side
        {:optional {:prompt (str "Draw " (quantify n "card") "?")
                    :yes-ability {:async true
-                                 :msg (msg "draw " (quantify n " card"))
+                                 :msg [[:draw-cards n]]
                                  :effect (req (draw state side eid n))}
                    :no-ability {:effect (req (system-msg state side (str "declines to use " (get-title card) " to draw cards")))}}}
        card nil))))
@@ -138,7 +138,7 @@
                   :default (req n)}
         :waiting-prompt true
         :async true
-        :msg (msg "draw " (quantify (or target 0) "card"));
+        :msg (req [[:draw-cards (or target 0)]])
         :effect (req
                   (if (and (not target) (not allow-zero-draws))
                     (draw-up-to state side (make-eid state eid) n args)
