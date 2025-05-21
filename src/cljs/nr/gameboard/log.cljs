@@ -51,13 +51,15 @@
   [s]
   (r/with-let [typing (r/cursor game-state [:typing])]
     (let [typing? (boolean (seq (:msg @s)))]
-      (when (and (not (:replay @game-state))
-                 ;; only send if the typing state is different
-                 (or (and (not @typing) typing?)
-                     (and (not typing?) @typing))
-                 (not-spectator?))
-        (ws/ws-send! [:game/typing {:gameid (current-gameid app-state)
-                                    :typing typing?}])))))
+      ;; note - temporarily disable to see if it impacts performance
+      ;; (when (and (not (:replay @game-state))
+      ;;            ;; only send if the typing state is different
+      ;;            (or (and (not @typing) typing?)
+      ;;                (and (not typing?) @typing))
+      ;;            (not-spectator?))
+      ;;   (ws/ws-send! [:game/typing {:gameid (current-gameid app-state)
+      ;;                               :typing typing?}])))))
+      )))
 
 (defn indicate-action []
   (when (not-spectator?)
@@ -143,8 +145,7 @@
   (reset-command-menu state)
   (swap! state assoc :command-matches (-> e .-target .-value (find-command-matches commands)))
   (swap! state assoc :msg (-> e .-target .-value))
-  ;;(send-typing state)
-  )
+  (send-typing state))
 
 (defn command-menu [!input-ref state]
   (when (show-command-menu? @state)
@@ -183,7 +184,7 @@
              :autoComplete "off"
              :ref #(reset! !input-ref %)
              :value (:msg @state)
-             ;;:on-blur #(send-typing (atom nil))
+             :on-blur #(send-typing (atom nil))
              :on-key-down #(command-menu-key-down-handler state %)
              :on-change #(log-input-change-handler state %)}]]]
          [indicate-action]
