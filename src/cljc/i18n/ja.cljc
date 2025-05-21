@@ -65,13 +65,13 @@
 
 ; {:username "test", :type "use", :cost {:click 1, :credits 1}, :effect {:advance {:card-type "card", :server "remote1"}}, :card "Corp Basic Action Card", :forced false, :raw-text nil}
 (defn- render-card-internal
-  [{:keys [card card-type server pos hosted]}]
+  [{:keys [side card card-type zone pos hosted]}]
   (str (if hosted
          (str (render-card-internal hosted) "に搭載される")
-         (if server
+         (if (and (= side :corp) zone)
            (if (not (nil? pos))
-             (str (to-zone-name server) "を位置" pos "を守っている")
-             (str (to-zone-name server) "に"))
+             (str (to-zone-name zone) "を位置" pos "を守っている")
+             (str (to-zone-name zone) "に"))
            ""))
        (if-not (empty? card)
          card
@@ -192,7 +192,7 @@
 (defmethod render-effect :reveal-and-add [effect side [card from to]]
                   (str (to-zone-name from) "から" (to-zone-name to) "に" (or  card "それ自体") "を加える"))
 (defmethod render-effect :reveal-from-hq [effect side [value]] (str "HQから" (join "と" value) "を公開する"))
-(defmethod render-effect :make-run [effect side [value]] (str (to-zone-name value) "にランする"))
+(defmethod render-effect :make-run [effect side [value]] (str (to-zone-name value) "にランを行う"))
 (defmethod render-effect :end-run [effect side [value]] "ランを終了する")
 ;; TODO probably need a duration here, others are encounter-only IIRC
 (defmethod render-effect :gain-type [effect side [card type duration]] (str (to-duration duration) (render-card card) "が" (join "と" type) "を得る"))
@@ -343,6 +343,7 @@
   [input]
   (-> input
       (s/replace #"する$" "して")
+      (s/replace #"行う$" "行って")
       (s/replace #"与える$" "与えて")
       (s/replace #"引く$" "引いて")
       (s/replace #"得る$" "得て")
@@ -462,7 +463,7 @@
   [{:keys [server ignore-costs cost]}]
   (str (when ignore-costs
          "すべてのコストを無視して")
-       (to-zone-name server) "にランする"))
+       (to-zone-name server) "にランを行う"))
 
 (defmethod render-text :continue-run
   [_]
