@@ -258,7 +258,7 @@
      (wait-for (resolve-next-unbroken-sub state side (make-eid state eid) ice subroutines)
                (system-msg state :corp {:type :resolve-subs
                                         :resolved {:ice (:title ice)
-                                                   :subs (map :label (sort-by :index async-result))}})
+                                                   :subs (mapv :label (sort-by :index async-result))}})
                (effect-completed state side eid))
      (effect-completed state side eid))))
 
@@ -540,7 +540,7 @@
                          (set/intersection (set (:subtypes ice)))
                          (first))))]
      {:type :break-subs :card (:title breaker) :ice (:title ice) :subtype subtype
-      :subs (map :label (sort-by :index broken-subs))})))
+      :subs (mapv :label (sort-by :index broken-subs))})))
 
 (defn break-subs-event-context
   [state ice broken-subs breaker]
