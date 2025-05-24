@@ -51,3 +51,4 @@
                    (when-not facedown {:card (get-title card)})
                    (when facedown {:card-type :facedown})
                    (when (:zone card) {:zone (:zone card)}))))))
+          (when host {:host (card-str-map state (get-card state host))}))))

@@ -27,6 +27,7 @@
       [:side {:optional true} side]
       [:card {:optional true} :string]
       [:card-type {:optional true} [:enum :facedown :ice :card :drawn-card]]
+      [:host {:optional true} [:schema [:ref ::card-map]]]
       [:hosted {:optional true} [:schema [:ref ::card-map]]]
       [:zone {:optional true} vector?] ;; TODO make this server too
       [:pos {:optional true} number?]]}}
