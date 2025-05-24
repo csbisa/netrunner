@@ -2177,7 +2177,7 @@
                :player :corp
                :cost [(->c :agenda 1)]
                :choices {:card (every-pred corp? installed?)}
-               :msg (req [[:place-counters :adv 2 (card-str-map state target)]])
+               :msg (req [[:place-counter :adv 2 (card-str-map state target)]])
                :async true
                :effect (req (add-prop state :corp eid target :advance-counter 2 {:placed true}))}]}))
 
