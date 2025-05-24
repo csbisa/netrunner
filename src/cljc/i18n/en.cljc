@@ -387,7 +387,7 @@
 (defmethod render-effect :credits [effect side [value]] (str "pay " value " [Credits]"))
 (defmethod render-effect :draw-additional [effect side [value]] (str "draw " (quantify value "additional card")))
 (defmethod render-effect :purge [effect side [value]] "purge virus counters")
-(defmethod render-effect :reveal [effect side [value]] (let [groups (group-by :server value)]
+(defmethod render-effect :reveal [effect side [value]] (let [groups (group-by :zone value)]
           (str "to reveal "
                (enumerate-str (map #(str (enumerate-str (map :card (second %)))
                                          " from " (to-zone-name (first %)))
