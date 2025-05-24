@@ -91,12 +91,14 @@
 
 (defn- render-card2
   [cards]
-  (let [unseen (count (filter #(= "unseen" %) cards))
-        self (some nil? cards)
-        seen (remove nil? (filter #(not (= "unseen" %)) cards))]
-    (join "と" (remove nil? (conj seen
-                                  (when (pos? unseen) (str "未知カード" unseen "枚"))
-                                  (when self "それ自体"))))))
+  (when cards
+    (let [unseen (count (filter #(= "unseen" %) cards))
+          self (some nil? cards)
+          seen (remove nil? (filter #(not (= "unseen" %)) cards))]
+      (join "と" (remove nil? (conj seen
+                                    (when (pos? unseen) (str "未知カード" unseen "枚"))
+                                    (when self "それ自体")))
+            "を"))))
 
 ; need to figure how how to combine them from here
 (defn- render-single-cost
@@ -238,7 +240,7 @@
 (defmethod render-effect :lower-ice-str [effect side [strength card]]
   (str (or card "各インストール状態のアイスブレイカー")
        "を強度ー" strength "する"))
-(defmethod render-effect :shuffle-into-rnd [effect side [value]] (str "Ｒ＆Ｄに" (render-card2 value) "を加えシャフルする"))
+(defmethod render-effect :shuffle-into-rnd [effect side [value]] (str "Ｒ＆Ｄに" (render-card2 value) "加えシャフルする"))
 (defmethod render-effect :shuffle-from-hq-into-rnd [effect side [value]] (str "Ｒ＆ＤにＨＱのカードを" value "枚加えシャフルする"))
 (defmethod render-effect :rearrange-rnd [effect side [value]] (str "Ｒ＆Ｄの一番上のカード" value "枚を並べ替える"))
 (defmethod render-effect :reveal-from-rnd [effect side [value]] (str "Ｒ＆Ｄの一番上から" value "を公開する"))
