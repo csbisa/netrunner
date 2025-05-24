@@ -599,7 +599,7 @@
                                  :req (req (and (get-current-encounter state)
                                                  (<= (get-strength current-ice) (get-strength card))
                                                  (has-subtype? current-ice "Barrier")))
-                                 :msg (map-msg :prevent-etr (card-str-map state current-ice))
+                                 :msg (map-msg :prevent-etr-effect (card-str-map state current-ice))
                                  :effect (req
                                            (let [target-ice (:ice (get-current-encounter state))]
                                              (register-events
