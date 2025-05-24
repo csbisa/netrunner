@@ -167,6 +167,7 @@
                          :else nil)
           origin (when display-origin
                    ;; TODO it's now (or set-zone (name-zone :corp (:zone card)))) -- what's set-zone and how do we handle that?
+                   ;; it's only "the Runner score area" right now so gotta formalize that instead
                    (merge {:origin (:zone card)}
                           (when origin-index {:origin-index (inc origin-index)})))
           modified-cost-str (if (empty? prepend-cost-str)

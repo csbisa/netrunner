@@ -11,9 +11,10 @@
 (def strength number?)
 (def duration [:enum {:title "duration"} :end-of-encounter :end-of-run :end-of-turn])
 (def counter-type [:enum :adv :virus :power :credit :credits])
-(def server [:or [:enum :hand :deck :discard :scored]
+;; TODO debug this play-area thing, it started showing up but should never be with display-origin set to true...
+(def server [:or [:enum :hand :deck :discard :scored :set-aside :play-area :onhost]
              ;; TODO some inconsistency with :deck vs [:deck]
-             [:tuple [:enum :hand :deck :discard :scored]]
+             [:tuple [:enum :hand :deck :discard :scored :set-aside :play-area :onhost]]
              ;; TODO keyword should be restricted, but need to figure out how to
              ;; sanely handle arbitrary :remoteX keys
              [:tuple [:enum :servers] keyword?]
@@ -40,6 +41,7 @@
 (def card-list [:or [:vector card] [:sequential card]])
 (def maybe-unseen-cards [:or nil? [:sequential [:or string? [:enum :unseen]]]])
 (def count-or-card-list [:or number? card-list])
+(def win-reason [:enum :decked :flatline :concession])
 
 ;; TODO any :sequential here is just a workaround, it's because something is passing down
 ;; a list instead of a vector
@@ -85,7 +87,10 @@
              [:cat keyword? [:vector [:tuple card number?]]]]]
     [:advancement [:cat keyword? [:+ [:tuple card number?]]]]
     [:power [:cat keyword? [:+ [:tuple card number?]]]]
-    [:turn-hosted-matryoshka-facedown [:tuple keyword? number?]]]])
+    [:turn-hosted-matryoshka-facedown [:tuple keyword? number?]]
+    [:trash-bioroid [:tuple keyword? card-list]]
+    [:reveal-and-trash-from-hand [:tuple keyword? card-list]]
+    [:hosted-to-hq [:tuple keyword? card-list]]]])
 
 (def MapCosts
   [:or [:vector MapCost] [:tuple [:vector MapCost] [:vector MapCost]]])
@@ -95,7 +100,9 @@
            :error/fn {:en (fn [{:keys [value]} _] (str (first value) " is not a valid effect"))}}
    [:advance [:tuple keyword? card]]
    [:draw-cards [:tuple keyword? number?]]
+   [:draw-cards-force [:tuple keyword? number?]]
    [:gain-credits [:tuple keyword? number?]]
+   [:gain-credits-force [:tuple keyword? number?]]
    ;; TODO need to check where i am wrt force effects
    [:lose-credits [:tuple keyword? number?]]
    [:gain-click [:tuple keyword? number?]]
@@ -119,6 +126,7 @@
    [:reveal-from-hq [:tuple keyword? card-list]]
    [:make-run [:tuple keyword? server]]
    [:end-run [:tuple keyword? boolean?]]
+   ;; TODO maybe isn't doing what it should be here
    [:gain-type [:tuple keyword? card [:vector string?] [:maybe duration]]]
    [:place-counter [:or [:tuple keyword? counter-type number?]
                     [:tuple keyword? counter-type number? card]]]
@@ -133,10 +141,14 @@
    [:deal-net [:tuple keyword? number?]]
    [:deal-meat [:tuple keyword? number?]]
    [:deal-core [:tuple keyword? number?]]
+   [:take-net [:tuple keyword? number?]]
+   [:take-meat [:tuple keyword? number?]]
+   [:take-core [:tuple keyword? number?]]
    [:install [:tuple keyword? string?]]
    [:rez [:tuple keyword? [:or card card-list]]]
    [:install-and-rez-free [:tuple keyword? string?]]
-   [:host [:tuple keyword? card]]
+   ;; TODO figure out what's actually intended here
+   [:host [:tuple keyword? [:or card card-map]]]
    [:host-on [:tuple keyword? card card]]
    [:bypass [:tuple keyword? card]]
    [:trash-free [:tuple keyword? string?]]
@@ -148,15 +160,19 @@
    [:rearrange-rnd [:tuple keyword? number?]]
    [:reveal-from-rnd [:tuple keyword? card]]
    [:look-top-rnd [:tuple keyword? number?]]
+   [:look-top-stack [:tuple keyword? number?]]
    [:move-hq-rnd [:tuple keyword? number?]]
-   [:play [:tuple keyword? string?]]
+   [:play [:or [:tuple keyword? string?]
+           [:tuple keyword? string? server]]]
    [:move-server [:or [:tuple keyword? server]
                   [:tuple keyword? server card]]]
    [:prevent-access [:tuple keyword? [:enum :target :exclusive] card]]
+   [:prevent-steal-trash [:tuple keyword? duration]]
    [:trash-stack [:tuple keyword? [:or card card-list]]]
    [:prevent-net [:tuple keyword? number?]]
    [:prevent-encounter-ability [:tuple keyword? card [:or nil? string?]]]
-   [:prevent-etr [:tuple keyword? card]]
+   [:prevent-etr [:tuple keyword?]]
+   [:prevent-etr-effect [:tuple keyword? card]]
    [:gain-str [:tuple keyword? number? duration]]
    [:breach-server [:tuple keyword? server]]
    [:derez [:tuple keyword? [:or card card-list]]]
@@ -165,8 +181,8 @@
    [:reveal-self [:tuple keyword? server]]
    [:add-from-hq-to-score [:tuple keyword? string?]]
    [:add-self-to-hq [:tuple keyword? boolean?]]
-   [:trash [:tuple keyword? card]]
-   [:add-str-new [:tuple keyword? card number?]]
+   [:trash [:tuple keyword? [:or card card-list]]]
+   [:add-str-new [:tuple keyword? card number? duration]]
    [:add-sub [:tuple keyword? string?]]
    [:trash-rnd [:tuple keyword? number?]]
    [:trash-rnd-and-add [:tuple keyword? number?]]
@@ -200,13 +216,14 @@
    [:swap-ice [:tuple keyword? card card]]
    [:gain-click-next-turn [:tuple keyword? number?]]
    [:redirect-run [:tuple keyword? server]]
-   [:access [:tuple keyword? server card-list]]
+   [:access [:tuple keyword? server number?]]
    [:resolve-subroutine [:tuple keyword? card string?]]
    [:turn-faceup [:tuple keyword? card]]
    [:flip-id [:tuple keyword? string?]]
    [:change-server [:tuple keyword? server]]
    [:reveal-and-host [:tuple keyword? card]]
    [:sabotage [:tuple keyword? number?]]
+   [:prevent-rez [:tuple keyword? card duration]]
    ])
 
 (def MapEffects
@@ -242,25 +259,25 @@
    [:advance [:map [:type keyword?] [:card card]]]
    [:score [:map [:type keyword?] [:card string?] [:points {:optional true} number?]]]
    [:steal [:map [:type keyword?] [:card string?] [:points {:optional true} number?]]]
-   [:start-run [:map [:type keyword?] [:ignore-costs boolean?]]]
+   [:start-run [:map [:type keyword?] [:ignore-costs [:or boolean? nil?]]]]
    [:continue-run [:map [:type keyword?]]]
    [:jack-out [:map [:type keyword?]]]
    [:approach-ice [:map [:type keyword?] [:ice card-map]]]
-   ;; TODO need to update any offenders
    [:bypass-ice [:map [:type keyword?] [:ice card-map]]]
    [:encounter-ice [:map [:type keyword?] [:ice card-map]]]
-   [:encounter-effect [:map [:type keyword?] [:ice card]]]
+   [:encounter-effect [:map [:type keyword?] [:card card]]]
    [:pass-ice [:map [:type keyword?] [:ice card-map]]]
-   [:break-subs [:map [:type keyword?] [:ice card] [:subtype string?]
+   [:break-subs [:map [:type keyword?] [:ice card] [:subtype {:optional true} [:maybe string?]]
                  [:subs {:optional true} [:vector string?]]
                  [:break-type {:optional true} [:enum :all :remaining]]
-                 [:sub-count number?] [:str-boost {:optional true} number?]]]
+                 [:sub-count {:optional true} number?] [:str-boost {:optional true} number?]]]
    [:str-boost [:map [:type keyword?] [:strength number?]]]
    ;; TODO unify this with the rest
-   [:resolve-subs [:map [:type keyword?] [:resolved [:map [:ice card] [:resolved-subs [:vector string?]]]]]]
+   [:resolve-subs [:map [:type keyword?] [:resolved [:map [:ice card] [:subs [:vector string?]]]]]]
    [:approach-server [:map [:type keyword?] [:server server]]]
    [:breach-server [:map [:type keyword?] [:server server]]]
-   [:access [:map [:type keyword?] [:card card] [:server server]]]
+   ;; TODO would be stricter if it's card *or* :server :deck
+   [:access [:map [:type keyword?] [:card {:optional true} card] [:server server]]]
    [:access-all [:map [:type keyword?]]]
    ;; TODO more weirdness here
    [:trash [:map [:type keyword?]]]
@@ -276,6 +293,7 @@
    [:use-command [:map [:type keyword?] [:command string?]]]
    ;; TODO this needs to be fixed/cleaned up
    [:force [:map [:type keyword?]]]
+   [:win-reason [:map [:type keyword?] [:cause win-reason]]]
    ;; TODO default for testing for now
    ;; okay, so maybe we won't have a type, in which case it's *just* raw-text
    #_[::m/default [:map [:type keyword?]]]
