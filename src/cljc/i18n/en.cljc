@@ -144,13 +144,15 @@
 ;; so this takes a list of titles and :unseen
 (defn- render-card2
   [cards]
-  (let [unseen (count (filter #(= "unseen" %) cards))
-        self (some nil? cards)
-        seen (remove nil? (filter #(not (= "unseen" %)) cards))]
-    ;; TODO This is currently placing seen cards after the rest which is a bit unnatural
-    (enumerate-str (remove nil? (conj seen
-                                      (when (pos? unseen) (quantify unseen "unseen card"))
-                                      (when self "itself"))))))
+  (if cards
+    (let [unseen (count (filter #(= "unseen" %) cards))
+          self (some nil? cards)
+          seen (remove nil? (filter #(not (= "unseen" %)) cards))]
+      ;; TODO This is currently placing seen cards after the rest which is a bit unnatural
+      (enumerate-str (remove nil? (conj seen
+                                        (when (pos? unseen) (quantify unseen "unseen card"))
+                                        (when self "itself")))))
+    "them"))
 
 (defn- render-single-cost
   [cost value side]
@@ -321,7 +323,7 @@
                  (str "lower the strength of "
                       (or card "each installed icebreaker")
                       " by " strength))
-(defmethod render-effect :shuffle-into-rnd [effect side [value]] (str "shuffle " (render-card2 value) " into R&D"))
+(defmethod render-effect :shuffle-into-rnd [effect side [value]] (str "shuffle " (or (render-card2 value) "them") " into R&D"))
 (defmethod render-effect :shuffle-from-hq-into-rnd [effect side [value]] (str "shuffle " (quantify value "card") " from HQ into R&D"))
 (defmethod render-effect :rearrange-rnd [effect side [value]] (str "rearrange the top " (quantify value "card") " of R&D"))
 (defmethod render-effect :reveal-from-rnd [effect side [value]] (str "reveal " value " from the top of R&D"))
@@ -388,7 +390,7 @@
 (defmethod render-effect :draw-additional [effect side [value]] (str "draw " (quantify value "additional card")))
 (defmethod render-effect :purge [effect side [value]] "purge virus counters")
 (defmethod render-effect :reveal [effect side [value]] (let [groups (group-by :zone value)]
-          (str "to reveal "
+          (str "reveal "
                (enumerate-str (map #(str (enumerate-str (map :card (second %)))
                                          " from " (to-zone-name (first %)))
                                    groups)))))
