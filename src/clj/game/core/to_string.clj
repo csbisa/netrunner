@@ -43,12 +43,12 @@
                        {:card (get-title card)})
                      {:card-type (if installed-ice :ice :card)}
                      (when-not host
-                       (merge {:zone zone}
+                       (merge {:zone (vec zone)}
                               (when installed-ice
                                 {:pos (card-index state card)})))))
             ;; Runner card messages
             (merge {:side :runner}
                    (when-not facedown {:card (get-title card)})
                    (when facedown {:card-type :facedown})
-                   (when (:zone card) {:zone (:zone card)}))))))
+                   (when zone {:zone (vec (:zone card))})))
           (when host {:host (card-str-map state (get-card state host))}))))
