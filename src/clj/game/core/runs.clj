@@ -215,7 +215,7 @@
     (update-current-encounter state :ending true)
     (when (:bypass encounter)
       (queue-event state :bypassed-ice ice)
-      (system-msg state :runner {:type :bypass-ice :ice (:title ice)}))
+      (system-msg state :runner {:type :bypass-ice :ice (card-str-map state ice)}))
     (wait-for (end-of-phase-checkpoint state nil (make-eid state eid)
                                        :end-of-encounter
                                        {:ice ice})
