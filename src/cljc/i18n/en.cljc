@@ -98,7 +98,7 @@
            ""))
        (if hosted
          (str " hosted on " (render-card-internal hosted))
-         (when (and (= side :corp) zone)
+         (when (and (= (keyword side) :corp) zone)
            (if (not (nil? pos))
              (str " protecting "(to-zone-name zone) " at position " pos)
              ;; so for better wording this is probably "from" for a non-root?
