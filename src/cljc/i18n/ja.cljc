@@ -68,7 +68,7 @@
   [{:keys [side card card-type zone pos hosted]}]
   (str (if hosted
          (str (render-card-internal hosted) "に搭載される")
-         (if (and (= side :corp) zone)
+         (if (and (= (keyword side) :corp) zone)
            (if (not (nil? pos))
              (str (to-zone-name zone) "を位置" pos "を守っている")
              (str (to-zone-name zone) "に"))
