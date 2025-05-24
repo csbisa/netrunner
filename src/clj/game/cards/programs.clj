@@ -835,7 +835,7 @@
 
 (defcard "Chromatophores"
   (trojan
-   {:on-install {:msg (req [[:gain-type (card-str-map state (:host card)) ["Barrier" "Code Gate" "Sentry"]]])}
+   {:on-install {:msg (req [[:gain-type (card-str-map state (:host card)) ["Barrier" "Code Gate" "Sentry"] nil]])}
      :static-abilities [{:type :gain-subtype
                          :req (req (same-card? target (:host card)))
                          :value ["Barrier" "Code Gate" "Sentry"]}]}))
@@ -1338,7 +1338,7 @@
 (defcard "Egret"
   (trojan {:rezzed true})
   {:implementation "[Erratum] Program: Trojan"
-   :on-install {:msg (map-msg :gain-type [(card-str-map state (:host card)) ["Barrier" "Code Gate" "Sentry"]])}
+   :on-install {:msg (map-msg :gain-type [(card-str-map state (:host card)) ["Barrier" "Code Gate" "Sentry"] nil])}
    :static-abilities [{:type :gain-subtype
                        :req (req (same-card? target (:host card)))
                        :value ["Barrier" "Code Gate" "Sentry"]}]})
