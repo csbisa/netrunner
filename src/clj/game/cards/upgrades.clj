@@ -352,7 +352,7 @@
                                                                  (not (same-card? % rezzed-card)))}
                                            :async true
                                            :effect (req (wait-for (derez state side (get-card state target)
-                                                                         {:msg-keys {:and-then [[:add-str-new (card-str-map state rezzed-card) :end-of-run]]}})
+                                                                         {:msg-keys {:and-then [[:add-str-new (card-str-map state rezzed-card) 3 :end-of-run]]}})
                                                                   (pump-ice state side rezzed-card 3 :end-of-run)
                                                                   (effect-completed state side eid)))}}}
                            card nil)))}]})
